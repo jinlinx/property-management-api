@@ -181,7 +181,6 @@ function initPassport(server) {
                 console.log(err);
                 return cb(err); 
             })      
-            */
         }
     ));
 

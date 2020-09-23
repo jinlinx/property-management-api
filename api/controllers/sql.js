@@ -2,9 +2,9 @@ const db = require('../lib/db');
 
 async function doQuery(req, res) {
     try {
-        const res = await db.doQuery(req.query.sql);
+        const rows = await db.doQuery(req.query.sql);
   
-      return res.json(res);
+      return res.json(rows);
     } catch (err) {
       console.log(err);
       res.send(500, {
