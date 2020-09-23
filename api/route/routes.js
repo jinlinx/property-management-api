@@ -6,6 +6,10 @@ const routes = {
         method: 'get',
         func: data.getSheet,
     },
+    '/doQuery': {
+        method: 'get',
+        func: require('../controllers/sql').doQuery
+    },
     '/version': {
         auth: false,
         method: 'get',
