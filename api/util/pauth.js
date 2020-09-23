@@ -10,7 +10,13 @@ const CookieParser = require('restify-cookies');
 
 const {pickUserFields} = require('./util');
 const conf = require('../../conf.json');
-const fs = require('fs');
+const fs=require('fs');
+
+const {
+    doQuery,
+    findUser,
+    addUser,
+}=require('../lib/db');
 
 const sessionName = 'egteam:sess';
 
@@ -42,15 +48,17 @@ passport.serializeUser(function(user, done) {
     }
     if (user.email) {
         cond.push({email:user.email});
-      }
-      return done(null, {name:'fakeuser'});
-    //queries.findUser({$or:cond}).then(found=>{                
-    //    return done(null, found);         
-    //}).catch(err=> {
-    //    console.log('auth error');
-    //    console.log(err);
-    //    return done(err); 
-    //}) 
+      }      
+      findUser({
+          id: user.uuid,
+          email: user.email,
+    }).then(found=>{                
+        return done(null, found);         
+    }).catch(err=> {
+        console.log('auth error');
+        console.log(err);
+        return done(err); 
+    }) 
   });
 
 
@@ -70,20 +78,19 @@ function initPassport(server) {
     passport.use(new LocalStrategy(
         function(username, password, done) {
             console.log(`Local auth finding user ${username}`);
-            return done(null, { name: 'fakeuser' });
-            //queries.findUser({username}).then(found=>{        
-            //    console.log(`Local auth finding user ${username} found is ${found}`);
-            //    if (!validateUserPwd(found, password)) {
-            //        console.log(`Local auth finding user ${username} invalid`);
-            //        return done(null, false); 
-            //    }
-            //    console.log(`Local auth finding user ${username} good`);
-            //    return done(null, found);
-            //}).catch(err=> {
-            //    console.log('auth error');
-            //    console.log(err);
-            //    return next(err); 
-            //})      
+            findUser({username}).then(found=>{        
+                console.log(`Local auth finding user ${username} found is ${found}`);
+                if (!validateUserPwd(found, password)) {
+                    console.log(`Local auth finding user ${username} invalid`);
+                    return done(null, false); 
+                }
+                console.log(`Local auth finding user ${username} good`);
+                return done(null, found);
+            }).catch(err=> {
+                console.log('auth error');
+                console.log(err);
+                return next(err); 
+            })      
         }
       ));
 
@@ -160,14 +167,12 @@ function initPassport(server) {
                 provider: profile.provider,
                 uuid: uuid.v1(),
             };
-            console.log(`facebook login ${userData.email}`);
-            return cb(null, userData);
-            /*
-            return queries.findUser({email: userData.email}).then(found=>{                        
+            console.log(`facebook login ${userData.email}`);            
+            return findUser({email: userData.email}).then(found=>{                        
                 if (found) {
                     return cb(null, found);
                 }else {
-                    return queries.cmdInsert("Users", userData).then(()=>{
+                    return addUser("Users", userData).then(()=>{
                         cb(null, userData);
                     });
                 }
@@ -186,13 +191,12 @@ function initPassport(server) {
         const password = get(req,'authorization.basic.password');   
         if (username && password) {
             req.user = { usrname, password };
-            return next();
-            //queries.findUser({username}).then(found=>{
-            //    if (validateUserPwd(found,password)) {
-            //        req.user = found;
-            //    }
-            //    return next();   
-            //});
+            findUser({username}).then(found=>{
+                if (validateUserPwd(found,password)) {
+                    req.user = found;
+                }
+                return next();   
+            });
         }else
             return next();        
     }); 
