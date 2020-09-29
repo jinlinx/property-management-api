@@ -62,6 +62,14 @@ async function get(req, res) {
   }
 }
 
+const vmap = v => {
+  if (v === null) return 'null';
+  if (v === 0) return 0;
+  if (v === '') return "''";
+  if (v === undefined) v = '';
+  return `'${v}'`
+}
+
 async function createOrUpdate(req, res) {
   try {
     const { table, fields, create} = req.body;
@@ -76,13 +84,7 @@ async function createOrUpdate(req, res) {
     createFieldMap(model);
 
     let sqlStr = '';
-    const smap = v => {
-      if (v === null) return 'null';
-      if (v === 0) return 0;
-      if (v === '') return "''";
-      if (v === undefined) v = '';
-      return `'${v}'`
-    }
+    
     let idVal = '';
     if (create) {
 
@@ -94,7 +96,7 @@ async function createOrUpdate(req, res) {
            return idVal;
          }
          return fd;
-       }).map(smap).join(',')})`;
+       }).map(vmap).join(',')})`;
     } else {
       const { idField, values } = model.fields.reduce((acc, mf) => {
         if (mf.isId) {
@@ -116,8 +118,8 @@ async function createOrUpdate(req, res) {
         throw 'Id field not specified';
       }
       idVal = idField.value;
-      const setValMap = v=>`${v.name}=${smap(v.value)}`;
-      sqlStr = `update ${table} set ${values.map(v=>setValMap(v)).join(',')} where ${idField.name}=${smap(idField.value)}`;
+      const setValMap = v=>`${v.name}=${vmap(v.value)}`;
+      sqlStr = `update ${table} set ${values.map(v=>setValMap(v)).join(',')} where ${idField.name}=${vmap(idField.value)}`;
     }
 
     console.log(sqlStr);
@@ -133,9 +135,39 @@ async function createOrUpdate(req, res) {
     });
   }
 }
+
+
+async function del(req, res) {
+  try {
+    const { table, id} = req.body;
+    const model = models[table];
+    if (!model) {
+      const message = `No model ${table}`;
+      throw {
+        message
+      }
+    }
+
+    createFieldMap(model);
+
+    const idField = model.fields.filter(f => f.isId)[0];
+    const sqlStr = `delete from ${table} where ${idField.field}=${vmap(id)}`;
+    
+    console.log(sqlStr);
+    const rows = await db.doQuery(sqlStr);
+    return res.json(rows);
+  } catch (err) {
+    console.log(err);
+    res.send(500, {
+      message: err.message,
+      errors: err.errors
+    });
+  }
+}
   
 module.exports = {
   doQuery,
   get,
   createOrUpdate,
+  del,
 }
