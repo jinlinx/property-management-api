@@ -188,16 +188,18 @@ function initPassport(server) {
         console.log(req.url);     
         const username = get(req,'username');
         const password = get(req,'authorization.basic.password');   
-        if (username && password) {
+        if (username !== 'anonymouse' && username && password) {
             req.user = { usrname, password };
-            findUser({username}).then(found=>{
-                if (validateUserPwd(found,password)) {
+            findUser({ username }).then(found => {
+                if (validateUserPwd(found, password)) {
                     req.user = found;
                 }
-                return next();   
+                return next();
             });
-        }else
-            return next();        
+        } else {
+            req.user = 'test';
+            return next();
+        }
     }); 
     server.get('/auth/facebook', passport.authenticate('facebook'));
       

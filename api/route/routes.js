@@ -1,14 +1,18 @@
 const about = require('../controllers/about');
-const data = require('../controllers/data');
-
+const model = require('../controllers/model');
+const sql = require('../controllers/sql');
 const routes = {
-    '/getSheet' :{
-        method: 'get',
-        func: data.getSheet,
-    },
     '/doQuery': {
         method: 'get',
-        func: require('../controllers/sql').doQuery
+        func: sql.doQuery
+    },
+    '/getModel': {
+        method: 'get',
+        func: model.getModel,
+    },
+    '/sql/get': {
+        method: 'post',
+        func: sql.get,
     },
     '/version': {
         auth: false,
