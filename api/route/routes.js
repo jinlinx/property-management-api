@@ -14,6 +14,10 @@ const routes = {
         method: 'post',
         func: sql.get,
     },
+    '/sql/create': {
+        method: 'post',
+        func: sql.createOrUpdate,
+    },
     '/version': {
         auth: false,
         method: 'get',
