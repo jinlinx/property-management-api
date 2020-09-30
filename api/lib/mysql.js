@@ -3,8 +3,10 @@ const mysql=require('mysql');
 function createConn(config) {
     const conn = mysql.createPool(config || {
         connectionLimit: 3,
-        host: 'localhost',
-        user: 'lluser',
+        //host: 'localhost',
+        //user: 'lluser',
+        host: '192.168.1.119',
+        user: 'jjuser',
         password: '12345',
         database: "PM"
     });
