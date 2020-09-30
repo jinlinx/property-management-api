@@ -33,7 +33,13 @@ async function check() {
         console.log(`${tabName} good`);
         
         const mustExistDateCols = ['created', 'modified'];
-        
+        await Promise.map(mustExistDateCols, async col => {
+            if (!dbIds[col]) {
+                await doQuery(`alter table ${tabName} add column ${col} datetime;`);
+                console.log(`alter ${tabName} added ${col}`);
+            }
+        }, {concurrency: 1});
+
     }, { concurrency: 1 });
     
     
