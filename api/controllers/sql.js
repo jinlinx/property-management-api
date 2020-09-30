@@ -2,6 +2,7 @@ const db = require('../lib/db');
 const models = require('../models/index');
 const keyBy = require('lodash/keyBy');
 const uuid = require('uuid');
+const { join } = require('bluebird');
 
 async function doQuery(req, res) {
     try {
@@ -27,7 +28,8 @@ function createFieldMap(model) {
 
 async function get(req, res) {
   try {
-    const { table, fields, order } = req.body;
+    //joins:{ table:{col:als}}
+    const { table, fields, joins, order } = req.body;
     const model = models[table];
     if (!model) {
       const message = `No model ${table}`;
@@ -38,7 +40,7 @@ async function get(req, res) {
 
     createFieldMap(model);
 
-    const selects = fields ? fields.filter(f => model.fieldMap[f]).join(',') : model.fields.map(f => f.field).join(',');
+    const selectNames = fields ? fields.filter(f => `${table}.${model.fieldMap[f]}`) : model.fields.map(f => `${table}.${f.field}`);
 
     let orderby = '';
     if (order && order.length) {
@@ -48,7 +50,29 @@ async function get(req, res) {
       }
     }
 
-    const sqlStr = `select ${selects} from ${table} ${orderby}`;
+    let joinSels = [];
+    let joinTbls = [];
+    if (joins) {
+      const joinRes = model.fields.reduce((acc, f) => {
+        const fk = f.foreignKey;
+        if (fk) {
+          const joinFields = joins[fk.table];
+          if (joinFields) {
+            const fkModel = models[fk.table];
+            acc.innerJoins.push(` inner join ${fk.table} on ${table}.${f.field}=${fk.table}.${fk.field} `);
+            acc.selects = acc.selects.concat(fkModel.fields.filter(f=>joinFields[f.field]).map(f=>`${fk.table}.${f.field} '${joinFields[f.field]}'`));
+          }
+        }
+        return acc;
+      }, {
+        selects:[],
+        innerJoins:[],
+      });
+      joinSels = joinRes.selects;
+      joinTbls = joinRes.innerJoins;
+    }
+
+    const sqlStr = `select ${selectNames.concat(joinSels).join(',')} from ${[table].concat(joinTbls).join(' ')} ${orderby}`;
     console.log(sqlStr);
     const rows = await db.doQuery(sqlStr);
 
