@@ -2,6 +2,7 @@
 const restify = require('restify');
 const route = require('./api/route/route');
 const fs = require('fs');
+const check = require('./dbCheck');
 
 const HTTPS = false; //process.env.PORT?false:true;
 const serverHttpsOpt = {
@@ -22,6 +23,7 @@ function serverInit(server) {
 serverInit(server);
 
 const port = process.env.PORT || 8081;
+check.check();
 server.listen(port, function() {
   console.log(`${server.name} listening at ${server.url} HTTPS:${HTTPS}`);
 });

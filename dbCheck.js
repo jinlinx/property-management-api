@@ -46,4 +46,6 @@ async function check() {
     conn.end();
 }
 
-check();
+module.exports = {
+    check,
+}
