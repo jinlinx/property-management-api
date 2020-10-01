@@ -86,11 +86,12 @@ async function get(req, res) {
   }
 }
 
-const vmap = v => {
+const vmap = (v, formatter) => {
   if (v === null) return 'null';
   if (v === 0) return 0;
   if (v === '') return "''";
   if (v === undefined) v = '';
+  if (formatter) return formatter(v);
   return `'${v}'`
 }
 
@@ -114,13 +115,14 @@ async function createOrUpdate(req, res) {
 
       sqlStr = `insert into ${table} (${model.fields.map(f => f.field).join(',')})
        values (${model.fields.map(f => {
-         const fd = fields[f.field];
+         let val = fields[f.field];
          if (f.isId) {
            idVal = uuid.v1();
-           return idVal;
+           val= idVal;
          }
-         return fd;
-       }).map(vmap).join(',')})`;
+         if (f.formatter) return f.formatter(val);
+         return vmap(val);
+       }).join(',')})`;
     } else {
       const { idField, values } = model.fields.reduce((acc, mf) => {
         if (mf.isId) {
@@ -130,7 +132,7 @@ async function createOrUpdate(req, res) {
           if (v !== undefined) {
             acc.values.push({
               name: mf.field,
-              value: v,
+              value: (mf.formatter|| vmap)(v),
             })
           }
         }
@@ -142,7 +144,7 @@ async function createOrUpdate(req, res) {
         throw 'Id field not specified';
       }
       idVal = idField.value;
-      const setValMap = v=>`${v.name}=${vmap(v.value)}`;
+      const setValMap = v=>`${v.name}=${v.value}`;
       sqlStr = `update ${table} set ${values.map(v=>setValMap(v)).join(',')} where ${idField.name}=${vmap(idField.value)}`;
     }
 
