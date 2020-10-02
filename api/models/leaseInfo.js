@@ -1,4 +1,5 @@
-const formatter = str=> `STR_TO_DATE('${str}','%Y-%m-%d')`;
+const {formatterYYYYMMDD}=require('../util/util');
+const formatter=formatterYYYYMMDD;
 module.exports = {
     fields:
         [

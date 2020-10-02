@@ -2,7 +2,7 @@ const db = require('../lib/db');
 const models = require('../models/index');
 const keyBy = require('lodash/keyBy');
 const uuid = require('uuid');
-const { join } = require('bluebird');
+const {formatterYYYYMMDD}=require('../util/util');
 
 async function doQuery(req, res) {
     try {
@@ -21,7 +21,7 @@ async function doQuery(req, res) {
 
 
 function createFieldMap(model) {
-  if (!model.fieldMap) {
+  if(!model.fieldMap) {    
     model.fieldMap = keyBy(model.fields, 'field');
   }
 }
@@ -40,11 +40,14 @@ async function get(req, res) {
 
     createFieldMap(model);
 
-    const selectNames = fields ? fields.filter(f => `${table}.${model.fieldMap[f]}`) : model.fields.map(f => `${table}.${f.field}`);
+    const extFields=[{field: 'created'},{field: 'modified'}]
+    const fieldMap=Object.assign({},model.fieldMap, extFields.map(x=>({[x.field]:x})));
+    const modelFields=model.fields.concat(extFields);
+    const selectNames=fields? fields.filter(f => fieldMap[f]).map(`${table}.${f}`):modelFields.map(f => `${table}.${f.field}`);
 
     let orderby = '';
     if (order && order.length) {
-      const orders = order.filter(o => model.fieldMap[o.name]).map(o => ` ${o.name} ${o.asc ? 'ASC' : 'DESC'}`);
+      const orders = order.filter(o => fieldMap[o.name]).map(o => ` ${o.name} ${o.asc ? 'ASC' : 'DESC'}`);
       if (orders.length) {
         orderby = ` order by ${orders.join(', ')}`;
       }
@@ -59,7 +62,7 @@ async function get(req, res) {
           const joinFields = joins[fk.table];
           if (joinFields) {
             const fkModel = models[fk.table];
-            acc.innerJoins.push(` inner join ${fk.table} on ${table}.${f.field}=${fk.table}.${fk.field} `);
+            acc.innerJoins.push(` left outer join ${fk.table} on ${table}.${f.field}=${fk.table}.${fk.field} `);
             acc.selects = acc.selects.concat(fkModel.fields.filter(f=>joinFields[f.field]).map(f=>`${fk.table}.${f.field} '${joinFields[f.field]}'`));
           }
         }
@@ -113,7 +116,7 @@ async function createOrUpdate(req, res) {
     let idVal = '';
     if (create) {
 
-      sqlStr = `insert into ${table} (${model.fields.map(f => f.field).join(',')})
+      sqlStr = `insert into ${table} (${model.fields.map(f => f.field).join(',')},created,modified)
        values (${model.fields.map(f => {
          let val = fields[f.field];
          if (f.isId) {
@@ -122,7 +125,7 @@ async function createOrUpdate(req, res) {
          }
          if (f.formatter) return f.formatter(val);
          return vmap(val);
-       }).join(',')})`;
+       }).join(',')},NOW(),NOW())`;
     } else {
       const { idField, values } = model.fields.reduce((acc, mf) => {
         if (mf.isId) {
@@ -145,7 +148,7 @@ async function createOrUpdate(req, res) {
       }
       idVal = idField.value;
       const setValMap = v=>`${v.name}=${v.value}`;
-      sqlStr = `update ${table} set ${values.map(v=>setValMap(v)).join(',')} where ${idField.name}=${vmap(idField.value)}`;
+      sqlStr = `update ${table} set ${values.map(v=>setValMap(v)).join(',')},modified=NOW() where ${idField.name}=${vmap(idField.value)}`;
     }
 
     console.log(sqlStr);
