@@ -60,7 +60,7 @@ async function get(req, res) {
           const joinFields = joins[fk.table];
           if (joinFields) {
             const fkModel = models[fk.table];
-            acc.innerJoins.push(` inner join ${fk.table} on ${table}.${f.field}=${fk.table}.${fk.field} `);
+            acc.innerJoins.push(` left outer join ${fk.table} on ${table}.${f.field}=${fk.table}.${fk.field} `);
             acc.selects = acc.selects.concat(fkModel.fields.filter(f=>joinFields[f.field]).map(f=>`${fk.table}.${f.field} '${joinFields[f.field]}'`));
           }
         }
