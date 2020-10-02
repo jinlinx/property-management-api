@@ -8,6 +8,5 @@ module.exports={
             {field: 'phone',desc: 'Phone',},
             {field: 'taxID',desc: 'SSN',},
             {field: 'address',desc: 'Address',},
-            {field: 'driverIDState',desc: 'State',},            
         ]
 };
