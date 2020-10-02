@@ -2,7 +2,7 @@ const db = require('../lib/db');
 const models = require('../models/index');
 const keyBy = require('lodash/keyBy');
 const uuid = require('uuid');
-const { join } = require('bluebird');
+const {formatterYYYYMMDD}=require('../util/util');
 
 async function doQuery(req, res) {
     try {
@@ -21,7 +21,15 @@ async function doQuery(req, res) {
 
 
 function createFieldMap(model) {
-  if (!model.fieldMap) {
+  if(!model.fieldMap) {
+    model.fields=model.fields.concat([
+      {
+        field: 'created',desc: 'Created',formatter: formatterYYYYMMDD,
+      },
+      {
+        field: 'modified',desc: 'Modified',formatter: formatterYYYYMMDD,
+      },
+    ])
     model.fieldMap = keyBy(model.fields, 'field');
   }
 }

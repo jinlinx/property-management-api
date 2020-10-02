@@ -11,7 +11,10 @@ function getUser(req) {
     return pickUserFields(get(req,'user'));
 }
 
+const formatterYYYYMMDD=str => `STR_TO_DATE('${str}','%Y-%m-%d')`;
+
 module.exports = {
     pickUserFields,
+    formatterYYYYMMDD,
     getUser,
 };
