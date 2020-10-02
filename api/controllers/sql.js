@@ -21,15 +21,7 @@ async function doQuery(req, res) {
 
 
 function createFieldMap(model) {
-  if(!model.fieldMap) {
-    model.fields=model.fields.concat([
-      {
-        field: 'created',desc: 'Created',formatter: formatterYYYYMMDD,
-      },
-      {
-        field: 'modified',desc: 'Modified',formatter: formatterYYYYMMDD,
-      },
-    ])
+  if(!model.fieldMap) {    
     model.fieldMap = keyBy(model.fields, 'field');
   }
 }
@@ -48,11 +40,12 @@ async function get(req, res) {
 
     createFieldMap(model);
 
-    const selectNames = fields ? fields.filter(f => `${table}.${model.fieldMap[f]}`) : model.fields.map(f => `${table}.${f.field}`);
+    const fieldMap=Object.assign({},model.fieldMap,{created:true});
+    const selectNames = fields ? fields.filter(f =>fieldMap[f]).map(`${table}.${f}`) : model.fields.map(f => `${table}.${f.field}`);
 
     let orderby = '';
     if (order && order.length) {
-      const orders = order.filter(o => model.fieldMap[o.name]).map(o => ` ${o.name} ${o.asc ? 'ASC' : 'DESC'}`);
+      const orders = order.filter(o => fieldMap[o.name]).map(o => ` ${o.name} ${o.asc ? 'ASC' : 'DESC'}`);
       if (orders.length) {
         orderby = ` order by ${orders.join(', ')}`;
       }
