@@ -40,8 +40,10 @@ async function get(req, res) {
 
     createFieldMap(model);
 
-    const fieldMap=Object.assign({},model.fieldMap,{created:true});
-    const selectNames = fields ? fields.filter(f =>fieldMap[f]).map(`${table}.${f}`) : model.fields.map(f => `${table}.${f.field}`);
+    const extFields=[{field: 'created'},{field: 'modified'}]
+    const fieldMap=Object.assign({},model.fieldMap, extFields.map(x=>({[x.field]:x})));
+    const modelFields=model.fields.concat(extFields);
+    const selectNames=fields? fields.filter(f => fieldMap[f]).map(`${table}.${f}`):modelFields.map(f => `${table}.${f.field}`);
 
     let orderby = '';
     if (order && order.length) {
