@@ -121,7 +121,7 @@ async function createOrUpdate(req, res) {
     let idVal = '';
     if (create) {
 
-      sqlStr = `insert into ${table} (${model.fields.map(f => f.field).join(',')})
+      sqlStr = `insert into ${table} (${model.fields.map(f => f.field).join(',')},created,modified)
        values (${model.fields.map(f => {
          let val = fields[f.field];
          if (f.isId) {
@@ -130,7 +130,7 @@ async function createOrUpdate(req, res) {
          }
          if (f.formatter) return f.formatter(val);
          return vmap(val);
-       }).join(',')})`;
+       }).join(',')},NOW(),NOW())`;
     } else {
       const { idField, values } = model.fields.reduce((acc, mf) => {
         if (mf.isId) {
@@ -153,7 +153,7 @@ async function createOrUpdate(req, res) {
       }
       idVal = idField.value;
       const setValMap = v=>`${v.name}=${v.value}`;
-      sqlStr = `update ${table} set ${values.map(v=>setValMap(v)).join(',')} where ${idField.name}=${vmap(idField.value)}`;
+      sqlStr = `update ${table} set ${values.map(v=>setValMap(v)).join(',')},modified=NOW() where ${idField.name}=${vmap(idField.value)}`;
     }
 
     console.log(sqlStr);
