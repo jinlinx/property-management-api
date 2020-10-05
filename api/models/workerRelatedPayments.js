@@ -9,5 +9,7 @@ module.exports={
             {field: 'receivedAmount', desc: 'Received Amount', type: 'decimal'},
             {field: 'paidBy', desc: 'Paid By', },
             {field: 'leaseID', desc: 'Lease ID', foreignKey: {table: 'leaseInfo', field: 'leaseID'}},
+            {field: 'settlementID', desc: 'Settlement ID'},
+            {field: 'settlementDate', desc: 'Settlement Date', type: 'date'},
         ]
 };

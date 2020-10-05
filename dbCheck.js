@@ -14,6 +14,14 @@ function throwErr(message) {
     console.log(message);
     throw { message };
 }
+
+const typeToType=type => {
+    if ( type==='uuid' ) return 'varchar(100)';
+    if ( type==='date' ) return 'date';
+    if ( type==='datetime' ) return 'datetime';
+    if ( type==='decimal' ) return 'DECIMAL(12,2)';
+    return 'varchar(100)';
+}
 async function check() {
     await Promise.map( tables, async tabName => {
         const columnQry=() => doQuery( `SHOW COLUMNS FROM ${tabName}` );
@@ -24,14 +32,7 @@ async function check() {
         try {
             await columnQry()
         } catch ( exc ) {
-            console.log( exc.message );
-            const typeToType=type => {
-                if ( type==='uuid' ) return 'varchar(100)';
-                if ( type==='date' ) return 'date';
-                if ( type==='datetime' ) return 'datetime';
-                if ( type==='decimal' ) return 'DECIMAL(12,2)';
-                return 'varchar(100)';
-            }
+            console.log( exc.message );            
             const createSql=`create table ${tabName} (${curMod.fields.map( f => {
                 return `${f.field} ${typeToType( f.type )}`
             } ).join( ',' )})`;
@@ -46,16 +47,18 @@ async function check() {
         }, {});
         curMod.fields.forEach(myf => {
             if (!dbIds[myf.field]) {
-                throwErr(`Table ${tabName} field ${myf.field} not in DB`);
+                console.log( `Table ${tabName} field ${myf.field} not in DB` );
             }
         });
         console.log(`${tabName} good`);
         
-        const mustExistDateCols = ['created', 'modified'];
+        const mustExistDateCols=[
+            {field: 'created', type: 'datetime'}, {field: 'modified', type: 'datetime'}
+        ].concat( curMod.fields );
         await Promise.map(mustExistDateCols, async col => {
-            if (!dbIds[col]) {
-                await doQuery(`alter table ${tabName} add column ${col} datetime;`);
-                console.log(`alter ${tabName} added ${col}`);
+            if ( !dbIds[ col.field ] ) {
+                await doQuery( `alter table ${tabName} add column ${col.field} ${typeToType( col.type )};` );
+                console.log( `alter ${tabName} added ${col.field}` );
             }
         }, {concurrency: 1});
 
