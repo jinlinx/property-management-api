@@ -2,7 +2,8 @@ const db=require('../lib/db');
 const models=require('../models/index');
 const keyBy=require('lodash/keyBy');
 const uuid=require('uuid');
-
+const Promise=require('bluebird');
+const settlement=require('../models/settlement');
 
 
 async function calcMonthly(req, res) {
@@ -34,12 +35,31 @@ async function calcMonthly(req, res) {
 
 async function settleMonthly(req, res) {
     try {
-        const settlementId=uuid.v1();
-        console.log(`Settlement Id is ${settlementId}`);
-        await db.doQuery(`update workerRelatedPayments set settlementDate=NOW(), settlementID=? where settlementID is null`, settlementId);
+        const results=[];
+        const workers=await db.doQuery(`select workerID, count(1) cnt from  workerRelatedPayments where settlementID is null`);
+        if (!workers.length) {
+            return res.json({
+                message: 'No Workers Found'
+            });
+        }
 
+        const resultSettlements=await Promise.map(workers, async worker => {
+            const settlementId=uuid.v1();
+            const workerID=worker.workerID;
+            console.log(`Settlement Id is ${settlementId} for ${workerID} cnt=${worker.cnt}`);
+            await db.doQuery(`update workerRelatedPayments set settlementDate=NOW(), settlementID=? where settlementID is null and workerId=?`, [settlementId, workerID]);
+            await db.doQuery(`update workerRelatedPayments set calculatedAmount=workerCompAmount where workerCompType in('oneTime','amount') and settlementID=? and workerId=?`, [settlementId, workerID]);
+            await db.doQuery(`update workerRelatedPayments set calculatedAmount=workerCompAmount*receivedAmount*.01 where workerCompType='percent' and settlementID=? and workerId=?`, [settlementId, workerID]);
+
+            await db.doQuery(`insert into settlement (id,workerID, date, amount, title) select ?,?,NOW(), sum(calculatedAmount) from workerRelatedPayments where settlementID=?`
+            [settlementId, workerID, settlementId]);
+            const settlement=await db.doQuery(' select * from settlement where settlementID=?', [settlementId]);
+            return settlement[0];
+        });
+
+        
         return res.json({
-            message: settlementId
+            resultSettlements
         });
     } catch (err) {
         console.log(err);
