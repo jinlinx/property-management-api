@@ -8,7 +8,11 @@ module.exports={
             {field: 'receivedDate', desc: 'Received Date', type: 'date'},
             {field: 'receivedAmount', desc: 'Received Amount', type: 'decimal'},
             {field: 'paidBy', desc: 'Paid By', },
-            {field: 'leaseID', desc: 'Lease ID', foreignKey: {table: 'leaseInfo', field: 'leaseID'}},
+            { field: 'leaseID', desc: 'Lease ID', foreignKey: { table: 'leaseInfo', field: 'leaseID' } },
+            { field: 'workerCompID', desc: 'Comp ID', foreignKey: { table: 'workerComp', field: 'id' } },
+            { field: 'workerCompType', desc: 'Comp Type' },
+            { field: 'workerCompDayOfMonth', desc: 'Comp Day of Month' },
+            { field: 'workerCompDayAmount', desc: 'Comp Amount' },
             {field: 'settlementID', desc: 'Settlement ID'},
             {field: 'settlementDate', desc: 'Settlement Date', type: 'date'},
         ]
