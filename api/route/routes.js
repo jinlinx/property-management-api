@@ -1,6 +1,7 @@
 const about = require('../controllers/about');
 const model = require('../controllers/model');
-const sql = require('../controllers/sql');
+const sql=require('../controllers/sql');
+const calc=require('../controllers/calc');
 const routes = {
     '/doQuery': {
         method: 'get',
@@ -21,6 +22,14 @@ const routes = {
     '/sql/del': {
         method: 'post',
         func: sql.del,
+    },
+    '/calc/calc': {
+        method: 'get',
+        func: calc.calcMonthly,
+    },
+    '/calc/settle': {
+        method: 'get',
+        func: calc.settleMonthly,
     },
     '/version': {
         auth: false,

@@ -53,11 +53,11 @@ async function check() {
         console.log(`${tabName} good`);
         
         const mustExistDateCols=[
-            {field: 'created', type: 'datetime'}, {field: 'modified', type: 'datetime'}
+            { field: 'created', type: 'datetime', def: 'NOW()' }, { field: 'modified', type: 'datetime', def: 'NOW()' }
         ].concat( curMod.fields );
         await Promise.map(mustExistDateCols, async col => {
             if ( !dbIds[ col.field ] ) {
-                await doQuery( `alter table ${tabName} add column ${col.field} ${typeToType( col.type )};` );
+                await doQuery(`alter table ${tabName} add column ${col.field} ${typeToType(col.type)} ${col.def? ' default '+col.def:''};`);
                 console.log( `alter ${tabName} added ${col.field}` );
             }
         }, {concurrency: 1});
