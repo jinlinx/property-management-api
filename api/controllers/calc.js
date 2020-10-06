@@ -16,7 +16,7 @@ async function calcMonthly(req, res) {
         rpi.paymentID, comp.workerID, rpi.receivedDate, rpi.receivedAmount, rpi.paidBy,rpi.leaseID, NOW(), NOW(), null, null
         ,comp.id, comp.type, comp.amount
         from rentPaymentInfo rpi inner join workerComp comp on rpi.leaseID=comp.leaseID
-        where rpi.created < DATE_ADD( DATE_ADD(LAST_DAY(NOW()), INTERVAL 1 DAY), INTERVAL - 1 MONTH)
+        where rpi.receivedDate < DATE_ADD( DATE_ADD(LAST_DAY(NOW()), INTERVAL 1 DAY), INTERVAL - 1 MONTH)
         and NOT EXISTS(select 1 from workerRelatedPayments pmts where pmts.workerID=comp.workerID and pmts.paymentID=rpi.paymentID)
         `);
         return res.json({
