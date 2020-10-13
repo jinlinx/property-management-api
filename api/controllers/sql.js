@@ -69,7 +69,7 @@ async function doGet(req, res) {
 
     let orderby = '';
     if (order && order.length) {
-      const orders = order.filter(o => fieldMap[o.name]).map(o => ` ${o.name} ${o.asc ? 'ASC' : 'DESC'}`);
+      const orders = order.filter(o => fieldMap[o.name] && o.op).map(o => ` ${o.name} ${o.op === 'asc' ? 'ASC' : 'DESC'}`);
       if (orders.length) {
         orderby = ` order by ${orders.join(', ')}`;
       }
