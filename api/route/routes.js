@@ -13,7 +13,7 @@ const routes = {
     },
     '/sql/get': {
         method: 'post',
-        func: sql.get,
+        func: sql.doGet,
     },
     '/sql/create': {
         method: 'post',

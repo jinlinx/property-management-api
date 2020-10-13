@@ -1,6 +1,7 @@
 const db = require('../lib/db');
 const models = require('../models/index');
 const keyBy = require('lodash/keyBy');
+const get = require('lodash/get');
 const uuid = require('uuid');
 const {formatterYYYYMMDD}=require('../util/util');
 
@@ -36,7 +37,7 @@ const goodOps = Object.freeze({
   '<>': true,
 });
 
-async function get(req, res) {
+async function doGet(req, res) {
   try {
     //joins:{ table:{col:als}}
     const { table, fields, joins, order,
@@ -97,28 +98,47 @@ async function get(req, res) {
     }
 
     let whereStr = '';
+    let wherePrm = [];
     if (whereArray) {
-      whereStr = ' where ' + whereArray.map(w => {
+      const pushNop = ()=>{
+        acc.whr.push('1=?');
+        acc.prms.push('1');
+      };
+      const whereRed = whereArray.reduce((acc,w) => {
         if (fieldMap[w.field]) {
-
           if (goodOps[w.op]) {
-            return `${w.field} ${w.op} ?`;
+            acc.whr.push(`${w.field} ${w.op} ?`);
+            acc.prms.push(w.val);
+          }else {
+            console.log(`Warning bad op ${w.field} ${w.op}`);
+            pushNop();
           }
-          console.log(`Warning bad op ${w.field} ${w.op}`);
-          return ' 1=1 ';
         } else {
           console.log(`Warning field not mapped ${w.field}`);
-          return ' 1=1 ';
+          pushNop();
         }
-      }).join(' and ');
+        return acc;
+      }, {
+        whr: [],
+        prms:[],
+      });
+      whereStr = whereRed.whr;
+      wherePrm = whereRed.prms;
     }
 
-    const sqlStr = `select ${selectNames.concat(joinSels).join(',')} from ${[table].concat(joinTbls).join(' ')} ${orderby}
+    const fromAndWhere = ` from ${[table].concat(joinTbls).join(' ')} ${whereStr} `;
+    const sqlStr = `select ${selectNames.concat(joinSels).join(',')} ${fromAndWhere} ${orderby}
     limit ${offset}, ${rowCount}`;
     console.log(sqlStr);
-    const rows = await db.doQuery(sqlStr);
+    const countRes = await db.doQueryOneRow(`select count(1) cnt ${fromAndWhere}`);
+    const rows = await db.doQuery(sqlStr,wherePrm);
 
-    return res.json(rows);
+    return res.json({
+      offset,
+      rowCount,
+      total: get(countRes, 'cnt'),
+      rows,
+    });
   } catch (err) {
     console.log(err);
     res.send(500, {
@@ -235,7 +255,7 @@ async function del(req, res) {
   
 module.exports = {
   doQuery,
-  get,
+  doGet,
   createOrUpdate,
   del,
 }

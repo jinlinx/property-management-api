@@ -20,9 +20,15 @@ function createConn(config) {
         });
     }
 
+    async function doQueryOneRow(sql, parm) {
+        const rows = await doQuery(sql, parm);
+        return rows[0];
+    }
+
     return {
         conn,
         doQuery,
+        doQueryOneRow,
     }
 }
 
