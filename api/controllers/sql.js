@@ -26,10 +26,22 @@ function createFieldMap(model) {
   }
 }
 
+const goodOps = Object.freeze({
+  '>': true,
+  '>=': true,
+  '=': true,
+  '<': true,
+  '<=': true,
+  '!=': true,
+  '<>': true,
+});
+
 async function get(req, res) {
   try {
     //joins:{ table:{col:als}}
-    const { table, fields, joins, order } = req.body;
+    const { table, fields, joins, order,
+      whereArray, offset = 0, rowCount = 2147483647
+    } = req.body;
     const model = models[table];
     if (!model) {
       const message = `No model ${table}`;
@@ -38,6 +50,15 @@ async function get(req, res) {
       }
     }
 
+    if (parseInt(offset) !== offset)
+      throw {
+        message: 'Bad offset ' + offset
+      }
+    if (parseInt(rowCount) !== rowCount) {
+      throw {
+        message: 'Bad rowCount ' + rowCount
+      }
+    }
     createFieldMap(model);
 
     const extFields=[{field: 'created'},{field: 'modified'}]
@@ -75,7 +96,25 @@ async function get(req, res) {
       joinTbls = joinRes.innerJoins;
     }
 
-    const sqlStr = `select ${selectNames.concat(joinSels).join(',')} from ${[table].concat(joinTbls).join(' ')} ${orderby}`;
+    let whereStr = '';
+    if (whereArray) {
+      whereStr = ' where ' + whereArray.map(w => {
+        if (fieldMap[w.field]) {
+
+          if (goodOps[w.op]) {
+            return `${w.field} ${w.op} ?`;
+          }
+          console.log(`Warning bad op ${w.field} ${w.op}`);
+          return ' 1=1 ';
+        } else {
+          console.log(`Warning field not mapped ${w.field}`);
+          return ' 1=1 ';
+        }
+      }).join(' and ');
+    }
+
+    const sqlStr = `select ${selectNames.concat(joinSels).join(',')} from ${[table].concat(joinTbls).join(' ')} ${orderby}
+    limit ${offset}, ${rowCount}`;
     console.log(sqlStr);
     const rows = await db.doQuery(sqlStr);
 
