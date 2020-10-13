@@ -2,6 +2,7 @@ const mysql=require('./mysql');
 const {
     conn,
     doQuery,
+    doQueryOneRow,
 }=mysql.createConn();
 
 async function findUser(qryPrms) {
@@ -22,5 +23,6 @@ async function findUser(qryPrms) {
 module.exports={
     conn,
     doQuery,
+    doQueryOneRow,
     findUser,
 }
