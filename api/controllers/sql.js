@@ -50,6 +50,7 @@ async function doGet(req, res) {
         message
       }
     }
+    const tableOrView = get(model,['view','name'], table);
 
     if (parseInt(offset) !== offset)
       throw {
@@ -65,7 +66,7 @@ async function doGet(req, res) {
     const extFields=[{field: 'created'},{field: 'modified'}]
     const fieldMap=Object.assign({},model.fieldMap, extFields.map(x=>({[x.field]:x})));
     const modelFields=model.fields.concat(extFields);
-    const selectNames=fields? fields.filter(f => fieldMap[f]).map(`${table}.${f}`):modelFields.map(f => `${table}.${f.field}`);
+    const selectNames=fields? fields.filter(f => fieldMap[f]).map(`${f}`):modelFields.map(f => `${f.field}`);
 
     let orderby = '';
     if (order && order.length) {
@@ -104,14 +105,10 @@ async function doGet(req, res) {
         const pushNop = ()=>{
           acc.whr.push('1=?');
           acc.prms.push('1');
-        };
-        const tblModel = models[w.table];
-        if (!tblModel) return acc;
-        const fieldMap = tblModel.fieldMap;
-        if (!fieldMap) return acc;
+        };        
         if (fieldMap[w.field]) {
           if (goodOps[w.op]) {
-            acc.whr.push(`${w.table}.${w.field} ${w.op} ?`);
+            acc.whr.push(`${w.field} ${w.op} ?`);
             acc.prms.push(w.val);
           }else {
             console.log(`Warning bad op ${w.field} ${w.op}`);
@@ -132,7 +129,7 @@ async function doGet(req, res) {
       wherePrm = whereRed.prms;
     }
 
-    const fromAndWhere = ` from ${[table].concat(joinTbls).join(' ')} ${whereStr} `;
+    const fromAndWhere = ` from ${[tableOrView].concat(joinTbls).join(' ')} ${whereStr} `;
     const sqlStr = `select ${selectNames.concat(joinSels).join(',')} ${fromAndWhere} ${orderby}
     limit ${offset}, ${rowCount}`;
     console.log(sqlStr);

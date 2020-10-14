@@ -62,6 +62,11 @@ async function check() {
             }
         }, {concurrency: 1});
 
+        const curView = curMod.view
+        if (curView) {
+            await doQuery(`create or replace view ${curView.name} as ${curView.content}`);
+        }
+
     }, { concurrency: 1 });
     
     
