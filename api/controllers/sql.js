@@ -66,7 +66,7 @@ async function doGet(req, res) {
     const extFields=[{field: 'created'},{field: 'modified'}]
     const fieldMap=Object.assign({},model.fieldMap, extFields.map(x=>({[x.field]:x})));
     const modelFields=model.fields.concat(extFields);
-    const selectNames=fields? fields.filter(f => fieldMap[f]).map(`${f}`):modelFields.map(f => `${f.field}`);
+    const selectNames=fields? fields.filter(f => fieldMap[f]).map(`${tableOrView}.${f}`):modelFields.map(f => `${tableOrView}.${f.field}`);
 
     let orderby = '';
     if (order && order.length) {
