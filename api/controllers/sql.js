@@ -99,15 +99,19 @@ async function doGet(req, res) {
 
     let whereStr = '';
     let wherePrm = [];
-    if (whereArray) {
-      const pushNop = ()=>{
-        acc.whr.push('1=?');
-        acc.prms.push('1');
-      };
+    if (whereArray) {      
       const whereRed = whereArray.reduce((acc,w) => {
+        const pushNop = ()=>{
+          acc.whr.push('1=?');
+          acc.prms.push('1');
+        };
+        const tblModel = models[w.table];
+        if (!tblModel) return acc;
+        const fieldMap = tblModel.fieldMap;
+        if (!fieldMap) return acc;
         if (fieldMap[w.field]) {
           if (goodOps[w.op]) {
-            acc.whr.push(`${w.field} ${w.op} ?`);
+            acc.whr.push(`${w.table}.${w.field} ${w.op} ?`);
             acc.prms.push(w.val);
           }else {
             console.log(`Warning bad op ${w.field} ${w.op}`);
@@ -122,7 +126,9 @@ async function doGet(req, res) {
         whr: [],
         prms:[],
       });
-      whereStr = whereRed.whr;
+      if (whereRed.whr.length) {
+        whereStr = ` where ${whereRed.whr.join(' and ')}`;
+      }
       wherePrm = whereRed.prms;
     }
 
@@ -130,7 +136,7 @@ async function doGet(req, res) {
     const sqlStr = `select ${selectNames.concat(joinSels).join(',')} ${fromAndWhere} ${orderby}
     limit ${offset}, ${rowCount}`;
     console.log(sqlStr);
-    const countRes = await db.doQueryOneRow(`select count(1) cnt ${fromAndWhere}`);
+    const countRes = await db.doQueryOneRow(`select count(1) cnt ${fromAndWhere}`,wherePrm);
     const rows = await db.doQuery(sqlStr,wherePrm);
 
     return res.json({
