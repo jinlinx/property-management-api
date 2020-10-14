@@ -51,6 +51,7 @@ async function doGet(req, res) {
       }
     }
     const tableOrView = get(model,['view','name'], table);
+    const viewFields = get(model,['view','fields'],[]);
 
     if (parseInt(offset) !== offset)
       throw {
@@ -65,7 +66,7 @@ async function doGet(req, res) {
 
     const extFields=[{field: 'created'},{field: 'modified'}]
     const fieldMap=Object.assign({},model.fieldMap, extFields.map(x=>({[x.field]:x})));
-    const modelFields=model.fields.concat(extFields);
+    const modelFields=model.fields.concat(extFields).concat(viewFields);
     const selectNames=fields? fields.filter(f => fieldMap[f]).map(`${tableOrView}.${f}`):modelFields.map(f => `${tableOrView}.${f.field}`);
 
     let orderby = '';
