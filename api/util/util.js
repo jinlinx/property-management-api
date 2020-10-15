@@ -13,8 +13,11 @@ function getUser(req) {
 
 const formatterYYYYMMDD=str => `STR_TO_DATE('${str}','%Y-%m-%d')`;
 
+const extensionFields = Object.freeze([{ field: 'created' }, { field: 'modified' }]);
+
 module.exports = {
     pickUserFields,
     formatterYYYYMMDD,
     getUser,
+    extensionFields,
 };

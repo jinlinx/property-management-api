@@ -1,6 +1,8 @@
 const mysql = require('./api/lib/mysql');
 
 const mod = require('./api/models/index');
+const { extensionFields } = require('./api/util/util');
+
 const Promise = require('bluebird');
 
 const {
@@ -64,7 +66,18 @@ async function check() {
 
         const curView = curMod.view
         if (curView) {
-            await doQuery(`create or replace view ${curView.name} as ${curView.content}`);
+            const select = 'select ' + curMod.fields.concat(extensionFields).map(f => `${tabName}.${f.field}`)
+                .concat(curView.fields.map(f=>`${f.table}.${f.field} ${f.name}`))
+                .join(',');
+            const innerJoin = curMod.fields.map(f => {
+                const fk = f.foreignKey;
+                if (fk) {
+                    return (` left outer join ${fk.table} on ${tabName}.${f.field}=${fk.table}.${fk.field} `);
+                }
+            }).join(' ');
+            const createViewSql = `create or replace view ${curView.name} as ${select} from ${tabName} ${innerJoin}`;
+            console.log(createViewSql);
+            await doQuery(createViewSql);
         }
 
     }, { concurrency: 1 });

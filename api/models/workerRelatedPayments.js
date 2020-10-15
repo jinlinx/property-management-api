@@ -1,5 +1,6 @@
 const {formatterYYYYMMDD}=require( '../util/util' );
-const formatter=formatterYYYYMMDD;
+const formatter = formatterYYYYMMDD;
+/// internal table
 module.exports={
     fields:
         [

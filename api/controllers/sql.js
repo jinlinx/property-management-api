@@ -3,7 +3,7 @@ const models = require('../models/index');
 const keyBy = require('lodash/keyBy');
 const get = require('lodash/get');
 const uuid = require('uuid');
-const {formatterYYYYMMDD}=require('../util/util');
+const {formatterYYYYMMDD, extensionFields}=require('../util/util');
 
 async function doQuery(req, res) {
     try {
@@ -64,7 +64,7 @@ async function doGet(req, res) {
     }
     createFieldMap(model);
 
-    const extFields=[{field: 'created'},{field: 'modified'}].concat(viewFields)
+    const extFields=extensionFields.concat(viewFields)
     const fieldMap=Object.assign({},model.fieldMap, keyBy(extFields,'field'));
     const modelFields=model.fields.concat(extFields);
     const selectNames=fields? fields.filter(f => fieldMap[f]).map(`${tableOrView}.${f}`):modelFields.map(f => `${tableOrView}.${f.field}`);

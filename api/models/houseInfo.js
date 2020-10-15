@@ -11,7 +11,7 @@ module.exports = {
     view:{
         name:'view_house',
         fields:[
-            {field:'ownerName', desc:' Owner Name'}
+            {name:'ownerName', field:'ownerName', desc:'Owner Name', table:'ownerInfo'}
         ],
         content:'select houseID, address, city, state, zip, h.ownerID ownerID, ownerName, h.created, h.modified from houseInfo h left outer join ownerInfo o on h.ownerID=o.ownerID'
     }
