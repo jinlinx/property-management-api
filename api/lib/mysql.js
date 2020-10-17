@@ -5,7 +5,7 @@ function createConn(config) {
         connectionLimit: 3,
         //host: 'localhost',
         //user: 'lluser',
-        host: '192.168.1.119',
+        host: 'localhost',
         user: 'jjuser',
         password: '12345',
         database: "PM"
