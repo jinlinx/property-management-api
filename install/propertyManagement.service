@@ -2,8 +2,9 @@
 Description=propertyManagement
 After=network.target
 
+#log with journalctl -u propertyManagement.service
 [Service]
-ExecStart=/usr/local/bin/node /home/pi/property-management-api/server.js >> /home/pi/logs/pm.log 2>&1 &
+ExecStart=/usr/local/bin/node /home/pi/property-management-api/server.js 
 WorkingDirectory=/home/pi/property-management-api
 StandardOutput=inherit
 StandardError=inherit
