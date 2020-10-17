@@ -77,7 +77,11 @@ async function check() {
             }).join(' ');
             const createViewSql = `create or replace view ${curView.name} as ${select} from ${tabName} ${innerJoin}`;
             console.log(createViewSql);
-            await doQuery(createViewSql);
+            try {
+                await doQuery(createViewSql);
+            } catch (err) {
+                console.log(`${createViewSql} ${err.message}`);
+            }
         }
 
     }, { concurrency: 1 });
