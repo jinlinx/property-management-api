@@ -58,9 +58,15 @@ async function check() {
             { field: 'created', type: 'datetime', def: 'NOW()' }, { field: 'modified', type: 'datetime', def: 'NOW()' }
         ].concat( curMod.fields );
         await Promise.map(mustExistDateCols, async col => {
-            if ( !dbIds[ col.field ] ) {
-                await doQuery(`alter table ${tabName} add column ${col.field} ${typeToType(col.type)} ${col.def? ' default '+col.def:''};`);
-                console.log( `alter ${tabName} added ${col.field}` );
+            if (!dbIds[col.field]) {
+                const alterTblSql = `alter table ${tabName} add column ${col.field} ${typeToType(col.type)} ${col.def ? ' default ' + col.def : ''};`;
+                try {
+                    await doQuery(alterTblSql);
+                    console.log(`alter ${tabName} added ${col.field}`);
+                } catch (err) {
+                    console.log(`alter table failed ${alterTblSql} ${err.message}`);
+                    throw err;
+                }
             }
         }, {concurrency: 1});
 
