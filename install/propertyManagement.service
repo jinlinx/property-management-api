@@ -3,7 +3,7 @@ Description=propertyManagement
 After=network.target
 
 [Service]
-ExecStart=/usr/local/bin/node /home/pi/property-management-api/server.js > /home/pi/logs/pm.log 2>&1 &
+ExecStart=/usr/local/bin/node /home/pi/property-management-api/server.js >> /home/pi/logs/pm.log 2>&1 &
 WorkingDirectory=/home/pi/property-management-api
 StandardOutput=inherit
 StandardError=inherit
