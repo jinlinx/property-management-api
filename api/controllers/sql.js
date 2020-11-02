@@ -256,10 +256,50 @@ async function del(req, res) {
     });
   }
 }
+
+async function getDatabases(req, res) {
+  const dbs = await db.getAllDatabases();
+  return res.json(dbs);
+}
+
+async function getTables(req, res) {
+  const dbs = await db.getAllTables();
+  return res.json(dbs);
+}
+
+async function getTableInfo(req, res) {
+  const table = req.query.table;
+  const fields = await db.getTableFields(table);
+  const indexes = await db.getTableIndexes(table);
+  const constraints = await db.getTableConstraints(table);
+  res.json({
+    fields,
+    indexes,
+    constraints,
+  })
+}
+
+async function freeFormSql(req, res) {
+  try {
+    const rows = await conn.doQuery(req.body.sql);
+    return res.json(rows);
+  } catch (err) {
+    console.log(err);
+    res.send(500, {
+      message: err.message,
+      errors: err.errors
+    });
+  }
+}
   
 module.exports = {
   doQuery,
   doGet,
   createOrUpdate,
   del,
+
+  getDatabases,
+  getTables,
+  getTableInfo,
+  freeFormSql,
 }
