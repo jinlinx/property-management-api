@@ -5,7 +5,7 @@ function createConn(config) {
         connectionLimit: 3,
         //host: 'localhost',
         //user: 'lluser',
-        host: process.env.DBHOST || '192.168.1.40',
+        host: process.env.DBHOST || 'localhost',
         user: 'jjuser',
         password: '12345',
         database: "PM"
