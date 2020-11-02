@@ -23,6 +23,22 @@ const routes = {
         method: 'post',
         func: sql.del,
     },
+    '/sql/getDatabases': {
+        method: 'get',
+        func: sql.getDatabases,
+    },
+    '/sql/getTables': {
+        method: 'get',
+        func: sql.getTables,
+    },
+    '/sql/getTableInfo': {
+        method: 'get',
+        func: sql.getTableInfo,
+    },
+    '/sql/freeFormSql': {
+        method: 'post',
+        func: sql.freeFormSql,
+    },
     '/calc/calc': {
         method: 'get',
         func: calc.calcMonthly,
