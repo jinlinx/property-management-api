@@ -281,7 +281,9 @@ async function getTableInfo(req, res) {
 
 async function freeFormSql(req, res) {
   try {
-    const rows = await conn.doQuery(req.body.sql);
+    const sqlStr = req.body.sql;
+    console.log(sqlStr);
+    const rows = await db.doQuery(sqlStr);
     return res.json(rows);
   } catch (err) {
     console.log(err);
