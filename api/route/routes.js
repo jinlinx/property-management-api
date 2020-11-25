@@ -1,7 +1,8 @@
 const about = require('../controllers/about');
 const model = require('../controllers/model');
 const sql=require('../controllers/sql');
-const calc=require('../controllers/calc');
+const calc = require('../controllers/calc');
+const email = require('../controllers/email');
 const routes = {
     '/doQuery': {
         method: 'get',
@@ -46,6 +47,10 @@ const routes = {
     '/calc/settle': {
         method: 'get',
         func: calc.settleMonthly,
+    },
+    '/util/sendMail': {
+        method: 'post',
+        func: email.sendEmail,
     },
     '/version': {
         auth: false,
