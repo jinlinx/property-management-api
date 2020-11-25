@@ -2,7 +2,34 @@
 const nodemailer = require('nodemailer');
 const fs = require('fs');
 
-function sendGmail(mailOptions) {
+function sendHotmail(mailOptions) {
+    const auth = JSON.parse(fs.readFileSync('./credentials.json').toString()).emailInfo;
+    return new Promise((resolve, reject) => {
+        nodemailer.createTestAccount((err, account) => {
+            const transporter = nodemailer.createTransport({
+                host: 'smtp-mail.outlook.com', // Gmail Host
+                port: 587, // Port
+                secureConnection: false, 
+                auth,
+                tls: {
+                    ciphers: 'SSLv3'
+                },
+            });
+
+            transporter.sendMail(mailOptions, (error, info) => {
+                if (error) {
+                    console.log(error);
+                    return reject(error);
+                }
+                console.log('Message sent: %s', info.messageId);
+                resolve(info);
+            });
+        });
+    });
+}
+
+
+function sendGmailGoogle(mailOptions) {
     const auth = JSON.parse(fs.readFileSync('./credentials.json').toString()).emailInfo;
     return new Promise((resolve, reject) => {
         nodemailer.createTestAccount((err, account) => {
@@ -26,5 +53,5 @@ function sendGmail(mailOptions) {
 }
 
 module.exports = {
-    sendGmail,
+    sendHotmail,
 };

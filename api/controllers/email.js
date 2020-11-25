@@ -10,7 +10,7 @@ function sendEmail(req, res) {
     }
     //const to = ['a@a.com'];
     //from '"GGBot" <gzhangx@gmail.com>',
-    return email.sendGmail({
+    return email.sendHotmail({
         from,
         to,
         subject,
