@@ -267,6 +267,40 @@ async function getTables(req, res) {
   return res.json(dbs);
 }
 
+async function importPayment(req, res) {
+  const { transactions } = req.body;
+  if (!transactions || !transactions.length) {
+    return res.json({
+      message: 'no transactions'
+    });
+  }
+  const result = await Promise.map(transactions, async t => {
+    if (!t.date.match(/^\d{4}-\d{2}-\d{2}$/)) {
+      return {
+        data: t,
+        error: `Date mismatch ${t.date}`,
+      }
+    }
+    const parms = [t.date, t.amount, t.name, t.notes || '', t.source || ''];
+    const existing = await db.doQuery(`select 1 * from importPayments where date=? and amount=? and name=? and notes=? and source=?`,
+      parms);
+    if (existing.length) {
+      return {
+        data: t,
+        imported: 0,
+      }
+    } else {
+      await db.doQuery(`insert into importPayments (date, amount, name,notes, source) values(?,?,?,?,?)`,
+        parms)
+      return {
+        data: t,
+        imported: 1,
+      }
+    }
+  });
+  return res.json(result);
+}
+
 async function getTableInfo(req, res) {
   const table = req.query.table;
   const fields = await db.getTableFields(table);
