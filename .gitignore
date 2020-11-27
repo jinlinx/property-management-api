@@ -1,5 +1,6 @@
 node_modules
 credentials.json
 .vscode
+.idea
 conf.json
 build
