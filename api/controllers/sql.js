@@ -339,4 +339,6 @@ module.exports = {
   getTables,
   getTableInfo,
   freeFormSql,
+
+  importPayment,
 }

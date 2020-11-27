@@ -40,6 +40,10 @@ const routes = {
         method: 'post',
         func: sql.freeFormSql,
     },
+    '/sql/importPayment': {
+        method: 'post',
+        func: sql.importPayment,
+    },
     '/calc/calc': {
         method: 'get',
         func: calc.calcMonthly,
