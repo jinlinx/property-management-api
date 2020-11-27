@@ -267,6 +267,30 @@ async function getTables(req, res) {
   return res.json(dbs);
 }
 
+async function importPayment(req, res) {
+  const { date, amount, name, notes, source } = req.body;
+  if (!date.match(/^\d{4}-\d{2}-\d{2}$/)) {
+    return res.json({
+      error: `Date mismatch ${date}`,
+    })
+  }
+    
+  const parms = [date, amount, name, notes || '', source || ''];
+  const existing = await db.doQuery(`select 1 from importPayments where date=? and amount=? and name=? and notes=? and source=?`,
+    parms);
+  if (existing.length) {
+    return res.json({
+      imported: 0,
+    });
+  } else {
+    await db.doQuery(`insert into importPayments (date, amount, name,notes, source) values(?,?,?,?,?)`,
+      parms)
+    return res.json({
+      imported: 1,
+    })
+  }
+}
+
 async function getTableInfo(req, res) {
   const table = req.query.table;
   const fields = await db.getTableFields(table);
@@ -305,4 +329,6 @@ module.exports = {
   getTables,
   getTableInfo,
   freeFormSql,
+
+  importPayment,
 }
