@@ -1,6 +1,7 @@
 module.exports = {
     fields:
         [
+            { field: 'id', desc: 'Id' },
             { field: 'date', desc: 'Date', type: 'date' },
             { field: 'amount', desc: 'Amount', type: 'decimal' },
             { field: 'name', desc: 'Name', },
