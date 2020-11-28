@@ -283,8 +283,9 @@ async function importPayment(req, res) {
       imported: 0,
     });
   } else {
-    await db.doQuery(`insert into importPayments (date, amount, name,notes, source) values(?,?,?,?,?)`,
-      parms)
+
+    await db.doQuery(`insert into importPayments (id,date, amount, name,notes, source) values(?,?,?,?,?,?)`,
+      [uuid.v1()].concat(parms))
     return res.json({
       imported: 1,
     })
