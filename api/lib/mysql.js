@@ -8,7 +8,8 @@ function createConn(config) {
         host: process.env.DBHOST || 'localhost',
         user: 'jjuser',
         password: '12345',
-        database: "PM"
+        database: "PM",
+        charset: "utf8mb4_unicode_ci",
     });
 
     function doQuery(sql, param = []) {
