@@ -8,5 +8,6 @@ module.exports = {
             { field: 'notes', desc: 'Notes', },
             { field: 'source', desc: 'source', },
             { field: 'matchedTo', desc: 'Matched To' },
+            { field: 'deleted', desc: 'Deleted' },
         ]        
 };
