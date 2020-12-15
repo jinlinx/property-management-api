@@ -1,4 +1,5 @@
-const request = require('superagent');
+//const request = require('superagent');
+const db = require('../../api/lib/db');
 const Promise = require('bluebird');
 const fs = require('fs');
 const sheet = require('./getSheet').createSheet();
@@ -9,22 +10,43 @@ async function submit(datas, host) {
     const allRes = await Promise.map(datas, async data => {
         const me = cur++;
         console.log(`processing ${me}/${datas.length}`);        
-        return await request.post(`http://${host ||'192.168.1.41:8081'}/sql/importPayment`).send(
-            {
-                date: data.date,
-                amount: data.amount,
-                name: data.name,
-                notes: data.notes,
-                source: data.source,
-            }
-        ).then(res => {
-            console.log(res.body);            
-            console.log(`done ${me}/${datas.length}`);
-            return res.body;
-        });
+        // return await request.post(`http://${host ||'192.168.1.41:8081'}/sql/importPayment`).send(
+        //     {
+        //         date: data.date,
+        //         amount: data.amount,
+        //         name: data.name,
+        //         notes: data.notes,
+        //         source: data.source,
+        //     }
+        // ).then(res => {
+        //     console.log(res.body);            
+        //     console.log(`done ${me}/${datas.length}`);
+        //     return res.body;
+        // });
+        const { date, amount, name, notes, source } = data;
+        const parms = [date, amount, name, notes || '', source || ''];
+        const existing = await db.doQuery(`select 1 from importPayments where date=? and amount=? and name=? and notes=? and source=?`,
+            parms);
+        if (existing.length) {
+            return ({
+                ...data,
+                imported: 0,
+            });
+        } else {
+
+            const id = uuid.v1();
+            await db.doQuery(`insert into importPayments (id,date, amount, name,notes, source) values(?,?,?,?,?,?)`,
+                [id].concat(parms))
+            return ({
+                ...data,
+                id,
+                imported: 1,
+            })
+        }
     }, { concurrency: 5 });    
     const imported = allRes.filter(r => r.imported);
     console.log(`imported=${imported.length}, all itemps ${allRes.length} `);
+    return allRes;
 }
 
 

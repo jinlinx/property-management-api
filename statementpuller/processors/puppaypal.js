@@ -58,6 +58,7 @@ async function doJob(pupp, creds) {
             await sleep(1000);
             await saveScreenshoot();
             try {
+                //recaptcha-checkbox-border
                 const recap = await pupp.findById('recaptcha-anchor');
                 console.log('found recapture');
                 await recap.click();
