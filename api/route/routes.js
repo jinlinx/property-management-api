@@ -3,6 +3,7 @@ const model = require('../controllers/model');
 const sql=require('../controllers/sql');
 const calc = require('../controllers/calc');
 const email = require('../controllers/email');
+const statement = require('../controllers/statements');
 const routes = {
     '/doQuery': {
         method: 'get',
@@ -55,6 +56,10 @@ const routes = {
     '/util/sendMail': {
         method: 'post',
         func: email.sendEmail,
+    },
+    '/misc/statement': {
+        method: 'get',
+      func:statement.doStatement,  
     },
     '/version': {
         auth: false,

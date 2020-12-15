@@ -1,6 +1,8 @@
 node_modules
 credentials.json
+creds.json
 .vscode
 .idea
 conf.json
 build
+outputData
