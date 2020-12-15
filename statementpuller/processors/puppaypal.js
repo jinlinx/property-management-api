@@ -9,11 +9,12 @@ async function process(creds, timeout=1000*60*5) {
     const pupp = await createPuppeteer(envCfg.getCfg());
     return new Promise(async (resolve, reject) => {            
         try {
-            setTimeout(async () => {
+            const tout = setTimeout(async () => {
                 reject(new Error('Timeout'));
                 await pupp.close();
             }, timeout);
             resolve(await doJob(pupp, creds));
+            clearTimeout(tout);
         } finally {
             await pupp.close();
         }
