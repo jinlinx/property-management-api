@@ -5,13 +5,19 @@ const { sleep, waitElement
 
 const { createPuppeteer } = require('../lib/chromPupp');
 const envCfg = require('../lib/env');
-async function process(creds) {
-    const pupp = await createPuppeteer(envCfg.getCfg());    
-    try {
-        return await doJob(pupp, creds);
-    } finally {
-        await pupp.close();
-    }
+async function process(creds, timeout=1000*60*5) {
+    const pupp = await createPuppeteer(envCfg.getCfg());
+    return new Promise(async (resolve, reject) => {            
+        try {
+            setTimeout(async () => {
+                reject(new Error('Timeout'));
+                await pupp.close();
+            }, timeout);
+            resolve(await doJob(pupp, creds));
+        } finally {
+            await pupp.close();
+        }
+    });
 }
 
 async function doJob(pupp, creds) {
@@ -60,8 +66,10 @@ async function doJob(pupp, creds) {
                 console.log(e.message);
             }
             await saveScreenshoot();
-            const curr = await pupp.findByCSS('.test_balance-tile-currency');
-            if (!curr) throw { message: 'not login' }
+            const curr = await pupp.findByCSS('.test_balance-tile-currency');            
+            const myAcct = await pupp.findById('myaccount-button');
+            if (!curr && !myAcct) throw { message: 'not login' }
+            if (myAcct) await myAcct.click();
         }
     });
 
