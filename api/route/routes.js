@@ -61,6 +61,10 @@ const routes = {
         method: 'get',
       func:statement.doStatement,  
     },
+    '/misc/gsimport': {
+        method: 'get',
+        func: statement.doGsImport,
+    },
     '/version': {
         auth: false,
         method: 'get',
