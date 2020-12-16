@@ -4,8 +4,13 @@ async function doStatement(req, res) {
     const date = new Date();
     console.log(`statement ${date}`);
     if (req.query.who === 'paypal') {
-        const pres = await paypal.doPaypal()
-        return res.send(pres);
+        try {
+            const pres = await paypal.doPaypal()
+            return res.send(pres);
+        } catch (err) {
+            console.log(err);
+            return res.send(500, err);
+        }
     }
     return res.send('bad');
 }

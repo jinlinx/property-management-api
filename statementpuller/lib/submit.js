@@ -1,7 +1,7 @@
 //const request = require('superagent');
 const db = require('../../api/lib/db');
 const Promise = require('bluebird');
-const fs = require('fs');
+const uuid = require('uuid');
 const sheet = require('./getSheet').createSheet();
 const sheetId = '1xFCW8QsdfWRMjzXcUcXwe4HIfWNShgkrHE7UbKGgwLc';
 async function submit(datas, host) {
