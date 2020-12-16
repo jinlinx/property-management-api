@@ -7,17 +7,20 @@ const processor = require('./processors/puppvenmo');
 
 //return submitTest();
 
-processor.process(creds.venmo).then(async trans => {
-    fs.writeFileSync('outputData/venmo.json', JSON.stringify(trans, null, 2));
-    await submit.submit(trans);
-    console.log('done');
-}).catch(err => {
-    console.log(err);
-    driver.quit();
-});
+async function getVenmo() {
+    return processor.process(creds.venmo).then(async trans => {
+        //fs.writeFileSync('outputData/venmo.json', JSON.stringify(trans, null, 2));
+        return await submit.submit(trans);
+        console.log('done');
+    });
+}
 
 
-function submitTest() {
-    const datas = JSON.parse(fs.readFileSync('outputData/venmo.json'));
-    return submit.submit(datas);
+//function submitTest() {
+//    const datas = JSON.parse(fs.readFileSync('outputData/venmo.json'));
+//    return submit.submit(datas);
+//}
+
+module.exports = {
+    doVenmo: getVenmo,
 }
