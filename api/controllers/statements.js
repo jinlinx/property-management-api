@@ -14,7 +14,7 @@ async function doGsImport(req, res) {
     const date = new Date();
     console.log(`doGsImport ${date}`);
     
-    const pres = await gsimport.doGsImport();
+    const pres = await gsimport.importTenantDataGS();
     return res.send(pres);
 }
 
