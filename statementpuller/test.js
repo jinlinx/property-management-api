@@ -2,9 +2,21 @@ const paypal = require('./paypal');
 const venmo = require('./venmo');
 const db = require('../api/lib/db');
 
-//return venmo.doVenmo().catch(err => console.log(err))
+async function doAll() {
+    try {
+        const venmoRes = await venmo.doVenmo();
 
-return paypal.doPaypal().catch(err => console.log(err)).then(() => console.log('done'))
-    .then(() => {
+        const paypalRes = await paypal.doPaypal();
+        return {
+            venmoRes,
+            paypalRes,
+        }
+    } catch (err) {
+        console.log(err);
+        return err;
+    } finally {
         db.conn.end();
-});
+    }
+}
+
+doAll();
