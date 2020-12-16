@@ -1,10 +1,10 @@
 const fs=require('fs');
 const {get,set}=require('lodash');
 const googleSheet=require('./googleSheet');
-const credentials = require('../../credentials.json');
+const credentials=require('../../credentials.json');
 
 function stdGetSaveToken(credentialRepo, userName,token) {
-  const path=['googleSheet', 'tokens', userName];
+  const path=['googleSheet', userName];
   const existing=get(credentialRepo,path);
   if(existing) return existing;
   if(!token) return null;
@@ -19,7 +19,7 @@ module.exports={
   createSheetBase,
   createSheet: () => {    
     const gc=credentials.googleSheet.installed
-    return createSheetBase(gc, 'jj',
+    return createSheetBase(gc, 'ggtoken',
       userName => stdGetSaveToken(credentials,userName),
       (userName,token) => stdGetSaveToken(credentials,userName,token),
     );
