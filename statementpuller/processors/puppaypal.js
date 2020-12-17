@@ -4,9 +4,8 @@ const { sleep, waitElement
 } = require('../lib/util');
 
 const { createPuppeteer } = require('../lib/chromPupp');
-const envCfg = require('../lib/env');
 async function process(creds, timeout=1000*60*5) {
-    const pupp = await createPuppeteer(envCfg.getCfg());
+    const pupp = await createPuppeteer();
     return new Promise(async (resolve, reject) => {            
         try {
             const tout = setTimeout(async () => {

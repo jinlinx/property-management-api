@@ -7,10 +7,7 @@ const { sleep,
 } = require('../lib/util');
 const moment = require('moment');
 async function process(creds) {
-    const pupp = await createPuppeteer({
-        headless: false,
-        slowMo: 250 // slow down by 250ms
-    });
+    const pupp = await createPuppeteer();
     
   
     try {
