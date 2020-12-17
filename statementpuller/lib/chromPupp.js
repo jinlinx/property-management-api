@@ -1,10 +1,8 @@
 const puppeteer = require('puppeteer');
 const fs = require('fs');
+const env = require('./env');
 async function createPuppeteer(props) {
-    const browser = await puppeteer.launch(props || {
-        headless: false,
-        //slowMo: 250 // slow down by 250ms
-    });    
+    const browser = await puppeteer.launch(props || env.getCfg());    
     const cookieDir = props.cookiesDir || 'outputData/chrcookies.json';
 
     const firstPage = await browser.newPage();
