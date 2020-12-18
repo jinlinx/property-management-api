@@ -1,6 +1,7 @@
 const paypal = require('./paypal');
 const venmo = require('./venmo');
 const db = require('../api/lib/db');
+const { submit, matchImports } = require('./lib/submit');
 
 //const fs = require('fs');
 //const submit = require('./lib/submit');
@@ -9,6 +10,7 @@ const db = require('../api/lib/db');
 //    console.log(err);
 //    db.conn.end()
 //})
+return matchImports();
 
 
 async function doAll() {
