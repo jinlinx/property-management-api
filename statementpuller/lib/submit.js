@@ -9,12 +9,13 @@ async function submit(datas) {
     let cur = 0;
     //await sheet.appendSheet(sheetId, `'Sheet1'!A1`, datas.map(data => [data.date, data.amount, data.name, data.notes, data.source]));
     const nameSourceLeaseRows = await db.doQuery(`select ptm.tenantID, ptm.name, ptm.source , lti.leaseID,
-    t.firstName, t.lastName, h.address, h.city, h.state, h.zip
+    t.firstName, t.lastName, h.address, h.city, h.state, h.zip, o.ownerName
     from payerTenantMapping ptm
     inner join tenantInfo t on ptm.tenantID = t.tenantID    
     inner join leaseTenantInfo lti on ptm.tenantID = lti.tenantID
     inner join leaseInfo l on l.leaseID = lti.leaseID
     inner join houseInfo h on h.houseID = l.houseID
+    left outer join ownerInfo o on o.ownerID = h.ownerID
     where
     ${datas.map(d => '(ptm.name=? and ptm.source=?)').join(' or ')}`, datas.reduce((acc, d) => { 
         acc.push(d.name);
@@ -83,13 +84,39 @@ async function submit(datas) {
     }, { concurrency: 5 });
     const imported = allRes.filter(r => r.imported);
     console.log(`imported=${imported.length}, all itemps ${allRes.length} `);
-    const values = allRes.filter(r => r.imported === 'matched').map(data => {
+    const matchedValues = allRes.filter(r => r.imported === 'matched').map(data => {
         const date = moment(data.date,'YYYY-MM-DD').format('YYYY-MM-DD');
-        return [data.address, date, date, data.amount, data.notes, data.name, data.source, data.id]
+        //return [data.address, date, date, data.amount, data.notes, data.name, data.source, data.ownerName]
+        return {
+            ...data,
+            date,
+        }
     });
 
-    if (values.length) {
-        await sheet.appendSheet(sheetId, `'Total rent payment info'!A1`, values, 'USER_ENTERED');
+    if (matchedValues.length) {
+        const groupedByOwner = matchedValues.reduce((acc, data) => {
+            const { ownerName, date} = data;
+            let ownAry = acc.ownerByKey[ownerName];
+            if (!ownAry) {
+                ownAry = [];
+                acc.ownerByKey[ownerName] = ownAry;
+                acc.ownerArray.push(ownAry);
+            }
+            //ownAry.push([data.address, date, date, data.amount, data.notes, data.name, data.source, ownerName]);
+            ownAry.push(data);
+            return acc;   
+        }, {            
+            ownerArray: [],
+            ownerByKey: {},
+        });
+        await Promise.map(groupedByOwner.ownerArray, async ownAry => {
+            if (ownAry.length > 0) {
+                const ownerName = ownAry[0].ownerName;
+                console.log(`do owner ${ownerName} ${ownAry.length}`);
+                const gvals = ownAry.map(data => [data.address, data.date, data.date, data.amount, data.notes, data.name, data.source, data.ownerName])
+                await sheet.appendSheet(sheetId, `'Total rent payment info ${ownerName}'!A1`, gvals, 'USER_ENTERED');
+            }
+        }, {concurrency: 1});        
     }
     return allRes;
 }
