@@ -65,6 +65,10 @@ const routes = {
         method: 'get',
         func: statement.doGsImport,
     },
+    '/misc/matchPayments': {
+        method: 'get',
+        func: statement.matchPayments,
+    },
     '/version': {
         auth: false,
         method: 'get',
