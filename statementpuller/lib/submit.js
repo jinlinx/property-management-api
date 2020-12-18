@@ -4,9 +4,20 @@ const Promise = require('bluebird');
 const uuid = require('uuid');
 const sheet = require('./getSheet').createSheet();
 const sheetId = '1xFCW8QsdfWRMjzXcUcXwe4HIfWNShgkrHE7UbKGgwLc';
-async function submit(datas, host) {
+async function submit(datas) {
     let cur = 0;
-    await sheet.appendSheet(sheetId, `'Sheet1'!A1`, datas.map(data=>[data.date, data.amount, data.name, data.notes, data.source]));
+    await sheet.appendSheet(sheetId, `'Sheet1'!A1`, datas.map(data => [data.date, data.amount, data.name, data.notes, data.source]));
+    const nameSourceLeaseMapping = await db.doQuery(`select ptm.tenantID, ptm.name, ptm.source , lti.leaseID,
+    t.firstName, t.lastName    
+    from payerTenantMapping ptm
+    inner join tenantInfo t on ptm.tenantID = t.tenantID
+    inner join leaseTenantInfo lti on ptm.tenantID = lti.tenantID
+    where
+    ${datas.map(d => '(ptm.name=? and ptm.source=?)').join(' or ')}`, datas.reduce((acc, d) => { 
+        acc.push(d.name);
+        acc.push(d.source);
+        return acc;
+    }, []));
     const allRes = await Promise.map(datas, async data => {
         const me = cur++;
         console.log(`processing ${me}/${datas.length}`);        
@@ -43,7 +54,7 @@ async function submit(datas, host) {
                 imported: 1,
             })
         }
-    }, { concurrency: 5 });    
+    }, { concurrency: 5 });
     const imported = allRes.filter(r => r.imported);
     console.log(`imported=${imported.length}, all itemps ${allRes.length} `);
     return allRes;
