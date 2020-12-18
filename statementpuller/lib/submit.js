@@ -3,11 +3,12 @@ const db = require('../../api/lib/db');
 const Promise = require('bluebird');
 const uuid = require('uuid');
 const sheet = require('./getSheet').createSheet();
+const moment = require('moment');
 const sheetId = '1xFCW8QsdfWRMjzXcUcXwe4HIfWNShgkrHE7UbKGgwLc';
 async function submit(datas) {
     let cur = 0;
     await sheet.appendSheet(sheetId, `'Sheet1'!A1`, datas.map(data => [data.date, data.amount, data.name, data.notes, data.source]));
-    const nameSourceLeaseMapping = await db.doQuery(`select ptm.tenantID, ptm.name, ptm.source , lti.leaseID,
+    const nameSourceLeaseRows = await db.doQuery(`select ptm.tenantID, ptm.name, ptm.source , lti.leaseID,
     t.firstName, t.lastName    
     from payerTenantMapping ptm
     inner join tenantInfo t on ptm.tenantID = t.tenantID
@@ -18,6 +19,11 @@ async function submit(datas) {
         acc.push(d.source);
         return acc;
     }, []));
+    const getMapKey = r => `${r.name}-${r.source}`;
+    const nameSoruceLeaseMapping = nameSourceLeaseRows.reduce((acc, r) => {
+        acc[getMapKey(r)] = r;
+        return acc;
+    }, {});
     const allRes = await Promise.map(datas, async data => {
         const me = cur++;
         console.log(`processing ${me}/${datas.length}`);        
@@ -46,12 +52,27 @@ async function submit(datas) {
         } else {
 
             const id = uuid.v1();
-            await db.doQuery(`insert into importPayments (id,date, amount, name,notes, source) values(?,?,?,?,?,?)`,
-                [id].concat(parms))
+            const key = getMapKey(data);
+            const matched = nameSoruceLeaseMapping[key];
+            let imported = 'imported';
+            if (matched) {
+                imported = 'imported and matched';
+                console.log(`matched ${name} on ${matched.firstName} ${matched.lastName} for ${amount} ${matched.leaseID}`);                
+                await db.doQuery(`insert into rentPaymentInfo(paymentID, receivedDate,receivedAmount,
+                        paidBy,leaseID,created,modified,notes)
+                        values(?,?,?,
+                        ?,?,now(),now(),?)`, [id, moment(date).toDate(), amount,
+                    name, matched.leaseID, notes]);                                
+                await db.doQuery(`insert into importPayments (id,date, amount, name,notes, source, matchedTo) values(?,?,?,?,?,?,?)`,
+                    [id].concat(parms).concat(id))
+            } else {
+                await db.doQuery(`insert into importPayments (id,date, amount, name,notes, source) values(?,?,?,?,?,?)`,
+                    [id].concat(parms));
+            }
             return ({
                 ...data,
                 id,
-                imported: 1,
+                imported,
             })
         }
     }, { concurrency: 5 });
