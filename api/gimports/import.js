@@ -4,6 +4,7 @@ const sheetId = require('../../credentials.json').googleSheet.propertyManagement
 const Promise = require('bluebird');
 const db = require('../lib/db');
 const uuid = require('uuid');
+const moment = require('moment');
 
 async function importTenantDataGS() {
     async function readSheet() {
@@ -29,6 +30,7 @@ async function importTenantDataGS() {
             Owner: 'owner',
         };
         const result = rentData.reduce((acc, r) => {
+            if (acc.end) return acc;
             if (acc.posToName.length === 0) {
                 acc.pullDownFields = r.reduce((rr, v, i) => {
                     const m = headerToPropMap[v];
@@ -49,11 +51,13 @@ async function importTenantDataGS() {
                     return acc;
                 }, {});
             if (val.name) acc.res.push(val);
+            if (r[0] === 'END') acc.end = true;
             return acc;
         }, {
             posToName: [],
             res: [],
             last: [],
+            end: false,
         });
 
 
@@ -89,8 +93,33 @@ async function importTenantDataGS() {
                 leaseID = lease[0].leaseID;
             } else {
                 leaseID = uuid.v1();
-                await sqlFreeForm(`insert into leaseInfo (leaseID, houseID, startDate, endDate, comment, created, modified)
-        values (?,?,now(), now()+ interval 365 day,?,now(),now())`, [leaseID, houseID, data.rent])
+                let rent = parseFloat(data.rent.split('/')[0].replace(/\$/g, ''));
+                if (isNaN(rent)) {
+                    console.log(`failed to do rent ${data.rent}`);
+                    rent = 0;
+                }
+                console.log(`rent=${rent} lease=${data.lease}`);                                
+                const doParse = (d, def) => {
+                    if (!d) return def;
+                        const mm = moment(d);
+                        if (mm.isValid()) return mm.toDate();
+                        return def;
+                    }
+                    const leaseParts = data.lease.split('-');
+                const startDate = doParse(leaseParts[0], new Date());
+                const endDate = doParse(leaseParts[1],moment().add(1, 'year').toDate());
+                console.log(`startdate ${startDate.toISOString()} end ${endDate.toISOString()}`)
+                await sqlFreeForm(`insert into leaseInfo (leaseID, houseID, 
+                    startDate, endDate,
+                    monthlyRent,
+                     comment, created, modified)
+        values (?,?,
+            ?, ?,
+            ?,
+            ?,now(),now())`, [leaseID, houseID,
+                startDate, endDate,
+            rent,
+                    `${data.addr} ${data.rent}`])
             }
 
             const names = data.name.split(' ');
