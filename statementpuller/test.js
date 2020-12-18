@@ -1,16 +1,17 @@
 const paypal = require('./paypal');
 const venmo = require('./venmo');
 const db = require('../api/lib/db');
-const { submit, matchImports } = require('./lib/submit');
 
-//const fs = require('fs');
-//const submit = require('./lib/submit');
-//trans = JSON.parse(fs.readFileSync('outputData/paypal.json'));
-//return submit.submit(trans).then(() => db.conn.end()).catch(err => {
-//    console.log(err);
-//    db.conn.end()
-//})
-return matchImports();
+const fs = require('fs');
+const submit = require('./lib/submit');
+trans = JSON.parse(fs.readFileSync('outputData/paypal.json'));
+return submit.submit(trans).then(async () => {
+    await submit.matchImports();
+    await db.conn.end();
+}).catch(err => {
+    console.log(err);
+    db.conn.end()
+})
 
 
 async function doAll() {
