@@ -1,6 +1,7 @@
 const paypal = require('../../statementpuller/paypal');
 const venmo = require('../../statementpuller/venmo');
 const gsimport = require('../gimports/import');
+const submit = require('../../statementpuller/lib/submit');
 async function doStatement(req, res) {
     const date = new Date();
     console.log(`statement ${date}`);
@@ -24,6 +25,15 @@ async function doStatement(req, res) {
     return res.send('bad');
 }
 
+async function matchPayments(req, res) {
+    try {
+        const match = await submit.matchImports();
+        res.send(match)
+    } catch (err) {
+        console.log(err);
+        res.send(500, err);
+    }
+}
 async function doGsImport(req, res) {
     const date = new Date();
     console.log(`doGsImport ${date}`);
@@ -36,4 +46,5 @@ async function doGsImport(req, res) {
 module.exports = {   
     doStatement,
     doGsImport,
+    matchPayments,
 };

@@ -69,12 +69,14 @@ async function submit(datas) {
             }
         }, {concurrency: 1});        
     }
-    return allRes;
+    return {
+        allRes,
+        matched: await matchImports(),
+    };
 }
 
 
 async function matchImports() {
-    let cur = 0;
     //await sheet.appendSheet(sheetId, `'Sheet1'!A1`, datas.map(data => [data.date, data.amount, data.name, data.notes, data.source]));
     const importID = uuid.v1();
     console.log(`importID=${importID}`);
