@@ -7,11 +7,12 @@ const processor = require('./processors/puppvenmo');
 
 //return submitTest();
 
-async function getVenmo() {
-    return processor.process(creds.venmo).then(async trans => {
+async function getVenmo(opts = { log: x => console.log(x) }) {
+    const log = opts.log;
+    return processor.process(creds.venmo, opts).then(async trans => {
         //fs.writeFileSync('outputData/venmo.json', JSON.stringify(trans, null, 2));
-        return await submit.submit(trans);
-        console.log('done');
+        log('done');
+        return await submit.submit(trans,opts);        
     });
 }
 

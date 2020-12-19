@@ -3,26 +3,16 @@ const Promise = require('bluebird');
 const { sleep, waitElement    
 } = require('../lib/util');
 
-const { createPuppeteer } = require('../lib/chromPupp');
-async function process(creds, timeout=1000*60*5) {
-    const pupp = await createPuppeteer();
-    return new Promise(async (resolve, reject) => {            
-        try {
-            const tout = setTimeout(async () => {
-                reject(new Error('Timeout'));
-                await pupp.close();
-            }, timeout);
-            resolve(await doJob(pupp, creds));
-            clearTimeout(tout);
-        } finally {
-            await pupp.close();
-        }
-    });
+const { genProcess } = require('./genProc');
+async function process(creds, opts) {
+    return await genProcess(creds, doJob, opts);    
 }
 
-async function doJob(pupp, creds) {
+async function doJob(pupp, creds, opts) {
+    const { log } = opts;
     const saveScreenshoot = () => pupp.screenshot('outputData/test.png');
     await pupp.goto("https://www.paypal.com/us/signin");
+    log('going to https://www.paypal.com/us/signin');
 
     let setEmail = false;
     await waitElement({
@@ -45,6 +35,7 @@ async function doJob(pupp, creds) {
 
             }
             const btn = await pupp.findById('btnLogin');
+            log('login click');
             await btn.click();
         }
     });
@@ -59,12 +50,12 @@ async function doJob(pupp, creds) {
             try {
                 //recaptcha-checkbox-border
                 const recap = await pupp.findById('recaptcha-anchor');
-                console.log('found recapture');
+                log('found recapture');
                 await recap.click();
-                console.log('clicking recapture');
+                log('clicking recapture');
                 await sleep(1000);
             } catch (e) {
-                console.log(e.message);
+                log(e.message);
             }
             await saveScreenshoot();
             const curr = await pupp.findByCSS('.test_balance-tile-currency');            
@@ -77,6 +68,7 @@ async function doJob(pupp, creds) {
     await sleep(1000);
     const btnActivities = await pupp.findById('header-activity');
     await btnActivities.click();
+    log('header activity click');
     await waitElement({
         message: 'Wait transction page',
         waitSeconds: 60,
@@ -84,13 +76,14 @@ async function doJob(pupp, creds) {
             await sleep(1000);
             await saveScreenshoot();
             const found = await pupp.findByCSS('.transactionDescriptionContainer');
+            log('waiting transaction description')
             if (!found) throw { message: 'no desc' }
         }
     });
     await saveScreenshoot();
 
     const containers = await pupp.findAllByCss('.transactionDescriptionContainer');
-    console.log(`containers=${containers.length}`);
+    log(`containers=${containers.length}`);
 
     const paypalTrans = await Promise.map(containers, async cont => {
         /*
@@ -126,7 +119,7 @@ async function doJob(pupp, creds) {
             parsedDate.add(-11, 'years');
         }
         const formatted = parsedDate.format('YYYY-MM-DD');
-        console.log(`${transactionType} ${sign} ${amount} name=${name} notes=${notes} ${formatted}`);
+        log(`${transactionType} ${sign} ${amount} name=${name} notes=${notes} ${formatted}`);
         return {
             transactionType,
             sign,
