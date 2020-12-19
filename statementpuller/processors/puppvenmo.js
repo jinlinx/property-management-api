@@ -6,19 +6,9 @@ const { sleep,
     pmap1,
 } = require('../lib/util');
 const moment = require('moment');
-async function process(creds) {
-    const pupp = await createPuppeteer();
-    
-  
-    try {
-        await init(pupp, creds);
-        
-        const transfers = await doJob(pupp);
-        return transfers;
-    } finally {
-        //html body div#app div div div#content div.container-fluid div form.auth-form fieldset.inputs label.error.auth-form-input-label input.auth-form-input
-        await pupp.close();
-    }
+const { genProcess } = require('./genProc');
+async function process(creds, opts) {
+    return genProcess(creds, doJob, opts)    
 }
 
 async function init(pupp, creds) {
@@ -54,7 +44,9 @@ async function init(pupp, creds) {
     }
 }
 
-async function doJob(pupp) {
+async function doJob(pupp, creds, opts) {
+    const log = opts.log;
+    await init(pupp, creds);
     const saveScreenshoot = () => pupp.screenshot('outputData/test.png');
 
     const loggedInCheck = async () => {
@@ -66,7 +58,7 @@ async function doJob(pupp) {
         await saveScreenshoot();
         const sendCode = await pupp.findByCSS('.mfa-button-code-prompt');
         await saveScreenshoot();
-        console.log('Need code');
+        log('Need code');
         await sleep(1000);
         await sendCode.click();
 
@@ -104,13 +96,13 @@ async function doJob(pupp) {
                 await CheckCode();
                 good = true;
             } catch (e) {
-                console.log('Not waiting for code step');
+                log('Not waiting for code step');
             }
             try {
                 await loggedInCheck()
                 good = true;
             } catch {
-                console.log('not login');
+                log('not login');
             }
             if (!good) throw {
                 message: 'waiting for code or main screen'
@@ -127,7 +119,7 @@ async function doJob(pupp) {
 
     //step2
     const statementUrl = `https://venmo.com/account/statement?end=${moment().format('MM-DD-YYYY')}&start=${moment().add(-59, 'days').format('MM-DD-YYYY')}`;
-    console.log(statementUrl);
+    log(statementUrl);
     await saveScreenshoot();
     pupp.goto(statementUrl);
     await sleep(2000);
@@ -144,14 +136,14 @@ async function doJob(pupp) {
     });
 
 
-    const transfers = await getStatements(pupp);
-    console.log(transfers);
+    const transfers = await getStatements(pupp, log);
+    //log(transfers);
 
-    console.log('done');    
+    log('done');
     await saveScreenshoot();
     return transfers;
 }
-async function getStatements(pupp) {
+async function getStatements(pupp, log) {
     const cleanHtml = str => str.replace(/<!--(.*?)-->/gm, "");
     const cleanSpan = str => str.replace(/<[/]{0,1}span(.*?)>/gm, '');
 
@@ -177,7 +169,7 @@ async function getStatements(pupp) {
         //}
         const dateStr = await pupp.getElementText(itm, '.item-date > a > span');
         const date = moment(dateStr,'MM-DD-YYYY').format('YYYY-MM-DD')
-        console.log(date);
+        log(date);
         let titles = [];
         let subTitle;
         try {
@@ -196,15 +188,15 @@ async function getStatements(pupp) {
             //const ttt = await pupp.getElementText(itm, '.item-title');
             //console.log(`ttt= ${ttt}`);
             const title = await recTryTxt(itm, '.item-title > span');
-            console.log(title);
+            log(title);
             const names = title.match(/<span.*>(.+)?<\/span>(.*)<span.*>(.+)?<\/span>/);
             titles = names.slice(1).map(cleanHtml);
-            console.log(' titleType1=>' + names[1] + ',' + cleanHtml(names[2]) + ', ' + names[3]);
+            log(' titleType1=>' + names[1] + ',' + cleanHtml(names[2]) + ', ' + names[3]);
         } catch(e) {
-            console.log('debug title for span failed ' + e.message);
+            log('debug title for span failed ' + e.message);
             const title = await pupp.getElementText(itm, '.item-title');
             titles[0] = cleanHtml(title);
-            console.log(' titleType2=>' + titles[0]);
+            log(' titleType2=>' + titles[0]);
         }
         try {
             subTitle = await recTryTxt(itm, '.item-subtitle > span');            
@@ -218,7 +210,7 @@ async function getStatements(pupp) {
         const amountStr = await pupp.getElementText(itm, '.item-delta-text');
         const amount = cleanHtml(amountStr).replace(/,/g, '').replace(/[$]/g, '');
         const famount = parseFloat(amount);
-        console.log('amt' + amount);
+        log('amt' + amount);
         return {
             date,
             //titles,

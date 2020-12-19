@@ -5,12 +5,13 @@ const uuid = require('uuid');
 const sheet = require('./getSheet').createSheet();
 const moment = require('moment');
 const sheetId = '1sKppFHJy_MRRgHuV2PzhliSzuje7O0Rb-ntiOrLDVPA';
-async function submit(datas) {
+async function submit(datas, opts) {
+    const log = opts.log;
     let cur = 0;
     //await sheet.appendSheet(sheetId, `'Sheet1'!A1`, datas.map(data => [data.date, data.amount, data.name, data.notes, data.source]));    
     const allRes = await Promise.map(datas, async data => {
         const me = cur++;
-        console.log(`processing ${me}/${datas.length}`);        
+        log(`processing ${me}/${datas.length}`);        
         data.date = moment(data.date, 'YYYY-MM-DD').toDate();
         data.amount = parseFloat(data.amount);
         const { date, amount, name, notes, source } = data;
@@ -34,7 +35,7 @@ async function submit(datas) {
         }
     }, { concurrency: 5 });
     const imported = allRes.filter(r => r.imported);
-    console.log(`imported=${imported.length}, all itemps ${allRes.length} `);
+    log(`imported=${imported.length}, all itemps ${allRes.length} `);
     const matchedValues = allRes.filter(r => r.imported === 'matched').map(data => {
         const date = moment(data.date,'YYYY-MM-DD').format('YYYY-MM-DD');
         //return [data.address, date, date, data.amount, data.notes, data.name, data.source, data.ownerName]

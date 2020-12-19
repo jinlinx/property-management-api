@@ -2,8 +2,10 @@ const paypal = require('./paypal');
 const venmo = require('./venmo');
 const db = require('../api/lib/db');
 
-const fs = require('fs');
+
+/*const fs = require('fs');
 const submit = require('./lib/submit');
+return submit.matchImports().then(() => db.conn.end());
 trans = JSON.parse(fs.readFileSync('outputData/paypal.json'));
 return submit.submit(trans).then(async () => {
     await submit.matchImports();
@@ -12,7 +14,7 @@ return submit.submit(trans).then(async () => {
     console.log(err);
     db.conn.end()
 })
-
+*/
 
 async function doAll() {
     try {
