@@ -6,7 +6,7 @@ const { readOneLine } = require('./lib/util');
 const processor = require('./processors/cashapp');
 async function getCashApp(creds, opts = {
     log: x => console.log(x),
-    getCode: () => {throw new Error('noread') },//readOneLine('Pleae input code'),
+    getCode: () => readOneLine('Pleae input code'),
 }) {
     const trans = await processor.process(creds, opts);
     //fs.writeFileSync('outputData/paypal.json', JSON.stringify(trans));
@@ -18,4 +18,4 @@ module.exports = {
     doCashApp: opts => getCashApp(creds.cashapp, opts)
 }
 
-//getCashApp(creds.cashapp)
+getCashApp(creds.cashapp)
