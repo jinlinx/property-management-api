@@ -29,6 +29,7 @@
     "puppeteer": "^5.5.0",
     "restify": "^8.5.0",
     "restify-cookies": "^0.2.6",
+    "socket.io": "^3.0.4",
     "ssh2": "^0.8.9",
     "superagent": "^6.1.0",
     "twilio": "^3.38.0",
