@@ -1,5 +1,6 @@
 const paypal = require('../../statementpuller/paypal');
 const venmo = require('../../statementpuller/venmo');
+const caspapp = require('../../statementpuller/cashapp');
 const webHandler = require('../../statementpuller/webhandler');
 const gsimport = require('../gimports/import');
 const submit = require('../../statementpuller/lib/submit');
@@ -17,6 +18,8 @@ async function doStatement(req, res) {
             return paypal.doPaypal;
         else if (who === 'venmo')
             return venmo.doVenmo;
+        else if (who === 'cashapp')
+            return caspapp.doCashApp;
         else throw new Error('Must be paypal or venmo')
     }
     
@@ -30,7 +33,10 @@ async function doStatement(req, res) {
                 //console.log(msg);
                 webHandler.sendStatus(msg);
                 pullStatementState.message = msg;
-            }
+            },
+            getCode: () => {
+                return webHandler.askCode('Please input code');
+            },
         });
         const newItems = get(pres, 'matched.length');
         await db.doQuery(`update importLog set end=now(),msg=? where id=?`,
