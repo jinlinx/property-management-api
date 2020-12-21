@@ -120,6 +120,15 @@ const pmap1 = (itms, action, concurrency) => Promise.map(itms, action, { concurr
 //     }    
 // }
 
+async function freeForm(pupp) {
+    while (true) {
+        await sleep(100);
+        const code = await readOneLine('to evaluate');
+        await eval(code);
+        console.log('done eval');
+    }
+}
+
 module.exports = {
     sleep,
     waitElement,
@@ -132,4 +141,5 @@ module.exports = {
     //getFileWithCookies,
     //saveCookies,
     //loadCookies,
+    freeForm,
 }

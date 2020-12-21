@@ -2,6 +2,7 @@ const keys = require('lodash/keys');
 
 const routes = require('./routes').routes;
 const patuh = require('../util/pauth');
+const consts = require('./consts');
 const restify = require('restify');
 
 function addCORS(req, res) {
@@ -28,14 +29,14 @@ module.exports = {
         const rts = keys(routes);
         rts.forEach(url=>{
             const op = routes[url];
-            server[op.method](url, op.func);
+            server[op.method](`${consts.apiRoot}${url}`, op.func);
         });
 
         patuh.initPassport(server);
         server.use((req, res, next)=>{
             if (req.method !== 'GET' && req.method !== 'POST') return next();
             addCORS(req, res);
-            const controller = routes[req.url];
+            const controller = routes[`${consts.apiRoot}${req.url}`];
             if (controller && controller.auth !== false) {
                 if (!req.user) {
                     res.send(401, 'Unauthorized');
