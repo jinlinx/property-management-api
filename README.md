@@ -14,3 +14,8 @@ FLUSH PRIVILEGES;
 CREATE USER 'lluser'@'localhost' IDENTIFIED BY '12345';
 GRANT ALL PRIVILEGES ON PM.* TO 'lluser'@'localhost';
 FLUSH PRIVILEGES;
+
+
+#crontab -e
+# 0 0 * * * curl http://localhost:8081/misc/statement?who=paypal
+# 0 10 * * * curl http://localhost:8081/misc/statement?who=venmo
