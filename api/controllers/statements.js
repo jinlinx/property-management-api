@@ -1,5 +1,6 @@
 const paypal = require('../../statementpuller/paypal');
 const venmo = require('../../statementpuller/venmo');
+const webHandler = require('../../statementpuller/webhandler');
 const gsimport = require('../gimports/import');
 const submit = require('../../statementpuller/lib/submit');
 const pullStatementState = {
@@ -20,7 +21,8 @@ async function doStatement(req, res) {
         const action = getAction(req.query.who);
         const pres = await action({
             log: msg => {
-                console.log(msg);
+                //console.log(msg);
+                webHandler.sendStatus(msg);
                 pullStatementState.message = msg;
             }
         })

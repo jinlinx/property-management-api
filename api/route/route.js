@@ -50,5 +50,8 @@ module.exports = {
         //    default: 'index.html'
         //  }));        
 
+        require('./socket').setupSocket(server, [
+            require('../../statementpuller/webhandler').socketEmiter,
+        ])
     }
 };
