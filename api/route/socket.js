@@ -1,8 +1,9 @@
 const socketio = require('socket.io');
-
+const consts = require('./consts');
 function setupSocket(server, setupFuncs) {
     const io = require('socket.io')(server, {
-        transports: ['websocket']
+        transports: ['websocket'],
+        path: `${consts.apiRoot}/socket.io`,
     });
     io.on('connection', function (socket) {
         console.log('connection');
