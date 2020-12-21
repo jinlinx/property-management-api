@@ -76,6 +76,7 @@ async function doJob(pupp, creds, opts) {
     await sleep(1000);
     log('freeForming');
     await freeForm(pupp);
+    //.activity-list .activity-list-item .activity-list-content
     return null;
 }
 
