@@ -3,6 +3,9 @@ const venmo = require('../../statementpuller/venmo');
 const webHandler = require('../../statementpuller/webhandler');
 const gsimport = require('../gimports/import');
 const submit = require('../../statementpuller/lib/submit');
+const db = require('../lib/db');
+const uuid = require('uuid');
+const get = require('lodash/get');
 const pullStatementState = {
     message: '',
 }
@@ -17,17 +20,25 @@ async function doStatement(req, res) {
         else throw new Error('Must be paypal or venmo')
     }
     
+    const id = uuid.v1();
     try {
-        const action = getAction(req.query.who);
+        const action = getAction(req.query.who);        
+        await db.doQuery(`insert into importLog(id, source, start, msg) values(?,?,now(),?)`,
+            [id, req.query.who, 'started']);
         const pres = await action({
             log: msg => {
                 //console.log(msg);
                 webHandler.sendStatus(msg);
                 pullStatementState.message = msg;
             }
-        })
+        });
+        const newItems = get(pres, 'matched.length');
+        await db.doQuery(`update importLog set end=now(),msg=? where id=?`,
+            [`done ${newItems}`,id]);
         return res.send(pres);
     } catch (err) {
+        await db.doQuery(`update importLog set end=now(),msg=? where id=?`,
+            [err.message, id]);
         console.log(err);
         return res.send(500, err);
     }    
