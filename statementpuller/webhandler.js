@@ -9,6 +9,10 @@ function socketEmiter(socket, io) {
         console.log('got chat msg ' + msg);
         io.emit('chat message dbg', msg + (new Date()).toISOString());
     });
+
+    socket.on('ggFreeFormMsg', msg => {
+        socket.broadcast.emit('ggFreeFormMsg', msg);
+    })
 }
 
 function sendStatus(msg) {
