@@ -2,11 +2,11 @@ const { isUndefined } = require('lodash');
 const socketio = require('socket.io');
 const consts = require('./consts');
 function setupSocket(server, setupFuncs) {
-    const baseIo = require('socket.io')(server, {
+    const io = require('socket.io')(server, {
         transports: ['websocket'],
         path: `${consts.apiRoot}/socket.io`,
     });
-    const io = baseIo.of(consts.apiRoot);
+    //const io = baseIo.of(consts.apiRoot);
     io.on('connection', function (socket) {
         console.log('connection');
         setupFuncs.forEach(ssetup=>{
