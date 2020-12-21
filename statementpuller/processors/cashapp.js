@@ -12,6 +12,7 @@ async function doJob(pupp, creds, opts) {
     const { log, getCode } = opts;
     const saveScreenshoot = () => pupp.screenshot('outputData/test.png');
     const url = 'https://cash.app/login?return_to=account.index';
+    //const url = 'http://localhost:3001';
     await pupp.goto(url);
     log(`going to ${url}`);
 
@@ -65,7 +66,7 @@ async function doJob(pupp, creds, opts) {
         waitSeconds: 60,
         action: async () => {
             await sleep(1000);
-            const btns = pupp.findByAllCSS('.selection-option-list a.button.theme-button');
+            const btns = await pupp.findAllByCss('.selection-option-list a.button.theme-button');
             console.log(btns);
             console.log(btns.length);
             btns[1].click();
