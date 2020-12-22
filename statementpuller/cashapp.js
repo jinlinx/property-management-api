@@ -10,12 +10,12 @@ async function getCashApp(creds, opts = {
 }) {
     const trans = await processor.process(creds, opts);
     //fs.writeFileSync('outputData/paypal.json', JSON.stringify(trans));
-    //return await submit.submit(trans, opts);
-    return trans
+    return await submit.submit(trans, opts);
+    //return trans
 }
 
 module.exports = {
     doCashApp: opts => getCashApp(creds.cashapp, opts)
 }
 
-//getCashApp(creds.cashapp)
+//getCashApp(creds.cashapp).then(r => console.log(r));

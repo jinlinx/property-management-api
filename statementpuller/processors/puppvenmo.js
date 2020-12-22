@@ -1,5 +1,5 @@
 const fs = require('fs');
-const { createPuppeteer } = require('../lib/chromPupp');
+//const { createPuppeteer } = require('../lib/chromPupp');
 const { sleep,
     waitElement,
     readOneLine,
