@@ -136,7 +136,7 @@ async function doJob(pupp, creds, opts) {
                 log(`Waiting for activity ${new Date().toISOString()}`);
                 throw 'no activity';
             }
-            
+
             if (prevLen != activityList.length) {
                 const pl = prevLen;
                 prevLen = activityList.length;
@@ -148,15 +148,18 @@ async function doJob(pupp, creds, opts) {
     });
     const activityList = await pupp.findAllByCss('.activity-list-content');
     console.log(`activityList len = ${activityList.length}`);
+    const cleanDiv = str => str.replace(/<div.*>(.*?)<\/div>/gm, "");
     const rawResults = await Promise.map(activityList, async activity => {
         const origData = [await activity.$('.title'),
         await activity.$('.subtitle'),
         await activity.$('.date'),
         await activity.$('.action-amount span'),
         ];
-        const cleaned = await Promise.map(origData, d => pupp.getElementText(d)).map(cleanHtml)
+        const cleaned = await Promise.map(origData, d => pupp.getElementText(d))
+            .map(cleanHtml)
+            .map(cleanDiv)
             .map(r=>r.trim());
-        const [name, notes, dateRaw, amount] = cleaned;
+        const [name, notes, dateRaw, amountRaw] = cleaned;
         const source = 'cashapp';
         let date = dateRaw;
         if (dateRaw.match(/^[a-zA-Z]+$/)) {
@@ -171,8 +174,14 @@ async function doJob(pupp, creds, opts) {
             date = moment(dateRaw, 'MMM DD, YYYY');
         }
         date = date.format('YYYY-MM-DD');
-        console.log(`name=${name} notes=${notes} date=${dateRaw} ${date} amount=${amount}`)
-        if (amount === 'GET IT NOW') return null;
+        //console.log(`name=${name} notes=${notes} date=${dateRaw} ${date} amount=${amount}`)
+        if (amountRaw === 'GET IT NOW') return null;
+        let amount = amountRaw.replace('$', '');
+        if (amount[0] !== '+') {
+            amount = `-${amount.trim()}`;
+        } else {
+            amount = amount.replace('+', '').trim();
+        }
         return {
             name,
             notes,
