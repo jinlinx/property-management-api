@@ -16,6 +16,7 @@ async function doJob(pupp, creds, opts) {
     //const url = 'http://localhost:3001';
     await pupp.goto(url);
     log(`going to ${url}`);
+    await pupp.loadCookies();
 
     let setEmail = false;
     await waitElement({
@@ -45,7 +46,10 @@ async function doJob(pupp, creds, opts) {
             try {
                 code = await getCode();
             } catch (err) {
-                return err;
+                log(`Code Error ${err.message}`);
+                console.log('code');
+                console.log(err);
+                throw err;
             }
             
             //recaptcha-checkbox-border
@@ -58,20 +62,44 @@ async function doJob(pupp, creds, opts) {
             
         }
     });
-    if (codeRes && codeRes.message) {
-        throw codeRes;
-    }
+    
 
     await waitElement({
         message: 'Confirm Selection',
         waitSeconds: 60,
         action: async () => {
             await sleep(500);
-            const btns = await pupp.findAllByCss('.selection-option-list a.button.theme-button');
-            log(`confirmation btn cnt ${btns? btns.length:'null'}`)
-            btns[1].click();
+            let err1 = null;
+            try {
+                const btns = await pupp.findAllByCss('.selection-option-list a.button.theme-button');
+                log(`confirmation btn cnt ${btns ? btns.length : 'null'}`)
+                btns[1].click();
+            } catch (err) {
+                err1 = err;
+            }
+
+            let err2 = null;
+            if (err1) {
+                //<div contenteditable="" tabindex="1" id="ember610" class="passcode-inputs-bubble flex-container flex-h ember-view">
+                const bubbles = await pupp.findByCSS('.passcode-inputs-bubble');
+                if (bubbles) {
+                    pupp.setTextById('ember610', creds.pin);
+                    log(`pin set, sleeping ${creds.pin}`);
+                    await sleep(2000);
+                } else {
+                    err2 = new Error('pin not found');
+                }
+            }
+
+            if (err1 || err2) {
+                throw err1 || err2;
+            }
         }
-    })
+    });
+
+    log('Saving cookies');
+    await pupp.saveCookies();
+    log('cookies saved');
 
     await sleep(1000);
     log('freeForming');

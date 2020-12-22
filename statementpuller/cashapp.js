@@ -18,4 +18,4 @@ module.exports = {
     doCashApp: opts => getCashApp(creds.cashapp, opts)
 }
 
-//getCashApp(creds.cashapp)
+getCashApp(creds.cashapp)
