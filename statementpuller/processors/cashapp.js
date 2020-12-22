@@ -176,7 +176,7 @@ async function doJob(pupp, creds, opts) {
         date = date.format('YYYY-MM-DD');
         //console.log(`name=${name} notes=${notes} date=${dateRaw} ${date} amount=${amount}`)
         if (amountRaw === 'GET IT NOW') return null;
-        let amount = amountRaw.replace('$', '');
+        let amount = amountRaw.replace('$', '').replace(/,/g,'');
         if (amount[0] !== '+') {
             amount = `-${amount.trim()}`;
         } else {
