@@ -35,7 +35,12 @@ async function genProcess(creds, doJob, opts = {
     });
 }
 
+const cleanHtml = str => str.replace(/<!--(.*?)-->/gm, "");
+const cleanSpan = str => str.replace(/<[/]{0,1}span(.*?)>/gm, '');
+
 module.exports = {
     genProcess,
     processingStatus,
+    cleanHtml,
+    cleanSpan,
 }
