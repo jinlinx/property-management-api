@@ -6,6 +6,11 @@ function setupSocket(server, setupFuncs) {
         transports: ['websocket'],
         path: `${consts.apiRoot}/socket.io`,
     });
+    io.use((socket, next) => {
+        console.log('socket io use')
+        console.log(socket.request);
+        next();
+    });
     //const io = baseIo.of(consts.apiRoot);
     io.on('connection', function (socket) {
         console.log('connection');
