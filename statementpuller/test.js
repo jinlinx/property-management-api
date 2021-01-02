@@ -1,8 +1,9 @@
 const paypal = require('./paypal');
 const venmo = require('./venmo');
+const cashapp = require('./cashapp');
 const db = require('../api/lib/db');
 
-
+return cashapp.doCashApp().then(r => { console.log(r) });
 /*const fs = require('fs');
 const submit = require('./lib/submit');
 return submit.matchImports().then(() => db.conn.end());
