@@ -13,6 +13,12 @@ function socketEmiter(socket, io) {
     socket.on('ggFreeFormMsg', msg => {
         io.emit('ggFreeFormMsg', msg);
     })
+    socket.on('disconnect', () => {
+        console.log('socket disconnect')
+    })
+    socket.on('connect_failed', function () {
+        console.log("Sorry, there seems to be an issue with the connection!");
+    })
 }
 
 function sendStatus(msg) {

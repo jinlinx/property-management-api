@@ -7,8 +7,7 @@ function setupSocket(server, setupFuncs) {
         path: `${consts.apiRoot}/socket.io`,
     });
     io.use((socket, next) => {
-        console.log('socket io use')
-        console.log(socket.request);
+        console.log('socket io use')        
         next();
     });
     //const io = baseIo.of(consts.apiRoot);
