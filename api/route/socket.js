@@ -2,7 +2,8 @@ const { isUndefined } = require('lodash');
 const socketio = require('socket.io');
 const consts = require('./consts');
 function setupSocket(server, setupFuncs) {
-    const io = require('socket.io')(server.server, {
+    //moved server.server to 8082
+    const io = require('socket.io')(8082, {
         transports: ['websocket'],
         path: `${consts.apiRoot}/socket.io`,
     });
