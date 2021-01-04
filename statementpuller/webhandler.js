@@ -11,7 +11,7 @@ function socketEmiter(socket, io) {
     });
 
     socket.on('ggFreeFormMsg', msg => {
-        io.emit('ggFreeFormMsg', msg);
+        socket.broadcast.emit('ggFreeFormMsg', msg);
     })
     socket.on('disconnect', () => {
         console.log('socket disconnect')
