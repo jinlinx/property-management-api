@@ -29,7 +29,7 @@ async function doJob(pupp, creds, opts) {
     let prevLen = 0;
     await waitElement({
         message: 'Waiting for transactions',
-        waitSeconds: 60,
+        waitSeconds: 120,
         action: async () => {
             const activityList = await pupp.findAllByCss('.activity-list-content');
             if (!activityList || !activityList.length) {
