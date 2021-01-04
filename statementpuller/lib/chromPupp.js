@@ -4,7 +4,7 @@ const env = require('./env');
 const get = require('lodash/get');
 async function createPuppeteer(props) {
     const browser = await puppeteer.launch(props || env.getCfg());    
-    const cookieDir = get(props, 'cookiesDir', 'outputData/chrcookies.json');
+    const cookieDir = name=>get(props, 'cookiesDir', `outputData/${name}_cookies.json`);
 
     const firstPage = await browser.newPage();
     const create = page => {
@@ -50,15 +50,15 @@ async function createPuppeteer(props) {
                 return attr;
             },
             screenshot: path => page.screenshot({ path }),
-            loadCookies: async () => {
+            loadCookies: async name => {
                 try {
-                    const cookies = JSON.parse(fs.readFileSync(cookieDir));
+                    const cookies = JSON.parse(fs.readFileSync(cookieDir(name)));
                     page.setCookie(...cookies);
                 } catch { }
             },
-            saveCookies: async () => {
+            saveCookies: async name => {
                 const cookies = await page.cookies();
-                await fs.writeFileSync(cookieDir, JSON.stringify(cookies, null, 2));
+                await fs.writeFileSync(cookieDir(name), JSON.stringify(cookies, null, 2));
             }
         };
     }

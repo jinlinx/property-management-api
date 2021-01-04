@@ -9,7 +9,9 @@ const serverHttpsOpt = {
     //key: fs.readFileSync('./key.pem'),
     //certificate: fs.readFileSync('./server.crt')
 };
-const server = restify.createServer(HTTPS?serverHttpsOpt:null);
+const server = restify.createServer(HTTPS ? serverHttpsOpt : {
+  socketio: true
+});
 
 function serverInit(server) {
   server.use(restify.plugins.queryParser());

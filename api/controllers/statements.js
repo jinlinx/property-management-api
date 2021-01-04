@@ -25,9 +25,11 @@ async function doStatement(req, res) {
     
     const id = uuid.v1();
     try {
-        const action = getAction(req.query.who);        
+        const action = getAction(req.query.who);
+        console.log(`insert ${req.query.who} starting`);
         await db.doQuery(`insert into importLog(id, source, start, msg) values(?,?,now(),?)`,
             [id, req.query.who, 'started']);
+        console.log(`insert ${req.query.who} action`);
         const pres = await action({
             log: msg => {
                 //console.log(msg);
@@ -38,14 +40,15 @@ async function doStatement(req, res) {
                 return webHandler.askCode('Please input code');
             },
         });
-        const newItems = get(pres, 'matched.length');
+        const newItems = get(pres, 'matched.length'); 
+        console.log(`insert ${req.query.who} done`);
         await db.doQuery(`update importLog set end=now(),msg=? where id=?`,
             [`done ${newItems}`,id]);
         return res.send(pres);
     } catch (err) {
-        await db.doQuery(`update importLog set end=now(),msg=? where id=?`,
-            [err.message, id]);
         console.log(err);
+        await db.doQuery(`update importLog set end=now(),msg=? where id=?`,
+            [err.message, id]);        
         return res.send(500, err);
     }    
     return res.send('bad');
