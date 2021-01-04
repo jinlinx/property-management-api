@@ -13,7 +13,7 @@ async function process(creds, opts) {
 
 async function init(pupp, creds) {
     await pupp.goto('https://venmo.com/account/sign-in'); //creds.url
-    await pupp.loadCookies();
+    await pupp.loadCookies('venmo');
     let tryNum = 0;
     while (true) {
         try {
@@ -112,7 +112,7 @@ async function doJob(pupp, creds, opts) {
 
     //const cookies = await pupp.page.cookies();
     //await fs.writeFile('outputData/test.png', JSON.stringify(cookies, null, 2));
-    await pupp.saveCookies();
+    await pupp.saveCookies('venmo');
     //await sleep(10000);
 
 

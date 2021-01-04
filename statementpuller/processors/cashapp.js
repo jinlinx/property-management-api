@@ -17,12 +17,12 @@ async function doJob(pupp, creds, opts) {
     const saveScreenshoot = () => pupp.screenshot('outputData/test.png');
     //const url = 'https://cash.app/login?return_to=account.index';
     //const url = 'http://localhost:3001';
-    await pupp.loadCookies();
+    await pupp.loadCookies('cashapp');
     await sleep(1000);
     const url = 'https://cash.app/account/activity';
     await pupp.goto(url);
     log(`going to ${url}`);    
-    await pupp.saveCookies();
+    //await pupp.saveCookies('cashapp');
     
 
     await sleep(1000);
@@ -90,7 +90,6 @@ async function doJob(pupp, creds, opts) {
             source,
         }
     }, {concurrency: 5});
-    await pupp.saveCookies();
     //log('freeForming');
     //await freeForm(pupp);
     //.activity-list .activity-list-item .activity-list-content
