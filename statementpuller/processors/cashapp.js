@@ -22,7 +22,7 @@ async function doJob(pupp, creds, opts) {
     const url = 'https://cash.app/account/activity';
     await pupp.goto(url);
     log(`going to ${url}`);    
-
+    await pupp.saveCookies();
     
 
     await sleep(1000);
@@ -90,7 +90,7 @@ async function doJob(pupp, creds, opts) {
             source,
         }
     }, {concurrency: 5});
-    
+    await pupp.saveCookies();
     //log('freeForming');
     //await freeForm(pupp);
     //.activity-list .activity-list-item .activity-list-content
