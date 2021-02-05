@@ -3,7 +3,7 @@ module.exports = {
         [
             { field: 'id', desc: 'Id' , type: 'uuid', required: true, isId: true},
             { field: 'date', desc: 'date', type: 'date' },
-            { field: 'description:', desc: 'description:' },
+            { field: 'description', desc: 'description:' },
             { field: 'amount', type: 'decimal', },
             { field: 'houseID', desc: 'House ID', foreignKey: { table: 'houseInfo', field: 'houseID' } },
             { field: 'category', desc: 'category' },
