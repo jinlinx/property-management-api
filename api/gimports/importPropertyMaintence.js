@@ -18,7 +18,6 @@ async function importTenantDataGS() {
         const result = rentData.reduce((acc, r) => {
             if (!acc.posToName) {
                 acc.posToName = r.reduce((rr, v, i) => {
-                    console.log(v.trim())
                     rr[i] = v.trim().toLowerCase();
                     return rr;
                 }, []);
@@ -38,13 +37,50 @@ async function importTenantDataGS() {
             end: false,
         });
 
+
+
         console.log(result.res);
-        return;
 
+        const cats = (await db.doQuery('select * from expenseCategories')).reduce((acc, k) => {
+            acc[k.expenseCategoryName] = k.expenseCategoryID;
+            return acc;
+        }, {});
 
+        const houses = (await db.doQuery('select * from houseInfo')).reduce((acc, h) => {
+            acc[h.address] = h;
+            return acc;
+        }, {});
+        console.log('start');
+        const sqlFreeForm = db.doQuery;
+        const xieOwnerId = (await db.doQueryOneRow(`select ownerID from ownerInfo where shortName='Xie'`))['ownerID'];
+        console.log(`xieOwernId=${xieOwnerId}`);
+        console.log(xieOwnerId)
         return await Promise.map(result.res, async data => {
-            const sqlFreeForm = db.doQuery;
+            if (data.category && !cats[data.category]) {
+                console.log('Creating category ' + data.category);
+                const id = uuid.v1();
+                cats[data.category] = id;
+                await sqlFreeForm(`insert into expenseCategories(expenseCategoryID,expenseCategoryName) values
+                ('${id}','${data.category}')`);
+            }
+
+            if (data.house) {
+                const curHouse = houses[data.house];
+                if (!curHouse) {
+                    console.log('Creating house ' + data.house);
+                    const id = uuid.v1();
+                    houses[data.house] = { houseID: id };
+                    await sqlFreeForm(`insert into houseInfo(houseID,address) values
+                ('${id}','${data.house}')`);
+                } else if (!curHouse.ownerID) {
+                    await sqlFreeForm(`update houseInfo set ownerID = '${xieOwnerId}' where houseID='${curHouse.houseID}'`);
+                    curHouse.ownerID = xieOwnerId;
+                }
+            }
+            
             //console.log(data);
+            //const owner = await sqlFreeForm(`select ownerID from ownerInfo where ownerName=?`, [data.owner]);
+            return;
             const owner = await sqlFreeForm(`select ownerID from ownerInfo where ownerName=?`, [data.owner]);
             let ownerID;
             if (!owner[0]) {
@@ -154,5 +190,5 @@ module.exports = {
 }
 
 importTenantDataGS().then(r => {
-    console.log(r);
+    db.conn.end();
 })
