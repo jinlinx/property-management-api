@@ -16,6 +16,9 @@ GRANT ALL PRIVILEGES ON PM.* TO 'lluser'@'localhost';
 FLUSH PRIVILEGES;
 
 
+/etc/mysql/mariadb.conf.d
+edit 50-server.cnf bind-address            = ::
+
 #crontab -e
 # 0 0 * * * curl http://localhost:8081/misc/statement?who=paypal
 # 0 10 * * * curl http://localhost:8081/misc/statement?who=venmo
