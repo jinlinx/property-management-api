@@ -6,7 +6,7 @@ const db = require('../lib/db');
 const uuid = require('uuid');
 const moment = require('moment');
 
-async function importTenantDataGS() {
+async function importPropertyMaintenance() {
     async function readSheet() {
         const res = await sheet.readRanges(sheetId, [`'MaintainessRecord'!A:L`]);
         const data = get(res, 'data.valueRanges.0.values');
@@ -39,7 +39,7 @@ async function importTenantDataGS() {
 
 
 
-        console.log(result.res);
+        //console.log(result.res);
 
         const cats = (await db.doQuery('select * from expenseCategories')).reduce((acc, k) => {
             acc[k.expenseCategoryName] = k.expenseCategoryID;
@@ -104,7 +104,7 @@ async function importTenantDataGS() {
             
 
             const mdate = moment(data.date, 'M/D/YYYY');
-            if (!mdate.isValid()) return;
+            if (!mdate.isValid()) return 0;
             const date = mdate.format('YYYY-MM-DD')
             const month = mdate.clone().startOf('month').format('YYYY-MM-DD');
             const amount = data.amount.replace('$', '').replace(',', '').trim();
@@ -123,10 +123,11 @@ async function importTenantDataGS() {
                     amount, comment)
         values(?,?,?,?, ?,?,?, ?,?)`, [id, date, month,data.description,
                     houseID, workerID, categoryID,
-                amount || 0, data.comments]);
+                    amount || 0, data.comments]);
+                return 1;
             } 
             
-            
+            return 0;
         }, { concurrency: 1 }).catch(err => {
             console.log(err);
         });
@@ -134,9 +135,9 @@ async function importTenantDataGS() {
 }
 
 module.exports = {
-    importTenantDataGS,
+    importPropertyMaintenance,
 }
 
-importTenantDataGS().then(r => {
+importPropertyMaintenance().then(r => {
     db.conn.end();
 })

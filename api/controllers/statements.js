@@ -2,11 +2,12 @@ const paypal = require('../../statementpuller/paypal');
 const venmo = require('../../statementpuller/venmo');
 const caspapp = require('../../statementpuller/cashapp');
 const webHandler = require('../../statementpuller/webhandler');
-const gsimport = require('../gimports/import');
+const importPropertyMaintenance = require('../gimports/importPropertyMaintenance');
 const submit = require('../../statementpuller/lib/submit');
 const db = require('../lib/db');
 const uuid = require('uuid');
 const get = require('lodash/get');
+const sum = require('lodash/sum');
 const pullStatementState = {
     message: '',
 }
@@ -73,8 +74,8 @@ async function doGsImport(req, res) {
     const date = new Date();
     console.log(`doGsImport ${date}`);
     
-    const pres = await gsimport.importTenantDataGS();
-    return res.send(pres);
+    const pres = await importPropertyMaintenance();
+    return res.send({ message: `added ${sum(pres)}` });
 }
 
 
