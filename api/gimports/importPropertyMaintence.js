@@ -107,19 +107,23 @@ async function importTenantDataGS() {
             if (!mdate.isValid()) return;
             const date = mdate.format('YYYY-MM-DD')
             const month = mdate.clone().startOf('month').format('YYYY-MM-DD');
+            const amount = data.amount.replace('$', '').replace(',', '').trim();
             const mrs = await sqlFreeForm(`select maintenanceID from maintenanceRecords 
-            where date=? and description=?`, [date, data.description]);
+            where date=? and description=? and houseID=? and workerID=? and expenseCategoryId=?
+             and amount=? and comment=?`, [date, data.description,
+                houseID, workerID, categoryID,
+            amount,data.comments]);
             if (!mrs[0]) {
                 const id = uuid.v1();
                 console.log( [id, date, month, data.description,
                     houseID, workerID, categoryID,
-                data.amount.replace('$','').trim(), data.comments])
+                amount, data.comments])
                 await sqlFreeForm(`insert into maintenanceRecords(
                     maintenanceID, date, month,description, houseID, workerID, expenseCategoryId, 
                     amount, comment)
         values(?,?,?,?, ?,?,?, ?,?)`, [id, date, month,data.description,
                     houseID, workerID, categoryID,
-                data.amount.replace('$','').replace(',','').trim() || 0, data.comments]);
+                amount || 0, data.comments]);
             } 
             
             
