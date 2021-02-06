@@ -61,8 +61,8 @@ async function importTenantDataGS() {
         console.log(`xieOwernId=${xieOwnerId}`);
         console.log(xieOwnerId)
         return await Promise.map(result.res, async data => {
-            let categoryID = '';
-            if (data.category && !cats[data.category]) {
+            let categoryID = cats[data.category];
+            if (data.category && !categoryID) {
                 console.log('Creating category ' + data.category);
                 categoryID = uuid.v1();
                 cats[data.category] = categoryID;
@@ -103,7 +103,9 @@ async function importTenantDataGS() {
             }
             
 
-            const date = moment(data.date,'M/D/YYYY').format('YYYY-MM-DD')
+            const mdate = moment(data.date, 'M/D/YYYY');
+            if (!mdate.isValid()) return;
+            const date = mdate.format('YYYY-MM-DD')
             const mrs = await sqlFreeForm(`select maintenanceID from maintenanceRecords 
             where date=? and description=?`, [date, data.description]);
             if (!mrs[0]) {
