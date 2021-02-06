@@ -137,7 +137,3 @@ async function importPropertyMaintenance() {
 module.exports = {
     importPropertyMaintenance,
 }
-
-importPropertyMaintenance().then(r => {
-    db.conn.end();
-})
