@@ -115,8 +115,8 @@ async function importTenantDataGS() {
                     houseID, workerID, categoryID,
                 data.amount.replace('$','').trim(), data.comments])
                 await sqlFreeForm(`insert into maintenanceRecords(
-                    maintenanceID, date, month,description, houseID, workerID, expanseCategoryID, 
-                    amount, comments)
+                    maintenanceID, date, month,description, houseID, workerID, expenseCategoryId, 
+                    amount, comment)
         values(?,?,?,?, ?,?,?, ?,?)`, [id, date, month,data.description,
                     houseID, workerID, categoryID,
                 data.amount.replace('$','').replace(',','').trim() || 0, data.comments]);
