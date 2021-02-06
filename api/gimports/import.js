@@ -1,6 +1,6 @@
 const get = require('lodash/get');
 const sheet = require('../lib/getSheet').createSheet();
-const sheetId = require('../../credentials.json').googleSheet.propertyManagementGSID;
+const sheetId = require('../../credentials.json').propertyManagementGSID;
 const Promise = require('bluebird');
 const db = require('../lib/db');
 const uuid = require('uuid');
