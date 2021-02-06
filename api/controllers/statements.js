@@ -74,7 +74,7 @@ async function doGsImport(req, res) {
     const date = new Date();
     console.log(`doGsImport ${date}`);
     
-    const pres = await importPropertyMaintenance();
+    const pres = await importPropertyMaintenance.importPropertyMaintenance();
     return res.send({ message: `added ${sum(pres)}` });
 }
 
