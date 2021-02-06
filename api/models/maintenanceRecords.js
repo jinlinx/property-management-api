@@ -1,7 +1,7 @@
 module.exports = {
     fields:
         [
-            { field: 'id', desc: 'Id' , type: 'uuid', required: true, isId: true},
+            { field: 'maintenanceID', desc: 'Id' , type: 'uuid', required: true, isId: true},
             { field: 'date', desc: 'date', type: 'date' },
             { field: 'month', desc: 'month', type: 'date' },
             { field: 'description', desc: 'description:' },
