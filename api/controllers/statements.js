@@ -8,6 +8,7 @@ const db = require('../lib/db');
 const uuid = require('uuid');
 const get = require('lodash/get');
 const sum = require('lodash/sum');
+const importMatchPayments = require('../gimports/importMatchPayments');
 const pullStatementState = {
     message: '',
 }
@@ -21,6 +22,8 @@ async function doStatement(req, res) {
             return venmo.doVenmo;
         else if (who === 'cashapp')
             return caspapp.doCashApp;
+        else if (who === importMatchPayments) 
+            return importMatchPayments.importAndMatchPayments();
         else throw new Error('Must be paypal or venmo')
     }
     
