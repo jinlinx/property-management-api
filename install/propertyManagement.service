@@ -5,7 +5,7 @@ After=network.target
 #log with journalctl -u propertyManagement.service
 [Service]
 EnvironmentFile=/home/pi/property-management-api/install/pienv.txt
-ExecStart=/usr/local/bin/node /home/pi/property-management-api/server.js 
+ExecStart=/usr/bin/node /home/pi/property-management-api/server.js 
 WorkingDirectory=/home/pi/property-management-api
 StandardOutput=inherit
 StandardError=inherit

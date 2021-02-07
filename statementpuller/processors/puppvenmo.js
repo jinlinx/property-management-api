@@ -46,6 +46,7 @@ async function init(pupp, creds) {
 
 async function doJob(pupp, creds, opts) {
     const log = opts.log;
+    const daysOff = opts.daysOff || 0;
     await init(pupp, creds);
     const saveScreenshoot = () => pupp.screenshot('outputData/test.png');
 
@@ -118,7 +119,7 @@ async function doJob(pupp, creds, opts) {
 
 
     //step2
-    const statementUrl = `https://venmo.com/account/statement?end=${moment().format('MM-DD-YYYY')}&start=${moment().add(-59, 'days').format('MM-DD-YYYY')}`;
+    const statementUrl = `https://venmo.com/account/statement?end=${moment().add(-daysOff,'days').format('MM-DD-YYYY')}&start=${moment().add(-59-daysOff, 'days').format('MM-DD-YYYY')}`;
     log(statementUrl);
     await saveScreenshoot();
     pupp.goto(statementUrl);
