@@ -6,9 +6,10 @@ const db = require('../lib/db');
 const uuid = require('uuid');
 const moment = require('moment');
 
+const sheetName = 'Copy of Sheet11';
 async function importAndMatchPayments() {
     async function readSheet() {
-        const res = await sheet.readRanges(sheetId, [`'Copy of Sheet11'!A:L`]);
+        const res = await sheet.readRanges(sheetId, [`'${sheetName}'!A:F`]);
         const data = get(res, 'data.valueRanges.0.values');
         return data;
     }
@@ -22,6 +23,7 @@ async function importAndMatchPayments() {
                 amount: parseFloat(r[1].replace('$', '').replace(',', '').trim()).toFixed(2),
                 house: r[2],
                 comment: r[3],
+                existingAmount: parseFloat(r[5]).toFixed(2),
                 row: i,
             })
             return acc;
@@ -61,6 +63,7 @@ async function importAndMatchPayments() {
                     m.matched = true;
                     m.diff = m.date.diff(p.date, 'days');
                     m.row = p.row;
+                    if (p.existingAmount === m.amount) return null;
                     return m;
                 }
             });
@@ -69,15 +72,29 @@ async function importAndMatchPayments() {
 
         console.log(mp.map(m => `${m.amount} ${m.date.format('YYYY-MM-DD')} ${m.diff} ${m.row}`));
 
-
         await Promise.map(mp, async m => {
             const row = m.row + 1;
-            await sheet.updateSheet(sheetId, [`'Copy of Sheet11'!E${row}:J${row}`], [
+            await sheet.updateSheet(sheetId, [`'${sheetName}'!E${row}:J${row}`], [
                [m.date.format('YYYY-MM-DD'), m.amount, m.address, m.name, m.notes, m.source]
             ]);
         },{concurrency: 1});
         
-        
+
+        const newPayments = payments.filter(p => !p.matched).map(p => {
+            return {
+                date: p.date.format('YYYY-MM-DD'),
+                amount: p.amount,
+                address: p.address,
+                notes: p.notes,
+                source: p.source,
+                name: p.name,
+            }
+        })
+        console.log(newPayments);
+        await sheet.appendSheet(sheetId,[`'${sheetName}'!A:J`],
+            newPayments.map(p => [p.date, p.amount, p.address, p.notes, p.date, p.amount, p.address, p.name, '', p.source]),
+            valueInputOption='USER_ENTERED'
+        )
     });
 }
 
