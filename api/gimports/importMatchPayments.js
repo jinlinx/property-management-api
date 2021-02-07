@@ -28,11 +28,13 @@ async function importAndMatchPayments() {
         }, []);
 
 
-        const payments = await db.doQuery(`select paymentID, receivedDate date, receivedAmount amount,
+        const payments = await db.doQuery(`select rp.paymentID, receivedDate date, receivedAmount amount,
          paidBy name,
-        notes, h.address
+        rp.notes, h.address,
+        imp.source
         from rentPaymentInfo rp inner join leaseInfo l on rp.leaseID=l.leaseID
-        inner join houseInfo h on h.houseID=l.houseID`);
+        inner join houseInfo h on h.houseID=l.houseID
+        left join importPayments imp on imp.paymentID = rp.paymentID`);
 
         const paymentsByAmount = payments.reduce((acc, p) => {
             const amount = p.amount.toFixed(2);
@@ -70,8 +72,8 @@ async function importAndMatchPayments() {
 
         await Promise.map(mp, async m => {
             const row = m.row + 1;
-            await sheet.updateSheet(sheetId, [`'Copy of Sheet11'!E${row}:I${row}`], [
-               [m.date.format('YYYY-MM-DD'), m.amount, m.address, m.name, m.notes]
+            await sheet.updateSheet(sheetId, [`'Copy of Sheet11'!E${row}:J${row}`], [
+               [m.date.format('YYYY-MM-DD'), m.amount, m.address, m.name, m.notes, m.source]
             ]);
         },{concurrency: 1});
         
