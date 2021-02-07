@@ -72,6 +72,8 @@ async function importPropertyMaintenance() {
 
             let houseID = '';
             if (data.house) {
+                houseID = addHouse(houses, data.house);
+                /*
                 const curHouse = houses[data.house];
                 if (!curHouse) {
                     console.log('Creating house ' + data.house);
@@ -86,6 +88,7 @@ async function importPropertyMaintenance() {
                 if (curHouse) {
                     houseID = curHouse.houseID;
                 }
+                */
             }
 
             let workerID = '';
@@ -134,6 +137,27 @@ async function importPropertyMaintenance() {
     });
 }
 
+async function addHouse(houses, address) {
+    let houseID = '';
+
+    const curHouse = houses[address];
+    if (!curHouse) {
+        console.log('Creating house ' + address);
+        houseID = uuid.v1();
+        houses[address] = { houseID };
+        await db.doQuery(`insert into houseInfo(houseID,address) values
+                ('${houseID}','${address}')`);
+    } else if (!curHouse.ownerID) {
+        await doQuery(`update houseInfo set ownerID = '${xieOwnerId}' where houseID='${curHouse.houseID}'`);
+        curHouse.ownerID = xieOwnerId;
+    }
+    if (curHouse) {
+        houseID = curHouse.houseID;
+    }
+    return houseID;
+}
+
 module.exports = {
     importPropertyMaintenance,
+    addHouse,
 }

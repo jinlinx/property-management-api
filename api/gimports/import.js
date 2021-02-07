@@ -169,7 +169,48 @@ async function importTenantDataGS() {
     });
 }
 
+
+async function getOrCreateLease(houseID, data = {}) {
+    let leaseID = null;
+    const lease = await db.doQuery(`select leaseID from leaseInfo where houseID=? and endDate>now() order by created desc`, [houseID]);
+    if (lease[0]) {
+        leaseID = lease[0].leaseID;
+    } else {
+        leaseID = uuid.v1();
+        let rent = data.rent?parseFloat(data.rent.split('/')[0].replace(/\$/g, '')):0;
+        if (isNaN(rent)) {
+            console.log(`failed to do rent ${data.rent}`);
+            rent = 0;
+        }
+        console.log(`rent=${rent} lease=${data.lease}`);
+        const doParse = (d, def) => {
+            if (!d) return def;
+            const mm = moment(d);
+            if (mm.isValid()) return mm.toDate();
+            return def;
+        }
+        const leaseParts = data.lease?data.lease.split('-'):[];
+        const startDate = doParse(leaseParts[0], new Date());
+        const endDate = doParse(leaseParts[1], moment().add(1, 'year').toDate());
+        console.log(`startdate ${startDate.toISOString()} end ${endDate.toISOString()}`)
+        await db.doQuery(`insert into leaseInfo (leaseID, houseID, 
+                    startDate, endDate,
+                    monthlyRent,
+                     comment, created, modified)
+        values (?,?,
+            ?, ?,
+            ?,
+            ?,now(),now())`, [leaseID, houseID,
+            startDate, endDate,
+            rent,
+            `${data.addr} ${data.rent}`])
+    }
+    return leaseID;
+}
+
+
 module.exports = {
+    getOrCreateLease,
     importTenantDataGS,
 }
 

@@ -5,7 +5,8 @@ const Promise = require('bluebird');
 const db = require('../lib/db');
 const uuid = require('uuid');
 const moment = require('moment');
-
+const { addHouse } = require('./importPropertyMaintence');
+const {getOrCreateLease } = require('./import');
 const sheetName = 'Copy of Sheet11';
 async function importAndMatchPayments() {
     async function readSheet() {
@@ -53,18 +54,24 @@ async function importAndMatchPayments() {
 
         const mp = fromRentSheet.map(p => {
             const matched = paymentsByAmount[p.amount];
-            console.log(`matched by amount ` + p.amount);
 
-            if (!matched) return;
+            if (!matched) {
+                //console.log(`not matched by amount ` + p.amount);
+                return;
+            }
+            //console.log(`matched by amount ` + p.amount);
             const first = matched.find(m => {
                 if (m.matched) return null;
                 const diff = Math.abs(m.date.diff(p.date, 'days'));
                 if (diff < 3) {
-                    m.matched = true;
+                    m.matched = p;
                     m.diff = m.date.diff(p.date, 'days');
                     m.row = p.row;
+                    p.matched = m;
                     if (p.existingAmount === m.amount) return null;
                     return m;
+                } else {
+                    //console.log(`not matched ${p.amount} ${p.date}`)
                 }
             });
             return first;
@@ -91,10 +98,34 @@ async function importAndMatchPayments() {
             }
         })
         console.log(newPayments);
-        await sheet.appendSheet(sheetId,[`'${sheetName}'!A:J`],
+        await sheet.appendSheet(sheetId, [`'${sheetName}'!A:J`],
             newPayments.map(p => [p.date, p.amount, p.address, p.notes, p.date, p.amount, p.address, p.name, '', p.source]),
-            valueInputOption='USER_ENTERED'
-        )
+            valueInputOption = 'USER_ENTERED'
+        );
+
+        const needInserts = fromRentSheet.filter(x => !x.matched).map(r => {
+            return {
+                date: r.date.format('YYYY-MM-DD'),
+                amount: r.amount,
+                house: r.house.trim(),
+                comment: r.comment.trim()
+            }
+        });
+        console.log(needInserts);
+
+        const houses = {};
+        await Promise.map(needInserts, async p => {
+            const houseID = await addHouse(houses, p.house);
+            const paymentID = uuid.v1();
+            const leaseID = await getOrCreateLease(houseID);
+            console.log(`leaseID for house ${houseID} is ${leaseID}`);
+            const insertSql = `insert into  rentPaymentInfo(paymentID, receivedDate, receivedAmount, notes, leaseID)
+            values (?,?,?,?,?)`;
+            console.log(insertSql);
+            await db.doQuery(insertSql, [paymentID, p.date, p.amount,
+                p.comment, leaseID
+            ])
+        }, {concurrency: 1});
     });
 }
 
