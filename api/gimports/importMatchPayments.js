@@ -69,7 +69,8 @@ async function importAndMatchPayments() {
 
 
         await Promise.map(mp, async m => {
-            await sheet.updateSheet(sheetId, [`'Copy of Sheet11'!E${m.row}:I${m.row}`], [
+            const row = m.row + 1;
+            await sheet.updateSheet(sheetId, [`'Copy of Sheet11'!E${row}:I${row}`], [
                [m.date.format('YYYY-MM-DD'), m.amount, m.address, m.name, m.notes]
             ]);
         },{concurrency: 1});
