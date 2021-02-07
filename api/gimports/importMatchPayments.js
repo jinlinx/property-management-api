@@ -45,7 +45,7 @@ async function importAndMatchPayments() {
             }
             rows.push(p);
             return acc; 
-        });
+        },[]);
 
         const mp = fromRentSheet.map(p => {
             const matched = paymentsByAmount[p.amount];
