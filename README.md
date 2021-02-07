@@ -22,3 +22,14 @@ edit 50-server.cnf bind-address            = ::
 #crontab -e
 # 0 0 * * * curl http://localhost:8081/misc/statement?who=paypal
 # 0 10 * * * curl http://localhost:8081/misc/statement?who=venmo
+
+
+1 0 * * * /home/pi/bibleSender/cronSchedule/doCron.sh /sendToday
+0 8 * * 2,5 /home/pi/bibleSender/cronSchedule/doCron.sh /sendHebrewsWeeklyEmail
+#0 0 15,28 * * /home/pi/bibleSender/cronSchedule/doCron.sh /sendSantury
+0,5,10,15,20,25,30,35,40,45,50,55 9,10,11 * * 0 /home/pi/bibleSender/cronSchedule/doCron.sh /checkChannel
+
+0 0 * * * curl http://localhost:8081/misc/statement?who=paypal
+10 0 * * * curl http://localhost:8081/misc/statement?who=venmo
+20 0 * * * curl http://localhost:8081/misc/statement?who=cashapp
+30 0 * * * curl http://localhost:8081/misc/statement?who=importMatchPayments

@@ -22,7 +22,7 @@ async function doStatement(req, res) {
             return venmo.doVenmo;
         else if (who === 'cashapp')
             return caspapp.doCashApp;
-        else if (who === importMatchPayments) 
+        else if (who === 'importMatchPayments') 
             return importMatchPayments.importAndMatchPayments();
         else throw new Error('Must be paypal or venmo')
     }
