@@ -36,7 +36,7 @@ async function importTenantDataGS() {
                     const m = headerToPropMap[v];
                     acc.posToName[i] = m;
                     if ({ 'addr': true, 'unit': true, 'rent': true, 'lease': true, 'city': 'true', 'state': 'true', 'zip': true, 'owner': true }[m]) {
-                        rr.push(i)
+                        rr.push(i.trim())
                     }
                     return rr;
                 }, []);
