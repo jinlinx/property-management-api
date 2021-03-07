@@ -6,6 +6,13 @@ const db = require('../lib/db');
 const uuid = require('uuid');
 const moment = require('moment');
 
+function fixAmt(amt) {
+    if (amt.trim().indexOf('(') >= 0) {
+        amt = amt.replace('(', '-');
+        amt = amt.replace(')', '');
+    }
+    return amt;
+}
 async function importPropertyMaintenance() {
     async function readSheet() {
         const res = await sheet.readRanges(sheetId, [`'MaintainessRecord'!A:L`]);
@@ -110,7 +117,7 @@ async function importPropertyMaintenance() {
             if (!mdate.isValid()) return 0;
             const date = mdate.format('YYYY-MM-DD')
             const month = mdate.clone().startOf('month').format('YYYY-MM-DD');
-            const amount = data.amount.replace('$', '').replace(',', '').trim();
+            const amount = fixAmt(data.amount.replace('$', '').replace(',', '').trim());
             console.log(`Inserting maintenane rec`);
             console.log([date, data.description,
                 houseID, workerID, categoryID,
