@@ -25,7 +25,7 @@ async function importPropertyMaintenance() {
             }
 
             const val = acc.posToName.reduce((acc, name, i) => {
-                    acc[name] = r[i] || '';
+                    acc[name] = (r[i] || '').trim();
                     return acc;
                 }, {});
             //if (val.date)
@@ -148,7 +148,7 @@ async function addHouse(houses, address) {
         await db.doQuery(`insert into houseInfo(houseID,address) values
                 ('${houseID}','${address}')`);
     } else if (!curHouse.ownerID) {
-        await doQuery(`update houseInfo set ownerID = '${xieOwnerId}' where houseID='${curHouse.houseID}'`);
+        await db.doQuery(`update houseInfo set ownerID = '${xieOwnerId}' where houseID='${curHouse.houseID}'`);
         curHouse.ownerID = xieOwnerId;
     }
     if (curHouse) {
