@@ -4,10 +4,10 @@ const cashapp = require('./cashapp');
 const db = require('../api/lib/db');
 
 //return cashapp.doCashApp().then(r => { console.log(r) });
-return venmo.doVenmo({
-    log: s => console.log(s),
-    daysOff: 120,
-}).then(r => { console.log(r) });
+//return venmo.doVenmo({
+//    log: s => console.log(s),
+//    daysOff: 120,
+//}).then(r => { console.log(r) });
 /*const fs = require('fs');
 const submit = require('./lib/submit');
 return submit.matchImports().then(() => db.conn.end());
