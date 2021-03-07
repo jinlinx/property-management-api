@@ -24,10 +24,15 @@ return submit.submit(trans).then(async () => {
 async function doAll() {
     try {
         const venmoRes = await venmo.doVenmo();
-        await venmo.doVenmo({
-            log: s => console.log(s),
-            daysOff: 120,
-        }).then(r => { console.log(r) });
+        for (let i = 0; i < 10; i++) {
+            console.log('doing venmo for ' + (i * 90));
+            const rr= await venmo.doVenmo({
+                log: s => console.log(s),
+                daysOff: i*59,
+            });
+            if (rr.allRes.length === 0) break;
+            console.log(`${rr.allRes.length}`);
+        }
 
         const paypalRes = await paypal.doPaypal();
         await cashapp.doCashApp();
