@@ -101,7 +101,7 @@ async function importPropertyMaintenance() {
                     console.log(`creating worker ${tag}`);
                     await sqlFreeForm(`insert into workerInfo(workerID,firstName, lastName) values
                 ('${workerID}','${fl[0]}','${fl[1]||''}')`);
-                    workers[tag] = id;
+                    workers[tag] = workerID;
                 } 
             }
             
