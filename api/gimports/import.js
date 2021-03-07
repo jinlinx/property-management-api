@@ -36,7 +36,7 @@ async function importTenantDataGS() {
                     const m = headerToPropMap[v];
                     acc.posToName[i] = m;
                     if ({ 'addr': true, 'unit': true, 'rent': true, 'lease': true, 'city': 'true', 'state': 'true', 'zip': true, 'owner': true }[m]) {
-                        rr.push(i.trim())
+                        rr.push(i);
                     }
                     return rr;
                 }, []);
@@ -47,7 +47,7 @@ async function importTenantDataGS() {
             acc.pullDownFields.forEach(i => r[i] && (last[i] = r[i]));
             const val = //['addr', 'unit', 'rent', 'lease', 'name', 'phone', 'email', 'comments', 'city', 'state', 'zip', 'owner']
                 acc.posToName.reduce((acc, name, i) => {
-                    acc[name] = r[i] || last[i] || '';
+                    acc[name] = (r[i] || last[i] || '').trim();
                     return acc;
                 }, {});
             if (val.name) acc.res.push(val);
