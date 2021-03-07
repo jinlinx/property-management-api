@@ -111,6 +111,10 @@ async function importPropertyMaintenance() {
             const date = mdate.format('YYYY-MM-DD')
             const month = mdate.clone().startOf('month').format('YYYY-MM-DD');
             const amount = data.amount.replace('$', '').replace(',', '').trim();
+            console.log(`Inserting maintenane rec`);
+            console.log([date, data.description,
+                houseID, workerID, categoryID,
+                amount, data.comments]);
             const mrs = await sqlFreeForm(`select maintenanceID from maintenanceRecords 
             where date=? and description=? and houseID=? and workerID=? and expenseCategoryId=?
              and amount=? and comment=?`, [date, data.description,
