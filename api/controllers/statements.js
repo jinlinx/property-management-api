@@ -9,6 +9,7 @@ const uuid = require('uuid');
 const get = require('lodash/get');
 const sum = require('lodash/sum');
 const importMatchPayments = require('../gimports/importMatchPayments');
+const importTenant = require('../gimports/import');
 const pullStatementState = {
     message: '',
 }
@@ -77,8 +78,12 @@ async function doGsImport(req, res) {
     const date = new Date();
     console.log(`doGsImport ${date}`);
     
-    const pres = await importPropertyMaintenance.importPropertyMaintenance();
-    return res.send({ message: `added ${sum(pres)}` });
+    if (req.query.who === 'maintence') {
+        const pres = await importPropertyMaintenance.importPropertyMaintenance();
+        return res.send({ message: `added ${sum(pres)}` });
+    } else {
+        return await importTenant.importTenantDataGS();
+    }
 }
 
 
