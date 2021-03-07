@@ -5,8 +5,8 @@ module.exports = {
         [
             { field: 'leaseID', desc: 'Id', type: 'uuid', required: true, isId: true },
             { field: 'deposit', desc: 'Deposit',  },
-            { field: 'endDate', desc: 'End Date', formatter},
-            { field: 'startDate', desc: 'Start Date',  formatter},
+            { field: 'endDate', desc: 'End Date', formatter, type: 'date'},
+            { field: 'startDate', desc: 'Start Date',  formatter, type: 'date'},
             { field: 'houseID', desc: 'House ID', foreignKey: {table: 'houseInfo', field:'houseID'}},
             { field: 'comment', desc: 'Comment' },
             { field: 'monthlyRent', desc: 'Monthly Rent', require: true, type: 'decimal', },
