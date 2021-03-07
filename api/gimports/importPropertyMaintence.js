@@ -72,7 +72,7 @@ async function importPropertyMaintenance() {
 
             let houseID = '';
             if (data.house) {
-                houseID = await addHouse(houses, data.house);
+                houseID = await addHouse(houses, data.house,xieOwnerId);
                 /*
                 const curHouse = houses[data.house];
                 if (!curHouse) {
@@ -141,7 +141,7 @@ async function importPropertyMaintenance() {
     });
 }
 
-async function addHouse(houses, address) {
+async function addHouse(houses, address,xieOwnerId) {
     let houseID = '';
 
     const curHouse = houses[address];
