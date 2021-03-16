@@ -13,6 +13,7 @@ module.exports = {
             name: 'view_rentPaymentInfo',
             fields:[
                 { name: 'comment', field: 'comment', desc: 'Lease Comment', table: 'leaseInfo' },
+                { name: 'paymentTypeName', field: 'paymentTypeName', desc: 'Payment Type', table: 'paymentType' },
             ], 
         }
 };
