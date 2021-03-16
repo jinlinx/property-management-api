@@ -202,7 +202,7 @@ async function createOrUpdate(req, res) {
            sqlArgs.push(f.formatter(v));
          } else {
            let formatter = (x => x);
-           if (mf.type === 'datetime') {
+           if (f.type === 'datetime') {
              formatter = dateStrFormatter;
            }
            sqlArgs.push(formatter(vmap2(v)));
