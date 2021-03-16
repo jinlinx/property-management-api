@@ -3,7 +3,8 @@ const models = require('../models/index');
 const keyBy = require('lodash/keyBy');
 const get = require('lodash/get');
 const uuid = require('uuid');
-const {formatterYYYYMMDD, extensionFields}=require('../util/util');
+const { formatterYYYYMMDD, extensionFields } = require('../util/util');
+const moment = require('moment');
 
 async function doQuery(req, res) {
     try {
@@ -152,6 +153,9 @@ async function doGet(req, res) {
   }
 }
 
+function dateStrFormatter(str) {
+  return moment(str).toDate();
+}
 const vmap = (v, formatter) => {
   if (v === null) return 'null';
   if (v === 0) return 0;
@@ -204,9 +208,13 @@ async function createOrUpdate(req, res) {
         } else {
           const v = fields[mf.field];
           if (v !== undefined) {
+            let formatter = null;
+            if (mf.type === 'datetime') {
+              formatter = dateStrFormatter;
+            }
             acc.values.push({
               name: mf.field,
-              value: (mf.formatter|| vmap2)(v),
+              value: (formatter || mf.formatter|| vmap2)(v),
             })
           }
         }
