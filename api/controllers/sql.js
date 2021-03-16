@@ -177,6 +177,7 @@ async function createOrUpdate(req, res) {
     let sqlStr = '';
     
     let idVal = '';
+    let sqlArgs = [];
     if (create) {
 
       sqlStr = `insert into ${table} (${model.fields.map(f => f.field).join(',')},created,modified)
@@ -210,12 +211,15 @@ async function createOrUpdate(req, res) {
         throw 'Id field not specified';
       }
       idVal = idField.value;
-      const setValMap = v=>`${v.name}=${v.value}`;
-      sqlStr = `update ${table} set ${values.map(v=>setValMap(v)).join(',')},modified=NOW() where ${idField.name}=${vmap(idField.value)}`;
+      //const setValMap = v => `${v.name}=${v.value}`;
+      const setValMap = v=>`${v.name}=?`;
+      sqlStr = `update ${table} set ${values.map(v => setValMap(v)).join(',')},modified=NOW() where ${idField.name}=${vmap(idField.value)}`;
+      sqlArgs = values.map(v => v.value);
     }
 
     console.log(sqlStr);
-    const rows = await db.doQuery(sqlStr);
+    console.log(sqlARgs);
+    const rows = await db.doQuery(sqlStr,sqlArgs);
 
     rows.id = idVal;
     return res.json(rows);
