@@ -19,4 +19,4 @@ module.exports = {
 }
 
 
-getCashApp(creds.cashapp).then(r => console.log(r));
+//getCashApp(creds.cashapp).then(r => console.log(r));
