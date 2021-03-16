@@ -161,6 +161,13 @@ const vmap = (v, formatter) => {
   return `'${v}'`
 }
 
+const vmap2 = (v, formatter) => {
+  if (v === null || v === 0 || v === '') return v;
+  if (v === undefined) v = '';
+  if (formatter) return formatter(v);
+  return v;
+}
+
 async function createOrUpdate(req, res) {
   try {
     const { table, fields, create} = req.body;
@@ -199,7 +206,7 @@ async function createOrUpdate(req, res) {
           if (v !== undefined) {
             acc.values.push({
               name: mf.field,
-              value: (mf.formatter|| vmap)(v),
+              value: (mf.formatter|| vmap2)(v),
             })
           }
         }
