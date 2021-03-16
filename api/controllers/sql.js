@@ -198,8 +198,17 @@ async function createOrUpdate(req, res) {
            idVal = uuid.v1();
            val= idVal;
          }
-         if (f.formatter) return f.formatter(val);
-         return vmap(val);
+         if (f.formatter) {
+           sqlArgs.push(f.formatter(v));
+         } else {
+           let formatter = (x => x);
+           if (mf.type === 'datetime') {
+             formatter = dateStrFormatter;
+           }
+           sqlArgs.push(formatter(vmap2(v)));
+         }
+         return '?';
+         //return vmap(val);
        }).join(',')},NOW(),NOW())`;
     } else {
       const { idField, values } = model.fields.reduce((acc, mf) => {
