@@ -6,6 +6,7 @@ module.exports = {
             { field: 'receivedAmount', desc: 'Received Amount', type: 'decimal' },
             { field: 'paidBy', desc: 'Paid By', },
             { field: 'notes', desc: 'Notes', },
+            { field: 'paymentTypeID', desc: 'PaymentType', foreignKey:{table:'paymentType', field:'paymentTypeID'} },
             { field: 'leaseID', desc: 'Lease ID', foreignKey: {table: 'leaseInfo', field:'leaseID'}},
         ],
         view:{

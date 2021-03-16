@@ -18,4 +18,5 @@ module.exports = {
     doCashApp: opts => getCashApp(creds.cashapp, opts)
 }
 
-//getCashApp(creds.cashapp).then(r => console.log(r));
+
+getCashApp(creds.cashapp).then(r => console.log(r));
