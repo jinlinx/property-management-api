@@ -205,7 +205,7 @@ async function createOrUpdate(req, res) {
            if (f.type === 'datetime') {
              formatter = dateStrFormatter;
            }
-           sqlArgs.push(formatter(vmap2(v)));
+           sqlArgs.push(formatter(vmap2(val)));
          }
          return '?';
          //return vmap(val);
