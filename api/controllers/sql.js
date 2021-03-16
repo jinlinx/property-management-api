@@ -218,7 +218,7 @@ async function createOrUpdate(req, res) {
     }
 
     console.log(sqlStr);
-    console.log(sqlARgs);
+    console.log(sqlArgs);
     const rows = await db.doQuery(sqlStr,sqlArgs);
 
     rows.id = idVal;
