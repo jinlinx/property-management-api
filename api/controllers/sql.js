@@ -22,11 +22,11 @@ async function doQuery(req, res) {
 }
 
 
-function createFieldMap(model) {
-  if(!model.fieldMap) {    
-    model.fieldMap = keyBy(model.fields, 'field');
-  }
-}
+//function createFieldMap(model) {
+//  if(!model.fieldMap) {    
+//    model.fieldMap = keyBy(model.fields, 'field');
+//  }
+//}
 
 const goodOps = Object.freeze({
   '>': true,
@@ -63,7 +63,7 @@ async function doGet(req, res) {
         message: 'Bad rowCount ' + rowCount
       }
     }
-    createFieldMap(model);
+    //createFieldMap(model);
 
     const extFields=extensionFields.concat(viewFields)
     const fieldMap=Object.assign({},model.fieldMap, keyBy(extFields,'field'));
@@ -183,7 +183,7 @@ async function createOrUpdate(req, res) {
       }
     }
 
-    createFieldMap(model);
+    //createFieldMap(model);
 
     let sqlStr = '';
     
@@ -268,7 +268,7 @@ async function del(req, res) {
       }
     }
 
-    createFieldMap(model);
+    //createFieldMap(model);
 
     const idField = model.fields.filter(f => f.isId)[0];
     const sqlStr = `delete from ${table} where ${idField.field}=${vmap(id)}`;
