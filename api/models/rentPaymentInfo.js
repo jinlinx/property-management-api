@@ -15,7 +15,8 @@ module.exports = {
                 { name: 'comment', field: 'comment', desc: 'Lease Comment', table: 'leaseInfo' },
                 { name: 'paymentTypeName', field: 'paymentTypeName', desc: 'Payment Type', table: 'paymentType' },
                 { name: 'address', field: 'address', desc: 'House', table: 'h' },
+                { name: 'tenantEmail', field: 'email', desc: 'TenantEmail', table: 't' },
             ], 
-            extraViewJoins: ' left join houseInfo h on h.houseID = leaseInfo.houseID ',
+            extraViewJoins: ' left join houseInfo h on h.houseID = leaseInfo.houseID left join tenantInfo t on t.tenantID=leaseInfo.tenantID ',
         }
 };
