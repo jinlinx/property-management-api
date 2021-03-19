@@ -7,7 +7,7 @@ const TrustedComms = require('twilio/lib/rest/preview/TrustedComms');
 
 const HTTPS = false; //process.env.PORT?false:true;
 const globalServerOpt = {
-  handleUncaughtExceptions: TrustedComms,
+  handleUncaughtExceptions: true,
   socketio: true,
 }
 const serverHttpsOpt = Object.assign({}, globalServerOpt, {
