@@ -16,6 +16,7 @@ function sendHotmail(mailOptions) {
                 },
             });
 
+            mailOptions.from = auth.user;
             transporter.sendMail(mailOptions, (error, info) => {
                 if (error) {
                     console.log(error);
