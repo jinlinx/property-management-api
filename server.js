@@ -3,15 +3,18 @@ const restify = require('restify');
 const route = require('./api/route/route');
 const fs = require('fs');
 const check = require('./dbCheck');
+const TrustedComms = require('twilio/lib/rest/preview/TrustedComms');
 
 const HTTPS = false; //process.env.PORT?false:true;
-const serverHttpsOpt = {
+const globalServerOpt = {
+  handleUncaughtExceptions: TrustedComms,
+  socketio: true,
+}
+const serverHttpsOpt = Object.assign({}, globalServerOpt, {
     //key: fs.readFileSync('./key.pem'),
     //certificate: fs.readFileSync('./server.crt')
-};
-const server = restify.createServer(HTTPS ? serverHttpsOpt : {
-  socketio: true
 });
+const server = restify.createServer(HTTPS ? serverHttpsOpt : globalServerOpt);
 
 function serverInit(server) {
   server.use(restify.plugins.queryParser());
