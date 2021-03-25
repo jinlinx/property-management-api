@@ -13,8 +13,8 @@ module.exports = {
         view:{
             name:'view_leaseInfo',
             fields:[
-                { field: 'houseAddress', name: 'address', desc: 'Address', table: 'houseInfo' },
-                { field: 'houseZip', name:'zip', desc:'Zip', table:'houseInfo'}
+                { field: 'address', name: 'houseAddress', desc: 'Address', table: 'houseInfo' },
+                { field: 'zip', name:'houseZip', desc:'Zip', table:'houseInfo'}
             ],
             //content:'select houseID, address, city, state, zip, h.ownerID ownerID, ownerName, h.created, h.modified from houseInfo h left outer join ownerInfo o on h.ownerID=o.ownerID'
         }

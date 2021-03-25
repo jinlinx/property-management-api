@@ -16,10 +16,10 @@ module.exports = {
     view: {
         name: 'view_maintenanceRecords',
         fields: [
-            { name: 'firstName', field: 'workerFirstName', desc: 'FirstName', table: 'w' },
-            { name: 'lastName', field: 'workerLastName', desc: 'LastName', table: 'w' },
-            { name: 'email', field: 'workerEmail', desc: 'Worker Email', table: 'w' },
-            { field: 'address', desc: 'House', table: 'h' },
+            { name: 'workerFirstName', field: 'firstName', desc: 'FirstName', table: 'w' },
+            { name: 'workerLastName', field: 'lastName', desc: 'LastName', table: 'w' },
+            { name: 'workerEmail', field: 'email', desc: 'Worker Email', table: 'w' },
+            { name: 'address', desc: 'House', table: 'h' },
         ],
         extraViewJoins: ' inner join workerInfo w on w.workerID=maintenanceRecords.workerID left join houseInfo h on h.houseID = maintenanceRecords.houseID ',
     }
