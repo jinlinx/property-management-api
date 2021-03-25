@@ -87,6 +87,7 @@ async function check() {
                 await doQuery(createViewSql);
             } catch (err) {
                 console.log(`${createViewSql} ${err.message}`);
+                throw err.message;
             }
         }
 
