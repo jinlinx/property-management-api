@@ -73,7 +73,7 @@ async function check() {
         const curView = curMod.view
         if (curView) {
             const select = 'select ' + curMod.fields.concat(extensionFields).map(f => `${tabName}.${f.field}`)
-                .concat(curView.fields.map(f=>`${f.table}.${f.name || f.field} ${f.field || ''}`))
+                .concat(curView.fields.map(f=>`${f.table}.${f.field || f.name} ${f.name || ''}`))
                 .join(',');
             const innerJoin = curMod.fields.map(f => {
                 const fk = f.foreignKey;
@@ -87,7 +87,7 @@ async function check() {
                 await doQuery(createViewSql);
             } catch (err) {
                 console.log(`${createViewSql} ${err.message}`);
-                throw err.message;
+                throw err.message
             }
         }
 
