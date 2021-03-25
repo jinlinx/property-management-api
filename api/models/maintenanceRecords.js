@@ -12,5 +12,16 @@ module.exports = {
             { field: 'workerID', desc: 'Id', type: 'uuid', required: true, foreignKey: { table: 'workerInfo', field: 'workerID' } },
             { field: 'ownerID', desc: 'Owner ID', require: true, foreignKey: {table: 'ownerInfo', field:'ownerID'}, type: 'int' },
             { field: 'comment', desc: 'comment' },
-        ]
+            { field: 'address', desc: 'Address' },
+        ],
+    view: {
+        name: 'view_maintenanceRecords',
+        fields: [
+            { name: 'workerFirstName', field: 'firstName', desc: 'FirstName', table: 'w' },
+            { name: 'workerLastName', field: 'lastName', desc: 'LastName', table: 'w' },
+            { name: 'workerEmail', field: 'email', desc: 'Worker Email', table: 'w' },
+            { name: 'address', field: 'address', desc: 'House', table: 'h' },
+        ],
+        extraViewJoins: ' inner join workerInfo w on w.workerID=maintenanceRecords.workerID left join houseInfo h on h.houseID = maintenanceRecords.houseID ',
+    }
 };
