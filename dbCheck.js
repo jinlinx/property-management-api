@@ -73,7 +73,7 @@ async function check() {
         const curView = curMod.view
         if (curView) {
             const select = 'select ' + curMod.fields.concat(extensionFields).map(f => `${tabName}.${f.field}`)
-                .concat(curView.fields.map(f=>`${f.table}.${f.field || f.name} ${f.name || ''}`))
+                .concat(curView.fields.map(f=>`${f.table}.${f.name || f.field} ${f.field || ''}`))
                 .join(',');
             const innerJoin = curMod.fields.map(f => {
                 const fk = f.foreignKey;
