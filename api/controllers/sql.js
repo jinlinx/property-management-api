@@ -52,7 +52,7 @@ async function doGet(req, res) {
       }
     }
     const tableOrView = get(model,['view','name'], table);
-    const viewFields = get(model,['view','fields'],[]);
+    const viewFields = get(model,['view','fields'],[]).map(f=>({...f, field: f.name || f.field}));
 
     if (parseInt(offset) !== offset)
       throw {
