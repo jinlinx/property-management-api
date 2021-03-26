@@ -175,10 +175,12 @@ const vmap = (v, formatter) => {
   return `'${v}'`
 }
 
-const vmap2 = (v, formatter) => {
-  if (v === null || v === 0 || v === '') return v;
+const vmap2 = (v, f) => {
+  if (v === null || v === 0) return v;
   if (v === undefined) v = '';
-  if (formatter) return formatter(v);
+  if (v === '') {
+    if (f.type === 'decimal') return null;
+  }  
   return v;
 }
 
@@ -210,12 +212,15 @@ async function createOrUpdate(req, res) {
          }
          if (f.formatter) {
            sqlArgs.push(f.formatter(v));
-         } else {
+         }  else if (f.autoValueFunc) {
+           sqlArgs.push(f.autoValueFunc(fields, f, val))
+         }
+         else {
            let formatter = (x => x);
            if (f.type === 'datetime' || f.type === 'date') {
              formatter = dateStrFormatter;
            }
-           sqlArgs.push(formatter(vmap2(val)));
+           sqlArgs.push(formatter(vmap2(val, f)));
          }
          return '?';
          //return vmap(val);
@@ -226,14 +231,17 @@ async function createOrUpdate(req, res) {
           acc.idField = { name: mf.field, value: fields[mf.field] };
         } else {
           const v = fields[mf.field];
-          if (v !== undefined) {
+          if (v !== undefined) {            
             let formatter = null;
             if (mf.type === 'datetime') {
               formatter = dateStrFormatter;
             }
+            if (mf.autoValueFunc) {
+              formatter = v=>mf.autoValueFunc(fields, mf, v);
+            }
             acc.values.push({
               name: mf.field,
-              value: (formatter || mf.formatter|| vmap2)(v),
+              value: (formatter || mf.formatter|| vmap2)(v, mf),
             })
           }
         }

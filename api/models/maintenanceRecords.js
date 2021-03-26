@@ -1,9 +1,10 @@
+const moment = require('moment');
 module.exports = {
     fields:
         [
             { field: 'maintenanceID', desc: 'Id' , type: 'uuid', required: true, isId: true},
             { field: 'date', desc: 'date', type: 'date' },
-            { field: 'month', desc: 'month', dontShowOnEdit: true },
+            { field: 'month', desc: 'month', dontShowOnEdit: true, autoValueFunc: row=> moment(row['date']).format('YYYY-MM') },
             { field: 'description', desc: 'description:' },
             { field: 'amount', type: 'decimal', },
             { field: 'houseID', desc: 'House ID', foreignKey: { table: 'houseInfo', field: 'houseID' } },
@@ -20,7 +21,8 @@ module.exports = {
             { name: 'workerLastName', field: 'lastName', desc: 'LastName', table: 'w' },
             { name: 'workerEmail', field: 'email', desc: 'Worker Email', table: 'w' },
             { name: 'address', desc: 'House', table: 'h' },
+            { name: 'expenseCategoryName', desc: 'Expense', table: 'expc' },
         ],
-        extraViewJoins: ' inner join workerInfo w on w.workerID=maintenanceRecords.workerID left join houseInfo h on h.houseID = maintenanceRecords.houseID ',
+        extraViewJoins: ' inner join workerInfo w on w.workerID=maintenanceRecords.workerID left join houseInfo h on h.houseID = maintenanceRecords.houseID left join expenseCategories expc on expc.expenseCategoryID = maintenanceRecords.expenseCategoryId ',
     }
 };
