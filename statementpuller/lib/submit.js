@@ -93,8 +93,10 @@ async function matchImports() {
     where i.matchedTo is null`, [importID]);
     
     await db.doQuery(`insert into rentPaymentInfo(paymentID, receivedDate,receivedAmount,
+        month,
                         paidBy,leaseID,created,modified,notes)
                         select paymentID, date, amount,
+                        DATE_FORMAT(date, '%Y-%m'),
                         name, leaseID ,now(),now(),notes from importPayments where importID=?`, [importID]);
     
     await db.doQuery(`update importPayments set matchedTo=paymentID where importID=?`, [importID]);

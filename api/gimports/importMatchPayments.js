@@ -119,10 +119,10 @@ async function importAndMatchPayments() {
             const paymentID = uuid.v1();
             const leaseID = await getOrCreateLease(houseID);
             console.log(`leaseID for house ${houseID} is ${leaseID}`);
-            const insertSql = `insert into  rentPaymentInfo(paymentID, receivedDate, receivedAmount, notes, leaseID)
+            const insertSql = `insert into  rentPaymentInfo(paymentID, receivedDate, month, receivedAmount, notes, leaseID)
             values (?,?,?,?,?)`;
             console.log(insertSql);
-            await db.doQuery(insertSql, [paymentID, p.date, p.amount,
+            await db.doQuery(insertSql, [paymentID, p.date, moment(p.date).format('YYYY-MM'), p.amount,
                 p.comment, leaseID
             ])
         }, {concurrency: 1});
