@@ -116,7 +116,7 @@ async function importPropertyMaintenance() {
             const mdate = moment(data.date, 'M/D/YYYY');
             if (!mdate.isValid()) return 0;
             const date = mdate.format('YYYY-MM-DD')
-            const month = mdate.clone().startOf('month').format('YYYY-MM-DD');
+            const month = mdate.clone().startOf('month').format('YYYY-MM');
             const amount = fixAmt(data.amount.replace('$', '').replace(',', '').trim());
             console.log(`Inserting maintenane rec`);
             console.log([date, data.description,
