@@ -42,7 +42,9 @@ async function doGet(req, res) {
   try {
     //joins:{ table:{col:als}}
     const { table, fields, joins, order,
-      whereArray, offset = 0, rowCount = 2147483647
+      whereArray,    //field, op, val
+      groupByArray,  //field
+      offset = 0, rowCount = 2147483647
     } = req.body;
     const model = models[table];
     if (!model) {
@@ -68,7 +70,7 @@ async function doGet(req, res) {
     const extFields=extensionFields.concat(viewFields)
     const fieldMap=Object.assign({},model.fieldMap, keyBy(extFields,'field'));
     const modelFields=model.fields.concat(extFields);
-    const selectNames=fields? fields.filter(f => fieldMap[f]).map(`${tableOrView}.${f}`):modelFields.map(f => `${tableOrView}.${f.field}`);
+    const selectNames=fields? fields.filter(f => fieldMap[f]).map(f=>`${tableOrView}.${f}`):modelFields.map(f => `${tableOrView}.${f.field}`);
 
     let orderby = '';
     if (order && order.length) {
@@ -131,11 +133,19 @@ async function doGet(req, res) {
       wherePrm = whereRed.prms;
     }
 
+    let groupByStr = '';
+    if (groupByArray) {
+      groupBys = groupByArray.map(g=>g.field).filter(f=>fieldMap[f]);
+      if (groupBys.length) {
+        groupByStr = ' group by '+ groupBys.join(',');
+      }
+    }
+
     const fromAndWhere = ` from ${[tableOrView].concat(joinTbls).join(' ')} ${whereStr} `;
-    const sqlStr = `select ${selectNames.concat(joinSels).join(',')} ${fromAndWhere} ${orderby}
+    const sqlStr = `select ${selectNames.concat(joinSels).join(',')} ${fromAndWhere} ${orderby} ${groupByStr}
     limit ${offset}, ${rowCount}`;
     console.log(sqlStr);
-    const countRes = await db.doQueryOneRow(`select count(1) cnt ${fromAndWhere}`,wherePrm);
+    const countRes = await db.doQueryOneRow(`select count(1) cnt ${fromAndWhere}  ${groupByStr}`,wherePrm);
     const rows = await db.doQuery(sqlStr,wherePrm);
 
     return res.json({
