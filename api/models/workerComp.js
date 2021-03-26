@@ -14,6 +14,8 @@ module.exports={
                 { name: 'firstName', field: 'firstName', desc: 'Worker Firstname', table: 'workerInfo' },
                 { name: 'lastName', field: 'lastName', desc: 'Worker Lastname', table: 'workerInfo' },
                 { name: 'comment', field: 'comment', desc: 'Lease Comment', table: 'leaseInfo' },
+                { field: 'address', desc: 'Address', table: 'h' },
             ],  
+            extraViewJoins: ' left join houseInfo h on h.houseID = leaseInfo.houseID ',
         }
 };
