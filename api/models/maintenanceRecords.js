@@ -22,6 +22,7 @@ module.exports = {
             { name: 'workerEmail', field: 'email', desc: 'Worker Email', table: 'w' },
             { name: 'address', desc: 'House', table: 'h' },
             { name: 'expenseCategoryName', desc: 'Expense', table: 'expc' },
+            { name: 'expCatDisplayOrder', field: 'displayOrder', desc: 'Exp Order', table: 'expc' },
         ],
         extraViewJoins: ' inner join workerInfo w on w.workerID=maintenanceRecords.workerID left join houseInfo h on h.houseID = maintenanceRecords.houseID left join expenseCategories expc on expc.expenseCategoryID = maintenanceRecords.expenseCategoryId ',
     }
