@@ -88,7 +88,7 @@ async function matchImports(ids, paymentTypeID) {
         }
     }
     if (ids && ids.length == 1) {
-        importID = id[0];
+        importID = ids[0];
     }
     //await sheet.appendSheet(sheetId, `'Sheet1'!A1`, datas.map(data => [data.date, data.amount, data.name, data.notes, data.source]));    
     console.log(`importID=${importID}`);
