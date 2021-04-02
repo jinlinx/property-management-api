@@ -9,6 +9,8 @@ module.exports = {
             { field: 'month', desc: 'Month', },
             { field: 'paymentTypeID', desc: 'PaymentType', foreignKey:{table:'paymentType', field:'paymentTypeID'} },
             { field: 'leaseID', desc: 'Lease ID', foreignKey: {table: 'leaseInfo', field:'leaseID'}},
+            { field: 'importID', },
+            { field: 'paymentProcessor', desc: 'Processor', },
         ],
         view:{
             name: 'view_rentPaymentInfo',
