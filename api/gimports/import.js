@@ -146,7 +146,7 @@ async function importTenantDataGS() {
             }
             const leaseTen = await sqlFreeForm(`select leaseID from leaseTenantInfo where leaseID=? and tenantId=?`, [leaseID, tenantID]);
             if (!leaseTen.length) {
-                await sqlFreeForm(`insert into leaseTenantInfo(leaseID,tenantId) values(?,?)`, [leaseID, tenantID]);
+                await sqlFreeForm(`insert into leaseTenantInfo(leaseID,tenantId, id) values(?,?,'sheet'+UUID())`, [leaseID, tenantID]);
             }
             console.log(`lease id ${leaseID} ${houseID} ${firstName} ${lastName} ${data.email || ''}`);
             return {
