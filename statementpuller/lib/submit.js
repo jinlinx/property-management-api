@@ -84,7 +84,7 @@ async function matchImports(ids, paymentTypeID) {
     }
     if (!paymentTypeID) {
         return {
-            message: 'missing paymentTypeID';
+            message: 'missing paymentTypeID'
         }
     }
     if (ids && ids.length == 1) {
