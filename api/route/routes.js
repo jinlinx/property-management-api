@@ -70,7 +70,7 @@ const routes = {
         func: statement.doGsImport,
     },
     '/misc/matchPayments': {
-        method: 'get',
+        method: 'post',
         func: statement.matchPayments,
     },
     '/version': {
