@@ -133,31 +133,32 @@ async function matchImports(ids, paymentTypeID) {
         }
     });
 
-    if (matchedValues.length) {
-        const groupedByOwner = matchedValues.reduce((acc, data) => {
-            const { ownerName } = data;
-            let ownAry = acc.ownerByKey[ownerName];
-            if (!ownAry) {
-                ownAry = [];
-                acc.ownerByKey[ownerName] = ownAry;
-                acc.ownerArray.push(ownAry);
-            }
-            //ownAry.push([data.address, date, date, data.amount, data.notes, data.name, data.source, ownerName]);
-            ownAry.push(data);
-            return acc;
-        }, {
-            ownerArray: [],
-            ownerByKey: {},
-        });
-        await Promise.map(groupedByOwner.ownerArray, async ownAry => {
-            if (ownAry.length > 0) {
-                const ownerName = ownAry[0].ownerName;
-                console.log(`do owner ${ownerName} ${ownAry.length}`);
-                const gvals = ownAry.map(data => [data.address, data.date, data.date, data.amount, data.notes, data.name, data.source, data.ownerName])
-                await sheet.appendSheet(sheetId, `'Total rent payment info ${ownerName}'!A1`, gvals, 'USER_ENTERED');
-            }
-        }, { concurrency: 1 });
-    }
+    // no more sheets
+    // if (matchedValues.length) {
+    //     const groupedByOwner = matchedValues.reduce((acc, data) => {
+    //         const { ownerName } = data;
+    //         let ownAry = acc.ownerByKey[ownerName];
+    //         if (!ownAry) {
+    //             ownAry = [];
+    //             acc.ownerByKey[ownerName] = ownAry;
+    //             acc.ownerArray.push(ownAry);
+    //         }
+    //         //ownAry.push([data.address, date, date, data.amount, data.notes, data.name, data.source, ownerName]);
+    //         ownAry.push(data);
+    //         return acc;
+    //     }, {
+    //         ownerArray: [],
+    //         ownerByKey: {},
+    //     });
+    //     await Promise.map(groupedByOwner.ownerArray, async ownAry => {
+    //         if (ownAry.length > 0) {
+    //             const ownerName = ownAry[0].ownerName;
+    //             console.log(`do owner ${ownerName} ${ownAry.length}`);
+    //             const gvals = ownAry.map(data => [data.address, data.date, data.date, data.amount, data.notes, data.name, data.source, data.ownerName])
+    //             await sheet.appendSheet(sheetId, `'Total rent payment info ${ownerName}'!A1`, gvals, 'USER_ENTERED');
+    //         }
+    //     }, { concurrency: 1 });
+    // }
     return matchedValues;
 }
 
