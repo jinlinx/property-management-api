@@ -101,7 +101,7 @@ async function matchImports(ids, paymentTypeID) {
     inner join houseInfo h on h.houseID = l.houseID   
     left outer join ownerInfo o on o.ownerID = h.ownerID
     set i.leaseID=lti.leaseID, i.houseID=h.houseID, i.tenantID=t.tenantID, i.ownerID=o.ownerID,i.address=h.address, i.ownerName=o.ownerName, importID=?
-    where i.matchedTo is null and i.id in (${id.map(x=>'?').join(',')})`, [importID, ...ids]);
+    where i.matchedTo is null and i.id in (${ids.map(x=>'?').join(',')})`, [importID, ...ids]);
     
     await db.doQuery(`insert into rentPaymentInfo(paymentID, receivedDate,receivedAmount,
         month,
