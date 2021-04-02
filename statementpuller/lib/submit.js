@@ -79,6 +79,14 @@ async function submit(datas, opts) {
 /// id: id of importPayment
 async function matchImports(ids, paymentTypeID) {
     let importID = uuid.v1();
+    if (!ids) return {
+        message:'must specify ids'
+    }
+    if (!paymentTypeID) {
+        return {
+            message: 'missing paymentTypeID';
+        }
+    }
     if (ids && ids.length == 1) {
         importID = id[0];
     }

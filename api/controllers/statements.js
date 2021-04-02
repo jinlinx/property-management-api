@@ -67,7 +67,8 @@ function getStatementProcessingMsg(req, res) {
 
 async function matchPayments(req, res) {
     try {
-        const match = await submit.matchImports();
+        console.log(`got ids ${req.body.ids} ${req.body.paymentTypeID}`)
+        const match = await submit.matchImports(req.body.ids, req.body.paymentTypeID);
         res.send(match)
     } catch (err) {
         console.log(err);
