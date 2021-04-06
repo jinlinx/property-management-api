@@ -11,7 +11,6 @@ module.exports = {
             { field: 'expenseCategoryId', desc: 'category', foreignKey: { table: 'expenseCategories', field: 'expenseCategoryID' } },
             { field: 'hours', type: 'decimal' },
             { field: 'workerID', desc: 'Id', type: 'uuid', required: true, foreignKey: { table: 'workerInfo', field: 'workerID' } },
-            { field: 'ownerID', desc: 'Owner ID', require: true, foreignKey: {table: 'ownerInfo', field:'ownerID'}, type: 'int' },
             { field: 'comment', desc: 'comment' },
             { field: 'vdPosControl', desc: 'PosControl' },
         ],
@@ -24,6 +23,8 @@ module.exports = {
             { name: 'address', desc: 'House', table: 'h' },
             { name: 'expenseCategoryName', desc: 'Expense', table: 'expc' },
             { name: 'expCatDisplayOrder', field: 'displayOrder', desc: 'Exp Order', table: 'expc' },
+            { field: 'ownerID', desc: 'OwnerId', table: 'o' },
+            { field: 'ownerName', desc: 'ownerName', table: 'o' },
         ],
         extraViewJoins: ' inner join workerInfo w on w.workerID=maintenanceRecords.workerID left join houseInfo h on h.houseID = maintenanceRecords.houseID left join expenseCategories expc on expc.expenseCategoryID = maintenanceRecords.expenseCategoryId ',
     }
