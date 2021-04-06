@@ -6,6 +6,9 @@ const uuid = require('uuid');
 const { formatterYYYYMMDD, extensionFields } = require('../util/util');
 const moment = require('moment');
 
+function removeBadChars(str) {
+  return str.replace(/[^A-Za-z0-9]/g, '');
+}
 async function doQuery(req, res) {
     try {
         const rows = await db.doQuery(req.query.sql);
@@ -38,12 +41,15 @@ const goodOps = Object.freeze({
   '<>': true,
 });
 
+const goodGroupOps = Object.freeze({
+  'sum': true
+});
 async function doGet(req, res) {
   try {
     //joins:{ table:{col:als}}
     const { table, fields, joins, order,
       whereArray,    //field, op, val
-      groupByArray,  //field
+      groupByArray,  //field [{"field":"workerID"}, {"op":"sum", "field":"amount"}]
       offset = 0, rowCount = 2147483647
     } = req.body;
     const model = models[table];
@@ -70,7 +76,17 @@ async function doGet(req, res) {
     const extFields=extensionFields.concat(viewFields)
     const fieldMap=Object.assign({},model.fieldMap, keyBy(extFields,'field'));
     const modelFields=model.fields.concat(extFields);
-    const selectNames=fields? fields.filter(f => fieldMap[f]).map(f=>`${tableOrView}.${f}`):modelFields.map(f => `${tableOrView}.${f.field}`);
+    const selectNames=fields? fields.filter(f => fieldMap[f] || fieldMap[f.field]).map(f=>{
+      if (!f.op) return `${tableOrView}.${f}`;
+      if (goodGroupOps[f.op]) {
+        if (fieldMap[f.field]) {
+          return `${f.op}(${tableOrView}.${f.field}) ${removeBadChars(f.name || '')}`;
+        }
+      }
+      if (f.op === 'count') {
+        return `count(1) ${removeBadChars(f.name||'')}`;
+      }
+    }):modelFields.map(f => `${tableOrView}.${f.field}`);
 
     let orderby = '';
     if (order && order.length) {
