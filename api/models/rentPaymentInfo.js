@@ -19,7 +19,11 @@ module.exports = {
                 { name: 'paymentTypeName', field: 'paymentTypeName', desc: 'Payment Type', table: 'paymentType' },
                 { field: 'isIncome', desc: 'IsPaymentIncome', table: 'paymentType' },
                 { name: 'address', field: 'address', desc: 'House', table: 'h' },
+                { name: 'addressId', field: 'houseID', desc: 'HouseID', table: 'h' },
+                { field: 'source', desc: 'Source', table: 'ip' },
+                { name:'ownerName', field: 'shortName', desc: 'OwnerName', table: 'oi' },
+                { field: 'ownerID', desc: 'OwnerID', table: 'oi' },
             ], 
-            extraViewJoins: ' left join houseInfo h on h.houseID = leaseInfo.houseID ',
+            extraViewJoins: ' inner join houseInfo h on h.houseID = leaseInfo.houseID inner join ownerInfo oi on oi.ownerID  = h.ownerID left join importPayments ip  on ip.paymentID  = rp.paymentID ',
         }
 };
