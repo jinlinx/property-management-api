@@ -24,6 +24,6 @@ module.exports = {
                 { name:'ownerName', field: 'shortName', desc: 'OwnerName', table: 'oi' },
                 { field: 'ownerID', desc: 'OwnerID', table: 'oi' },
             ], 
-            extraViewJoins: ' inner join houseInfo h on h.houseID = leaseInfo.houseID inner join ownerInfo oi on oi.ownerID  = h.ownerID left join importPayments ip  on ip.paymentID  = rp.paymentID ',
+            extraViewJoins: ' inner join houseInfo h on h.houseID = leaseInfo.houseID inner join ownerInfo oi on oi.ownerID  = h.ownerID left join importPayments ip  on ip.paymentID  = rentPaymentInfo.paymentID ',
         }
 };
