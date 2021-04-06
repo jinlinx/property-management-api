@@ -18,5 +18,6 @@ module.exports = {
             //{ field: 'paymentID', desc: 'Temp PaymentId', },
             { field: 'matchedTo', desc: 'Matched To' },
             { field: 'deleted', desc: 'Deleted' },
+            { field: 'vdPosControl', desc: 'PosControl' },
         ]        
 };

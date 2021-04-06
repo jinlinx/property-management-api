@@ -6,5 +6,6 @@ module.exports = {
             { field: 'start', desc: 'End', type: 'datetime' },
             { field: 'end', desc: 'End', type:'datetime'},
             { field: 'msg', desc: 'Message', },
+            { field: 'vdPosControl', desc: 'PosControl' },
         ]
 };

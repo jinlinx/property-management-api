@@ -10,6 +10,7 @@ module.exports = {
             { field: 'paymentTypeID', desc: 'PaymentType', foreignKey:{table:'paymentType', field:'paymentTypeID'} },
             { field: 'leaseID', desc: 'Lease ID', foreignKey: {table: 'leaseInfo', field:'leaseID'}},
             { field: 'paymentProcessor', desc: 'Processor', },
+            { field: 'vdPosControl', desc: 'PosControl' },
         ],
         view:{
             name: 'view_rentPaymentInfo',

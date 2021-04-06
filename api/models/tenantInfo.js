@@ -13,5 +13,6 @@ module.exports = {
             { field: 'momPhone', desc: 'Mom\'s phone number', },
             { field: 'dadName', desc: 'Dad Name', },
             { field: 'dadPhone', desc: 'Dad Phone', },
+            { field: 'vdPosControl', desc: 'PosControl' },
         ]
 };

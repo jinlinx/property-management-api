@@ -13,6 +13,7 @@ module.exports = {
             { field: 'workerID', desc: 'Id', type: 'uuid', required: true, foreignKey: { table: 'workerInfo', field: 'workerID' } },
             { field: 'ownerID', desc: 'Owner ID', require: true, foreignKey: {table: 'ownerInfo', field:'ownerID'}, type: 'int' },
             { field: 'comment', desc: 'comment' },
+            { field: 'vdPosControl', desc: 'PosControl' },
         ],
     view: {
         name: 'view_maintenanceRecords',

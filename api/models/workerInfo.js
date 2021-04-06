@@ -7,6 +7,7 @@ module.exports={
             {field: 'email',desc: 'Email',},
             {field: 'phone',desc: 'Phone',},
             {field: 'taxID',desc: 'SSN',},
-            {field: 'address',desc: 'Address',},
+            { field: 'address', desc: 'Address', },
+            { field: 'vdPosControl', desc: 'PosControl' },
         ]
 };
