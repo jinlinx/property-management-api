@@ -25,7 +25,7 @@ function hashPass(p) {
 }
 
 function validateUserPwd(user, pp) {
-    return user && hashPass(pp) === get(user,'_doc.password');
+    return user?.password === pp;
 }
 
 function FacebookReqStore(options) {

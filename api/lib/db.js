@@ -18,7 +18,9 @@ async function findUser(qryPrms) {
         query=`${query} ${name}=?`;
     };
     prmNames.forEach(n => add('or',n,qryPrms[n]));
-    return await doQuery(`select * from users where ${query}`,prm);
+    return await doQuery(`select * from user where ${query}`, prm).then(res => {
+        return res && res[0];
+    })
 }
 
 async function getAllDatabases() {    
