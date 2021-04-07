@@ -8,7 +8,7 @@ const {
 async function findUser(qryPrms) {
     let query='';
     let prm=[];
-    const prmNames=['uuid','email','userName'];
+    const prmNames=['id','email','username'];
     const add=(op, name,val) => {
         if(val===undefined) {
             return;

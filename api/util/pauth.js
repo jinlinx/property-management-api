@@ -189,7 +189,7 @@ function initPassport(server) {
         const username = get(req,'username');
         const password = get(req,'authorization.basic.password');   
         if (username !== 'anonymouse' && username && password) {
-            req.user = { usrname, password };
+            req.user = { username, password };
             findUser({ username }).then(found => {
                 if (validateUserPwd(found, password)) {
                     req.user = found;
