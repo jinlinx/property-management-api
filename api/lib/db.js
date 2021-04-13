@@ -72,7 +72,8 @@ async function getTableConstraints(table) {
     return constraints;
 }
 
-module.exports={
+module.exports = {
+    end: ()=>conn.end(),
     conn,
     doQuery,
     doQueryOneRow,
