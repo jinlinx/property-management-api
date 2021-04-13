@@ -102,8 +102,8 @@ async function sendReadyToImportPaymentEmail(quit = true) {
                 return `<tr><td>${moment(p.date).format('YYYY-MM-DD')}</td><td>${p.amount.toString().padStart(10)}</td><td> ${p.name.padEnd(20)}</td><td> ${p.notes.padEnd(20)}</td><td> ${p.address.padEnd(20)}</td></tr>`;
             }).join('\n') + '</table>';
             res = await email.sendHotmail({
-                to: 'gzhangx@hotmail.com',
-                subject: `test There are ${payments.length} payments available to import`,
+                to: 'gzhangx@hotmail.com,jinlinx@hotmail.com',
+                subject: `There are ${payments.length} payments available to import`,
                 text,
                 html: text,
             });
