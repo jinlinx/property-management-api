@@ -4,6 +4,9 @@ const Promise = require('bluebird');
 const uuid = require('uuid');
 //const sheet = require('./getSheet').createSheet();
 const moment = require('moment');
+const { sortBy } = require('lodash');
+const email = require('../../api/lib/nodemailer');
+
 //const sheetId = '1sKppFHJy_MRRgHuV2PzhliSzuje7O0Rb-ntiOrLDVPA';
 async function submit(datas, opts) {
     const log = opts.log;
@@ -75,6 +78,48 @@ async function submit(datas, opts) {
         //matched: await matchImports(),
     };
 }
+
+async function getReadyToImportPayments() {
+    const sqlStr = `select i.date, i.amount, i.name, i.notes, h.address
+     from importPayments i
+    inner join payerTenantMapping ptm on i.name = ptm.name and i.source = ptm.source
+    inner join tenantInfo t on ptm.tenantID = t.tenantID    
+    inner join leaseTenantInfo lti on ptm.tenantID = lti.tenantID
+    inner join leaseInfo l on l.leaseID = lti.leaseID
+    inner join houseInfo h on h.houseID = l.houseID   
+    left outer join ownerInfo o on o.ownerID = h.ownerID
+    where i.matchedTo is null`;
+    const payments = await db.doQuery(sqlStr);
+    return payments;
+}
+
+async function sendReadyToImportPaymentEmail(quit = true) {
+    const payments = await getReadyToImportPayments();    
+    let res = { message: 'no op' };
+    if (payments.length > 0) {
+        try {
+            const text = '<table>' + sortBy(payments, 'date').map(p => {
+                return `<tr><td>${moment(p.date).format('YYYY-MM-DD')}</td><td>${p.amount.toString().padStart(10)}</td><td> ${p.name.padEnd(20)}</td><td> ${p.notes.padEnd(20)}</td><td> ${p.address.padEnd(20)}</td></tr>`;
+            }).join('\n') + '</table>';
+            res = await email.sendHotmail({
+                to: 'gzhangx@hotmail.com',
+                subject: `test There are ${payments.length} payments available to import`,
+                text,
+                html: text,
+            });
+        } catch (err) {
+            console.log('sendReadyToImportPaymentEmail failed');
+            console.log(err);
+            res.err = err;
+            res.message = err.message;
+        }
+    }
+    if (quit) {
+        db.end()
+    }
+    return res;
+}
+
 
 /// id: id of importPayment
 async function matchImports(ids, paymentTypeID) {
@@ -168,4 +213,5 @@ async function matchImports(ids, paymentTypeID) {
 module.exports = {
     submit,
     matchImports,
+    sendReadyToImportPaymentEmail,
 }

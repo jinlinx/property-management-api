@@ -27,6 +27,7 @@ function createConn(config) {
     }
 
     return {
+        end: ()=>conn.end(),
         conn,
         doQuery,
         doQueryOneRow,
