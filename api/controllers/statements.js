@@ -87,10 +87,22 @@ async function doGsImport(req, res) {
     }
 }
 
+async function sendPaymentNotification(req, res) {
+    try {
+        console.log('sendPaymentNotification')
+        const res = await submit.sendReadyToImportPaymentEmail();
+        res.send(res)
+    } catch (err) {
+        console.log(err);
+        res.send(500, err);
+    }
+}
+
 
 module.exports = {   
     doStatement,
     doGsImport,
     matchPayments,
     getStatementProcessingMsg,
+    sendPaymentNotification,
 };

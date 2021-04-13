@@ -73,6 +73,10 @@ const routes = {
         method: 'post',
         func: statement.matchPayments,
     },
+    '/misc/sendPaymentNotification': {
+        method: 'get',
+        func: statement.sendPaymentNotification,
+    },
     '/version': {
         auth: false,
         method: 'get',

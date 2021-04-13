@@ -93,7 +93,7 @@ async function getReadyToImportPayments() {
     return payments;
 }
 
-async function sendReadyToImportPaymentEmail(quit = true) {
+async function sendReadyToImportPaymentEmail(quit = false) {
     const payments = await getReadyToImportPayments();    
     let res = { message: 'no op' };
     if (payments.length > 0) {
