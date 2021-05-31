@@ -10,6 +10,7 @@ const get = require('lodash/get');
 const sum = require('lodash/sum');
 const importMatchPayments = require('../gimports/importMatchPayments');
 const importTenant = require('../gimports/import');
+const importPayments = require('../gimports/importPayments');
 const pullStatementState = {
     message: '',
 }
@@ -81,6 +82,9 @@ async function doGsImport(req, res) {
     
     if (req.query.who === 'maintence') {
         const pres = await importPropertyMaintenance.importPropertyMaintenance();
+        return res.send({ message: `added ${sum(pres)}` });
+    } else if (req.query.who === 'payment') {
+        const pres = await importPayments.importPayments();
         return res.send({ message: `added ${sum(pres)}` });
     } else {
         return await importTenant.importTenantDataGS();
