@@ -17,11 +17,12 @@ function throwErr(message) {
     throw { message };
 }
 
-const typeToType=type => {
+const typeToType=(type,size) => {
     if ( type==='uuid' ) return 'varchar(100)';
     if ( type==='date' ) return 'date';
     if ( type==='datetime' ) return 'datetime';
-    if ( type==='decimal' ) return 'DECIMAL(12,2)';
+    if (type === 'decimal') return 'DECIMAL(12,2)';
+    if (size) return `varchar(${size})`;
     return 'varchar(100)';
 }
 async function check() {
@@ -36,7 +37,7 @@ async function check() {
         } catch ( exc ) {
             console.log( exc.message );            
             const createSql=`create table ${tabName} (${curMod.fields.map( f => {
-                return `${f.field} ${typeToType( f.type )}`
+                return `${f.field} ${typeToType( f.type, f.size )}`
             } ).join( ',' )})`;
             console.log( createSql );
             await doQuery( createSql );
