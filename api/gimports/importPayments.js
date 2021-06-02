@@ -67,15 +67,17 @@ async function importPayments() {
             const date = mdate.format('YYYY-MM-DD')
             const month = mdate.clone().startOf('month').format('YYYY-MM');
             const amount = fixAmt(data.amount);
-            console.log(`Inserting payment rec`);            
-            const prms = [date, month, houseID, paymentTypeId,
+            //console.log(`Checking payment rec`);            
+            const prms = [date, month, houseID, paymentTypeId || '',
                 amount || 0, data.comment || ''];
-            console.log(prms);
+            //console.log(prms);
             const mrs = await sqlFreeForm(`select paymentID from rentPaymentInfo
             where receivedDate=? and month=? and houseID=? and paymentTypeID=?
              and receivedAmount=? and notes=?`, prms);
             if (!mrs[0]) {
-                const id = uuid.v1();                
+                const id = uuid.v1();
+                console.log(`Inserting payment rec ${id}`);
+                console.log(prms);
                 await sqlFreeForm(`insert into rentPaymentInfo(
                     paymentID, receivedDate, month, houseID, paymentTypeID,
                     receivedAmount, notes)
