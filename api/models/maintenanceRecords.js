@@ -26,6 +26,6 @@ module.exports = {
             { field: 'ownerID', desc: 'OwnerId', table: 'o' },
             { field: 'ownerName', desc: 'ownerName', table: 'o' },
         ],
-        extraViewJoins: ' inner join workerInfo w on w.workerID=maintenanceRecords.workerID left join houseInfo h on h.houseID = maintenanceRecords.houseID left join expenseCategories expc on expc.expenseCategoryID = maintenanceRecords.expenseCategoryId left join  ownerInfo o on o.ownerID=h.ownerID ',
+        extraViewJoins: ' left join workerInfo w on w.workerID=maintenanceRecords.workerID left join houseInfo h on h.houseID = maintenanceRecords.houseID left join expenseCategories expc on expc.expenseCategoryID = maintenanceRecords.expenseCategoryId left join  ownerInfo o on o.ownerID=h.ownerID ',
     }
 };
