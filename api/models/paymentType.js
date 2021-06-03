@@ -1,9 +1,9 @@
 module.exports = {
     fields:
         [
-            { field: 'paymentTypeID', desc: 'Id' , type: 'int', required: true, isId: true},
+            { field: 'paymentTypeID', desc: 'Id' ,required: true, isId: true},
             { field: 'paymentTypeName', desc: 'date' },
-            { field: 'isIncome', desc: 'isIncome' },
+            { field: 'includeInCommission', desc: 'includeInCommission' },
             { field: 'displayOrder', type:'int' }, 
         ]
 };

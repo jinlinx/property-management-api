@@ -5,7 +5,7 @@ const Promise = require('bluebird');
 const db = require('../lib/db');
 const uuid = require('uuid');
 const moment = require('moment');
-const { addHouse } = require('./importPropertyMaintence');
+const { toKey, addHouse } = require('./importPropertyMaintence');
 
 function fixAmt(amt) {
     if (amt.trim().indexOf('(') >= 0) {
@@ -28,8 +28,8 @@ async function importPayments() {
             const val = {
                 date: moment(r[0],'M/D/YYYY'),
                 amount: r[1].replace(/[\$,]/g, '').trim(),
-                address: r[2].trim().toLowerCase(),
-                type: r[3].trim().toLowerCase(),
+                address: r[2].trim(),
+                type: r[3].trim(),
                 comment: r[4],
             }
             acc.push(val);
@@ -38,16 +38,15 @@ async function importPayments() {
 
 
 
-        //console.log(result.res);
-
-        const paymentTypes = (await db.doQuery('select paymentTypeID,paymentTypeName,isIncome from paymentType order by displayOrder'))
+        //console.log(result.res);        
+        const paymentTypes = (await db.doQuery('select paymentTypeID,paymentTypeName,includeInCommission from paymentType order by displayOrder'))
             .reduce((acc, k) => {
-                acc[k.paymentTypeName.toLowerCase()] = k.paymentTypeID;
+                acc[toKey(k.paymentTypeName)] = k.paymentTypeID;
             return acc;
         }, {});
 
         const houses = (await db.doQuery('select * from houseInfo')).reduce((acc, h) => {
-            acc[h.address.trim().toLowerCase()] = h;
+            acc[toKey(h.address)] = h;
             return acc;
         }, {});
         
@@ -56,7 +55,14 @@ async function importPayments() {
         const xieOwnerId = (await db.doQueryOneRow(`select ownerID from ownerInfo where shortName='Xie'`))['ownerID'];
         console.log(`xieOwernId=${xieOwnerId}`);
         return await Promise.map(result, async data => {
-            const paymentTypeId = paymentTypes[data.type];
+            let paymentTypeId = paymentTypes[toKey(data.type)];
+            if (!paymentTypeId) {
+                paymentTypeId = uuid.v1();
+                const isRent = toKey(data.type) === 'rent';
+                paymentTypes[toKey(data.type)] = paymentTypeId;
+                await sqlFreeForm(`insert into  paymentType(paymentTypeID, paymentTypeName, includeInCommission, displayOrder)
+                values(?,?,?,?)`, [paymentTypeId, data.type, isRent ? '1' : '0', isRent ? 0 : 99]);                
+            }
             let houseID = '';
             if (data.address) {
                 houseID = await addHouse(houses, data.address, xieOwnerId);                
