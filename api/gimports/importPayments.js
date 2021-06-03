@@ -64,9 +64,9 @@ async function importPayments() {
                 values(?,?,?,?)`, [paymentTypeId, data.type, isRent ? '1' : '0', isRent ? 0 : 99]);                
             }
             let houseID = '';
-            if (data.address) {
-                houseID = await addHouse(houses, data.address, xieOwnerId);                
-            }
+            //if (data.address) {
+            houseID = await addHouse(houses, data.address, xieOwnerId);
+            //}
             
             const mdate = data.date;
             if (!mdate.isValid()) return 0;

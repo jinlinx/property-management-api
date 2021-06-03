@@ -136,7 +136,7 @@ const toKey = x => x.trim().toLowerCase();
 async function addHouse(houses, address,xieOwnerId) {
     let houseID = '';
 
-    address = address.trim();
+    address = (address || '').trim();
     const key = toKey(address);
     const curHouse = houses[key];
     if (!curHouse) {
