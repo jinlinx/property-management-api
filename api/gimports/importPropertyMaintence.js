@@ -78,25 +78,9 @@ async function importPropertyMaintenance() {
             }
 
             let houseID = '';
-            if (data.house) {
-                houseID = await addHouse(houses, data.house,xieOwnerId);
-                /*
-                const curHouse = houses[data.house];
-                if (!curHouse) {
-                    console.log('Creating house ' + data.house);
-                    houseID = uuid.v1();
-                    houses[data.house] = { houseID };
-                    await sqlFreeForm(`insert into houseInfo(houseID,address) values
-                ('${houseID}','${data.house}')`);
-                } else if (!curHouse.ownerID) {
-                    await sqlFreeForm(`update houseInfo set ownerID = '${xieOwnerId}' where houseID='${curHouse.houseID}'`);
-                    curHouse.ownerID = xieOwnerId;
-                }
-                if (curHouse) {
-                    houseID = curHouse.houseID;
-                }
-                */
-            }
+            //if (data.house) {
+            houseID = await addHouse(houses, data.house || '',xieOwnerId);
+            //}
 
             let workerID = '';
             if (data.worker) {
