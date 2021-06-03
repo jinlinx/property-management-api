@@ -17,7 +17,7 @@ module.exports = {
             name: 'view_rentPaymentInfo',
             fields:[
                 { name: 'paymentTypeName', field: 'paymentTypeName', desc: 'Payment Type', table: 'paymentType' },
-                { field: 'isIncome', desc: 'IsPaymentIncome', table: 'paymentType' },
+                { field: 'includeInCommission', desc: 'includeInCommission', table: 'paymentType' },
                 { name: 'address', field: 'address', desc: 'House', table: 'houseInfo' },
                 { name: 'addressId', field: 'houseID', desc: 'HouseID', table: 'houseInfo' },
                 { field: 'source', desc: 'Source', table: 'ip' },

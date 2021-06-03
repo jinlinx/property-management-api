@@ -49,17 +49,17 @@ async function importPropertyMaintenance() {
         //console.log(result.res);
 
         const cats = (await db.doQuery('select * from expenseCategories')).reduce((acc, k) => {
-            acc[k.expenseCategoryName] = k.expenseCategoryID;
+            acc[toKey(k.expenseCategoryName)] = k.expenseCategoryID;
             return acc;
         }, {});
 
         const houses = (await db.doQuery('select * from houseInfo')).reduce((acc, h) => {
-            acc[h.address] = h;
+            acc[toKey(h.address)] = h;
             return acc;
         }, {});
 
         const workers = (await db.doQuery('select * from workerInfo')).reduce((acc, h) => {
-            acc[`${h.firstName} ${h.lastName||''}`.trim()] = h.workerID;
+            acc[toKey(`${h.firstName} ${h.lastName||''}`)] = h.workerID;
             return acc;
         }, {});
         console.log('start');
@@ -68,47 +68,31 @@ async function importPropertyMaintenance() {
         console.log(`xieOwernId=${xieOwnerId}`);
         console.log(xieOwnerId)
         return await Promise.map(result.res, async data => {
-            let categoryID = cats[data.category];
-            if (data.category && !categoryID) {
+            let categoryID = cats[toKey(data.category)];
+            if (!categoryID) {
                 console.log('Creating category ' + data.category);
                 categoryID = uuid.v1();
-                cats[data.category] = categoryID;
+                cats[toKey(data.category)] = categoryID;
                 await sqlFreeForm(`insert into expenseCategories(expenseCategoryID,expenseCategoryName) values
                 ('${categoryID}','${data.category}')`);
             }
 
             let houseID = '';
-            if (data.house) {
-                houseID = await addHouse(houses, data.house,xieOwnerId);
-                /*
-                const curHouse = houses[data.house];
-                if (!curHouse) {
-                    console.log('Creating house ' + data.house);
-                    houseID = uuid.v1();
-                    houses[data.house] = { houseID };
-                    await sqlFreeForm(`insert into houseInfo(houseID,address) values
-                ('${houseID}','${data.house}')`);
-                } else if (!curHouse.ownerID) {
-                    await sqlFreeForm(`update houseInfo set ownerID = '${xieOwnerId}' where houseID='${curHouse.houseID}'`);
-                    curHouse.ownerID = xieOwnerId;
-                }
-                if (curHouse) {
-                    houseID = curHouse.houseID;
-                }
-                */
-            }
+            //if (data.house) {
+            houseID = await addHouse(houses, data.house || '',xieOwnerId);
+            //}
 
             let workerID = '';
             if (data.worker) {
                 const fl = data.worker.split(' ').map(n => n.trim());
                 const tag = `${fl[0]} ${fl[1] || ''}`.trim();
-                workerID = workers[tag];
+                workerID = workers[toKey(tag)];
                 if (!workerID) {
                     workerID = uuid.v1();
                     console.log(`creating worker ${tag}`);
                     await sqlFreeForm(`insert into workerInfo(workerID,firstName, lastName) values
                 ('${workerID}','${fl[0]}','${fl[1]||''}')`);
-                    workers[tag] = workerID;
+                    workers[toKey(tag)] = workerID;
                 } 
             }
             
@@ -148,14 +132,17 @@ async function importPropertyMaintenance() {
     });
 }
 
+const toKey = x => x.trim().toLowerCase();
 async function addHouse(houses, address,xieOwnerId) {
     let houseID = '';
 
-    const curHouse = houses[address];
+    address = address.trim();
+    const key = toKey(address);
+    const curHouse = houses[key];
     if (!curHouse) {
         console.log('Creating house ' + address);
         houseID = uuid.v1();
-        houses[address] = { houseID };
+        houses[key] = { houseID };
         await db.doQuery(`insert into houseInfo(houseID,address) values
                 ('${houseID}','${address}')`);
     } else if (!curHouse.ownerID) {
@@ -171,4 +158,5 @@ async function addHouse(houses, address,xieOwnerId) {
 module.exports = {
     importPropertyMaintenance,
     addHouse,
+    toKey,
 }
