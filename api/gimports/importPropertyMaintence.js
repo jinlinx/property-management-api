@@ -69,6 +69,7 @@ async function importPropertyMaintenance() {
         console.log(xieOwnerId)
         return await Promise.map(result.res, async data => {
             let categoryID = cats[toKey(data.category)];
+            if (!data.amount) return 0;
             if (!categoryID) {
                 console.log('Creating category ' + data.category);
                 categoryID = uuid.v1();
