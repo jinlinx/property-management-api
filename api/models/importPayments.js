@@ -15,7 +15,7 @@ module.exports = {
             { field: 'ownerName', desc: 'Owner Name', },
             { field: 'address', desc: 'Address', },
             { field: 'importID', desc: 'Temp ImportId', },
-            //{ field: 'paymentID', desc: 'Temp PaymentId', },
+            { field: 'paymentID', desc: 'Temp PaymentId', },
             { field: 'matchedTo', desc: 'Matched To' },
             { field: 'deleted', desc: 'Deleted' },
             { field: 'vdPosControl', desc: 'PosControl' },

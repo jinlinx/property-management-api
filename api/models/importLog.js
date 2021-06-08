@@ -5,7 +5,7 @@ module.exports = {
             { field: 'source', desc: 'Source'},
             { field: 'start', desc: 'End', type: 'datetime' },
             { field: 'end', desc: 'End', type:'datetime'},
-            { field: 'msg', desc: 'Message', },
+            { field: 'msg', desc: 'Message', size: 4096},
             { field: 'vdPosControl', desc: 'PosControl' },
         ]
 };

@@ -6,8 +6,7 @@ const importPropertyMaintenance = require('../gimports/importPropertyMaintence')
 const submit = require('../../statementpuller/lib/submit');
 const db = require('../lib/db');
 const uuid = require('uuid');
-const get = require('lodash/get');
-const sum = require('lodash/sum');
+const { get, sum, sumBy } = require('lodash');
 const importMatchPayments = require('../gimports/importMatchPayments');
 const importTenant = require('../gimports/import');
 const importPayments = require('../gimports/importPayments');
@@ -82,7 +81,7 @@ async function doGsImport(req, res) {
     
     if (req.query.who === 'maintence') {
         const pres = await importPropertyMaintenance.importPropertyMaintenance();
-        return res.send({ message: `added ${sum(pres)}` });
+        return res.send({ message: `added ${sumBy(pres, 'count')} errors ${pres.filter(x=>x.err).map(e=>e.err).join(',')}` });
     } else if (req.query.who === 'payment') {
         const pres = await importPayments.importPayments();
         return res.send({ message: `added ${sum(pres)}` });
