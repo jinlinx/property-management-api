@@ -4,14 +4,14 @@ module.exports = {
         [
             { field: 'maintenanceID', desc: 'Id' , type: 'uuid', required: true, isId: true},
             { field: 'date', desc: 'date', type: 'date' },
-            { field: 'month', desc: 'month', dontShowOnEdit: true, autoValueFunc: row=> moment(row['date']).format('YYYY-MM') },
-            { field: 'description', desc: 'description:' },
+            { field: 'month', desc: 'month', dontShowOnEdit: true, autoValueFunc: row => moment(row['date']).format('YYYY-MM') },
+            { field: 'description', desc: 'description:', size: 4096},
             { field: 'amount', type: 'decimal', },
             { field: 'houseID', desc: 'House ID', foreignKey: { table: 'houseInfo', field: 'houseID' } },
             { field: 'expenseCategoryId', desc: 'category', foreignKey: { table: 'expenseCategories', field: 'expenseCategoryID' } },
             { field: 'hours', type: 'decimal' },
             { field: 'workerID', desc: 'Id', type: 'uuid', required: true, foreignKey: { table: 'workerInfo', field: 'workerID' } },
-            { field: 'comment', desc: 'comment' },
+            { field: 'comment', desc: 'comment', size: 4096 },
             { field: 'vdPosControl', desc: 'PosControl' },
         ],
     view: {

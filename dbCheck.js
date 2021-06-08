@@ -4,6 +4,7 @@ const mod = require('./api/models/index');
 const { extensionFields } = require('./api/util/util');
 
 const Promise = require('bluebird');
+const { coroutine } = require('bluebird');
 
 const {
     conn,
@@ -59,7 +60,8 @@ async function check() {
             { field: 'created', type: 'datetime', def: 'NOW()' }, { field: 'modified', type: 'datetime', def: 'NOW()' }
         ].concat( curMod.fields );
         await Promise.map(mustExistDateCols, async col => {
-            if (!dbIds[col.field]) {
+            const dbField = dbIds[col.field];
+            if (!dbField) {
                 const alterTblSql = `alter table ${tabName} add column ${col.field} ${typeToType(col.type)} ${col.def ? ' default ' + col.def : ''};`;
                 try {
                     await doQuery(alterTblSql);
@@ -68,8 +70,25 @@ async function check() {
                     console.log(`alter table failed ${alterTblSql} ${err.message}`);
                     throw err;
                 }
+            } else {
+                const dbType = dbIds[col.field].Type.toLowerCase();
+                const myType = typeToType(col.type, col.size).toLowerCase();
+                if (dbType !== myType) {                    
+                    const alterTblSql = `alter table ${tabName} modify column ${col.field} ${myType} ${col.def ? ' default ' + col.def : ''};`;
+                    console.log(`type diff ${dbType} mytype=${myType}: ${alterTblSql}`);
+                    await doQuery(alterTblSql);
+                }                
+            }            
+        }, { concurrency: 1 });
+        
+        await Promise.map(res, async dbf => {
+            const found = mustExistDateCols.filter(c => c.field == dbf.Field);
+            if (!found.length) {                
+                const alterTblSql = `alter table ${tabName} drop column ${dbf.Field}`;
+                console.log(`Warning, going to drop db col ${dbf.Field} ${alterTblSql}`);
+                await doQuery(alterTblSql);
             }
-        }, {concurrency: 1});
+        }, { concurrency: 1 });
 
         const curView = curMod.view
         if (curView) {

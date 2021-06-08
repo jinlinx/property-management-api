@@ -69,7 +69,12 @@ async function importPropertyMaintenance() {
         console.log(xieOwnerId)
         return await Promise.map(result.res, async data => {
             let categoryID = cats[toKey(data.category)];
-            if (!data.amount) return 0;
+            if (!data.amount) {
+                return {
+                    count: 0,
+                    message: 'no amount'
+                }
+            }
             if (!categoryID) {
                 console.log('Creating category ' + data.category);
                 categoryID = uuid.v1();
@@ -103,30 +108,40 @@ async function importPropertyMaintenance() {
             const date = mdate.format('YYYY-MM-DD')
             const month = mdate.clone().startOf('month').format('YYYY-MM');
             const amount = fixAmt(data.amount.replace('$', '').replace(',', '').trim());
-            console.log(`Inserting maintenane rec`);
-            console.log([date, data.description,
+            
+            const checkData = [date, month, data.description,
                 houseID, workerID, categoryID,
-                amount, data.comments]);
+                amount || 0, data.comments]
             const mrs = await sqlFreeForm(`select maintenanceID from maintenanceRecords 
-            where date=? and description=? and houseID=? and workerID=? and expenseCategoryId=?
-             and amount=? and comment=?`, [date, data.description,
-                houseID, workerID, categoryID,
-            amount,data.comments]);
-            if (!mrs[0]) {
+            where date=? and month=? and description=? and houseID=? and workerID=? and expenseCategoryId=?
+             and amount=? and comment=?`, checkData);
+            if (!mrs[0]) {                
                 const id = uuid.v1();
-                console.log( [id, date, month, data.description,
-                    houseID, workerID, categoryID,
-                amount, data.comments])
-                await sqlFreeForm(`insert into maintenanceRecords(
+                console.log(`Inserting maintenane rec`);                
+                console.log([id, ...checkData]);
+                try {
+                    await sqlFreeForm(`insert into maintenanceRecords(
                     maintenanceID, date, month,description, houseID, workerID, expenseCategoryId, 
                     amount, comment)
-        values(?,?,?,?, ?,?,?, ?,?)`, [id, date, month,data.description,
-                    houseID, workerID, categoryID,
-                    amount || 0, data.comments]);
-                return 1;
+        values(?,?,?,?, ?,?,?, ?,?)`, [id, ...checkData]);
+                } catch (err) {
+                    const errDetail = `error inserting ${JSON.stringify(checkData)}`;
+                    console.log(errDetail);
+                    console.log(err);
+                    return {
+                        count: 0,
+                        err: `${err.message} ${errDetail} `,
+                    }
+                }
+                return {
+                    count:1
+                };
             } 
             
-            return 0;
+            return {
+                count: 0,
+                message: "existing"
+            };
         }, { concurrency: 1 }).catch(err => {
             console.log(err);
         });
