@@ -155,13 +155,34 @@ async function test() {
     console.log(rres);
 
 
+
     const sheet = cli.getSheeOps(id);
-    await sheet.append('A:B',[['c','D']])
+    sheet.doBatchUpdate({
+        "requests": [
+            {
+                "updateDimensionProperties": {
+                    "range": {
+                        "sheetId": 0,
+                        "dimension": "COLUMNS",
+                        "startIndex": 0,
+                        "endIndex": 1
+                    },
+                    "properties": {
+                        "pixelSize": 100
+                    },
+                    "fields": "pixelSize"
+                },
+
+            }
+        ]
+    })
+    await sheet.append('A:B', [['c', 'D']]);
+    console.log(await sheet.read('A1:B4'));
 }
 
-test().catch(err => {
-   console.log(err.response.text);
-})
+//test().catch(err => {
+//   console.log(err.response.text);
+//})
 
 module.exports = {
     getClient,
