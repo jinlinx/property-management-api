@@ -4,6 +4,7 @@ const sql=require('../controllers/sql');
 const calc = require('../controllers/calc');
 const email = require('../controllers/email');
 const statement = require('../controllers/statements');
+const sheet = require('../controllers/sheet');
 const routes = {
     '/doQuery': {
         method: 'get',
@@ -76,6 +77,14 @@ const routes = {
     '/misc/sendPaymentNotification': {
         method: 'get',
         func: statement.sendPaymentNotification,
+    },
+    '/misc/rsheet/:name/:op/:id/:range': {
+        method: 'get',
+        func:sheet.doGet,
+    },
+    '/misc/sheet/:name/:op/:id/:range': {
+        method: 'post',
+        func: sheet.doGet,
     },
     '/version': {
         auth: false,
