@@ -143,9 +143,9 @@ async function test() {
     });
     console.log(rres);
 }
-test().catch(err => {
-    console.log(err.response.text);
-})
+//test().catch(err => {
+//   console.log(err.response.text);
+//})
 
 module.exports = {
     getClient,
