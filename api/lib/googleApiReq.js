@@ -61,9 +61,29 @@ async function test() {
     const cli = await getClient('gzprem');
     
     const id = '1MO27odjCsxk6MWL0DygubU53hrtt3OB8SEnqjpUHJ-U';
-    const upres = await cli.doBatchUpdate(id, {
+    await cli.doBatchUpdate(id, {
         "requests": [
             {
+                "updateDimensionProperties": {
+                    "range": {
+                        "sheetId": 0,
+                        "dimension": "COLUMNS",
+                        "startIndex": 0,
+                        "endIndex": 1
+                    },
+                    "properties": {
+                        "pixelSize": 160
+                    },
+                    "fields": "pixelSize"
+                },
+
+            }
+        ]
+    })
+    const upres = await cli.doBatchUpdate(id, {
+        "requests": [
+            {             
+                
                 "updateCells": {
                     "fields": "*",
                     "range": {
@@ -96,6 +116,9 @@ async function test() {
                                         }
                                     },
                                     "userEnteredValue": { "stringValue": "strstsdfasdf" }
+                                },
+                                {
+                                    "userEnteredValue": { "stringValue": "col1" }
                                 }
                             ]
                         }
