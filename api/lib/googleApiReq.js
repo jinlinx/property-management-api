@@ -1,7 +1,4 @@
-const { read } = require("fs");
-const { range } = require("lodash");
 const querystring = require("querystring");
-const { post } = require("superagent");
 //rootUrl = 'https://accounts.google.com/o/oauth2/v2/auth';
 //opts = { access_type: 'offline', scope: 'https://www.googleapis.com/auth/spreadsheets', response_type: 'code', client_id: 'client_id', redirect_uri: 'urn:ietf:wg:oauth:2.0:oob' }
 //return rootUrl + '?' + querystring.stringify(opts);
