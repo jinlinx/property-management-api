@@ -1,3 +1,5 @@
+const { read } = require("fs");
+const { range } = require("lodash");
 const querystring = require("querystring");
 const { post } = require("superagent");
 //rootUrl = 'https://accounts.google.com/o/oauth2/v2/auth';
@@ -24,20 +26,29 @@ async function doRefresh(creds) {
             .auth(access_token, { type: 'bearer' })
             .send(data).then(r => r.body);    
     const doPost = (id, postFix, data) => doOp('post', id, postFix, data);
+    const doBatchUpdate = async (id, data) => doPost(id, ':batchUpdate', data);
+    const append = async ({ id, range }, data, opts) => {
+        if (!opts) {
+            opts = {}
+        }
+        if (!opts.valueInputOption) opts.valueInputOption = 'USER_ENTERED';
+        return await doPost(id, `/values/${range}:append?${querystring.stringify(opts)}`, { values: data });
+    };
+    const read = async ({ id, range }) => doOp('get', id, `/values/${range}`);
     return {
         access_token,
         expires_on: new Date().getTime() + (expires_in * 1000 - 2000),
         token_type,
-        doBatchUpdate: async (id, data) => doPost(id, ':batchUpdate', data),
-        append: async ({ id, range }, data, opts) => {
-            if (!opts) {
-                opts = {}
+        doBatchUpdate,
+        append,
+        read,
+        getSheeOps: id => {
+            return {
+                doBatchUpdate: data => doBatchUpdate(id, data),
+                append: (range, data, ops) => append({ id, range }, data, ops),
+                read: range => read({ id, range }),
             }
-            if (!opts.valueInputOption) opts.valueInputOption = 'USER_ENTERED';
-            return await doPost(id, `/values/${range}:append?${querystring.stringify(opts)}`, { values: data });
-        },
-        read: async ({ id, range }) => doOp('get', id, `/values/${range}`),
-        
+        }
     }
 }
 
@@ -142,10 +153,15 @@ async function test() {
         range: 'A1:B4'
     });
     console.log(rres);
+
+
+    const sheet = cli.getSheeOps(id);
+    await sheet.append('A:B',[['c','D']])
 }
-//test().catch(err => {
-//   console.log(err.response.text);
-//})
+
+test().catch(err => {
+   console.log(err.response.text);
+})
 
 module.exports = {
     getClient,
