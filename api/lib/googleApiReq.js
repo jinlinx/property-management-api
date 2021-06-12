@@ -109,8 +109,7 @@ async function test() {
         id,
         range: `'Sheet1'!A1:B2`
     }, [
-        ['aaa', 'bbb']
-        ['aaa1', 'bbb1']
+        ['aaa', 'bbb1']
     ])
     console.log('append');
     console.log(appres);
