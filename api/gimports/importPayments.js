@@ -31,6 +31,7 @@ async function importPayments() {
                 address: r[2].trim(),
                 type: r[3].trim(),
                 comment: r[4],
+                origData: r,
             }
             acc.push(val);
             return acc;
@@ -55,46 +56,78 @@ async function importPayments() {
         const xieOwnerId = (await db.doQueryOneRow(`select ownerID from ownerInfo where shortName='Xie'`))['ownerID'];
         console.log(`xieOwernId=${xieOwnerId}`);
         return await Promise.map(result, async data => {
-            let paymentTypeId = paymentTypes[toKey(data.type)];
-            if (!paymentTypeId) {
-                paymentTypeId = uuid.v1();
-                const isRent = toKey(data.type) === 'rent';
-                paymentTypes[toKey(data.type)] = paymentTypeId;
-                await sqlFreeForm(`insert into  paymentType(paymentTypeID, paymentTypeName, includeInCommission, displayOrder)
-                values(?,?,?,?)`, [paymentTypeId, data.type, isRent ? '1' : '0', isRent ? 0 : 99]);                
-            }
-            let houseID = '';
-            //if (data.address) {
-            houseID = await addHouse(houses, data.address, xieOwnerId);
-            //}
+            try {
+                let paymentTypeId = paymentTypes[toKey(data.type)];
+                if (!paymentTypeId) {
+                    paymentTypeId = uuid.v1();
+                    const isRent = toKey(data.type) === 'rent';
+                    paymentTypes[toKey(data.type)] = paymentTypeId;
+                    await sqlFreeForm(`insert into  paymentType(paymentTypeID, paymentTypeName, includeInCommission, displayOrder)
+                values(?,?,?,?)`, [paymentTypeId, data.type, isRent ? '1' : '0', isRent ? 0 : 99]);
+                }
+                let houseID = '';
+                //if (data.address) {
+                houseID = await addHouse(houses, data.address, xieOwnerId);
+                //}
             
-            const mdate = data.date;
-            if (!mdate.isValid()) return 0;
-            const date = mdate.format('YYYY-MM-DD')
-            const month = mdate.clone().startOf('month').format('YYYY-MM');
-            const amount = fixAmt(data.amount);
-            //console.log(`Checking payment rec`);            
-            const prms = [date, month, houseID, paymentTypeId || '',
-                amount || 0, data.comment || ''];
-            //console.log(prms);
-            const mrs = await sqlFreeForm(`select paymentID from rentPaymentInfo
+                const mdate = data.date;
+                if (!mdate.isValid()) return {
+                    count: 0,
+                    error: 1,
+                    data: data.origData,
+                    message: `Date is invalid`,
+                };
+                const date = mdate.format('YYYY-MM-DD')
+                const month = mdate.clone().startOf('month').format('YYYY-MM');
+                const amount = fixAmt(data.amount);
+                if (data.amount === '' && data.address === '' && data.type === '') {
+                    return {
+                        count: 0,
+                    }
+                }
+                if (typeof(amount) === 'string' && !amount.match(/^[-+]{0,1}[0-9]+(\.[0-9]*){0,1}$/)) {
+                    console.log(`bad record, amount invaoid ${amount}`);
+                    console.log(data.origData);
+                    return {
+                        count: 0,
+                        error: 1,
+                        data: data.origData,
+                        message: `Amount is invalid ${amount}`,
+                    };
+                }
+                //console.log(`Checking payment rec`);            
+                const prms = [date, month, houseID, paymentTypeId || '',
+                    amount || 0, data.comment || ''];
+                //console.log(prms);
+                const mrs = await sqlFreeForm(`select paymentID from rentPaymentInfo
             where receivedDate=? and month=? and houseID=? and paymentTypeID=?
              and receivedAmount=? and notes=?`, prms);
-            if (!mrs[0]) {
-                const id = uuid.v1();
-                console.log(`Inserting payment rec ${id}`);
-                console.log(prms);
-                await sqlFreeForm(`insert into rentPaymentInfo(
+                if (!mrs[0]) {
+                    const id = uuid.v1();
+                    console.log(`Inserting payment rec ${id}`);
+                    console.log(prms);
+                    await sqlFreeForm(`insert into rentPaymentInfo(
                     paymentID, receivedDate, month, houseID, paymentTypeID,
                     receivedAmount, notes)
         values(?,?,?,?, ?,?,?)`, [id, ...prms]);
-                return 1;
-            }
+                    return {
+                        count: 1,
+                    };
+                }
 
-            return 0;
-        }, { concurrency: 1 }).catch(err => {
-            console.log(err);
-        });
+                return {
+                    count: 0,
+                };
+            } catch (err) {
+                return {
+                    count: 0,
+                    error: 1,
+                    err,
+                    data: data.origData,
+                    message: `Error happened ${err.message}`
+                }
+            }
+        }, { concurrency: 1 });
     });
 }
 

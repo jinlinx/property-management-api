@@ -84,7 +84,16 @@ async function doGsImport(req, res) {
         return res.send({ message: `added ${sumBy(pres, 'count')} errors ${pres.filter(x=>x.err).map(e=>e.err).join(',')}` });
     } else if (req.query.who === 'payment') {
         const pres = await importPayments.importPayments();
-        return res.send({ message: `added ${sum(pres)}` });
+        const errors = pres.filter(p => p.error);
+
+        let messages = [`added ${sumBy(pres, p => p.count)} `];
+        if (errors.length) {
+            messages.push(`errors=${errors.length}`);
+            messages = messages.concat(errors.map(e => {
+                return `${e.message} -> item ${JSON.stringify(e.data)}`;
+            }));
+        }
+        return res.send({ message: messages.join(',\n'), errors });
     } else {
         return await importTenant.importTenantDataGS();
     }
