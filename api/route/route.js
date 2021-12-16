@@ -36,10 +36,14 @@ module.exports = {
         server.use((req, res, next)=>{
             if (req.method !== 'GET' && req.method !== 'POST') return next();
             addCORS(req, res);
-            const controller = routes[`${consts.apiRoot}${req.url}`];
+            const controller = routes[`${req.url.substring(consts.apiRoot.length)}`]; //${consts.apiRoot}
             if (controller && controller.auth !== false) {
                 if (!req.user) {
                     res.send(401, 'Unauthorized');
+                    return next(false);
+                }
+                if (req.user.username !== 'noAuthNoUser' && !req.user.password) {
+                    res.send(401, 'Unauthorized (2)');
                     return next(false);
                 }
             }
