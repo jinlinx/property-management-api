@@ -81,7 +81,20 @@ async function doGsImport(req, res) {
     
     if (req.query.who === 'maintence') {
         const pres = await importPropertyMaintenance.importPropertyMaintenance();
-        return res.send({ message: `added ${sumBy(pres, 'count')} errors ${pres.filter(x=>x.err).map(e=>e.err).join(',')}` });
+        let message = `added ${sumBy(pres, 'count')}`;
+        const errors = pres.filter(x => x.err).map(e => {
+            return {
+                message: e.message,
+                data: e.data,
+            }
+        });
+        const rspMsg = { message };
+        if (errors.length) {
+            message += `errors count ${errors.length}: ${errors.map(e=>e.message).join(',')}`;
+            rspMsg.errors = errors;
+        }
+            
+        return res.send(rspMsg);
     } else if (req.query.who === 'payment') {
         const pres = await importPayments.importPayments();
         const errors = pres.filter(p => p.error);
