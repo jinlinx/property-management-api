@@ -42,7 +42,9 @@ const goodOps = Object.freeze({
 });
 
 const goodGroupOps = Object.freeze({
-  'sum': true
+  'sum': true,
+  max: true,
+  min: true,
 });
 async function doGet(req, res) {
   try {
