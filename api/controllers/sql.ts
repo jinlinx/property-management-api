@@ -40,6 +40,7 @@ const goodOps = Object.freeze({
   '<=': true,
   '!=': true,
   '<>': true,
+  'in':true,
 }) as { [key: string]: boolean; };
 
 const goodGroupOps = Object.freeze({
@@ -59,7 +60,7 @@ interface ISqlOrderDef {
 interface ISqlRequestWhereItem {
   field: string;
   op: string;
-  val: string | number;
+  val: string | number | (string|number)[];
 }
 
 interface ISqlRequest {
@@ -150,7 +151,8 @@ export async function doGet(req: Request, res: Response) {
     }
 
     let whereStr = '';
-    let wherePrm = [] as (string | number)[];
+    type IPrmType = models.PossibleDbTypes | models.PossibleDbTypes[];
+    let wherePrm = [] as IPrmType[];
     if (whereArray) {
       const whereRed = whereArray.reduce((acc, w) => {
         const pushNop = () => {
@@ -159,8 +161,18 @@ export async function doGet(req: Request, res: Response) {
         };
         if (fieldMap[w.field]) {
           if (goodOps[w.op]) {
-            acc.whr.push(`${w.field} ${w.op} ?`);
-            acc.prms.push(w.val);
+            if (w.op === 'in') {
+              if (Array.isArray(w.val)) {
+                acc.whr.push(`${w.field} in(${Array(w.val.length).fill('?').join(',')})`);
+                w.val.forEach(v=>acc.prms.push(v));
+              } else {
+                acc.whr.push(`${w.field} in(?)`);
+                acc.prms.push(w.val);
+              }
+            } else {
+              acc.whr.push(`${w.field} ${w.op} ?`);
+              acc.prms.push(w.val);
+            }            
           } else {
             console.log(`Warning bad op ${w.field} ${w.op}`);
             pushNop();
@@ -172,7 +184,7 @@ export async function doGet(req: Request, res: Response) {
         return acc;
       }, {
         whr: [] as string[],
-        prms: [] as (string | number)[],
+        prms: [] as IPrmType[],
       });
       if (whereRed.whr.length) {
         whereStr = ` where ${whereRed.whr.join(' and ')}`;
