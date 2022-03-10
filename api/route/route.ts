@@ -1,6 +1,5 @@
-const keys = require('lodash').keys;
+import { keys } from 'lodash';
 
-const patuh = require('../util/pauth');
 import consts from './consts';
 //const restify = require('restify');
 import * as restify from 'restify'
