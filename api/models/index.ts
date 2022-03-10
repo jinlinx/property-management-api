@@ -13,7 +13,8 @@ export interface IDBFieldDef {
   required?: boolean;
   isId?: boolean;
   def?: string; 
-  key?: 'UNI' | 'PRI' | null;
+  unique?: boolean;
+  //key?: 'UNI' | 'PRI' | null;
   formatter?: (v: PossibleDbTypes) => string;
   autoValueFunc?: (row: { [key: string]: (string | number) }, field: IDBFieldDef, val: PossibleDbTypes)=>(string);
   foreignKey?: {

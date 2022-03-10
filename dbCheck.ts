@@ -43,7 +43,7 @@ const typeToType = (f: IDBFieldDef, hasPK: boolean) => {
         return `${ret} ${hasPK?'':'primary key'}`.trim();
     }
     
-    return `${v1}${f.key === 'UNI' ? ' UNIQUE' : ''}`;
+    return `${v1}${f.unique ? ' UNIQUE' : ''}`;
 }
 
 interface ITblColumnRet {
@@ -107,7 +107,7 @@ async function check() {
                     throw err;
                 }
             } else {
-                const dbType = corrDbType(dbField);                
+                const dbType = corrDbType(dbField).toLowerCase();                
                 const myType = typeToType(col, dbField.Key === 'PRI').toLowerCase().trim();                
                 if (dbType !== myType) {                    
                     const alterTblSql = `alter table ${tabName} modify column ${col.field} ${myType} ${col.def ? ' default ' + col.def : ''};`;

@@ -4,6 +4,7 @@ import consts from './consts';
 //const restify = require('restify');
 import * as restify from 'restify'
 import { routes } from './routes';
+import { initAuth } from '../util/pauth'
 
 function addCORS(req: restify.Request, res: restify.Response) {
     res.header("Access-Control-Allow-Origin", "*");
@@ -18,13 +19,7 @@ module.exports = {
             return next();
         });
 
-        server.use((req, res, next)=>{
-            const egcookie = req.headers['egcookie'] as string;
-            if (egcookie) {
-                req.headers['cookie'] = egcookie;
-            }
-            return next(); 
-        }); 
+        initAuth(server);        
         
         const rts = keys(routes) as string[];
         rts.forEach(url=>{
@@ -32,7 +27,7 @@ module.exports = {
             server[op.method](`${consts.apiRoot}${url}`, op.func);
         });
 
-        patuh.initPassport(server);
+        //patuh.initPassport(server);
         server.use((req, res, next)=>{
             if (req.method !== 'GET' && req.method !== 'POST') return next();
             addCORS(req, res);
