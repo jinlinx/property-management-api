@@ -20,10 +20,11 @@ function throwErr(message: string) {
     throw { message };
 }
 
-const typeToType = (f: IDBFieldDef, hasPK: boolean) => {
+
+function getTypeFromDef(f: IDBFieldDef) {
     if (f.type === 'ident') {
         const ret = `int ${IDENT_ID} `
-        return `${ret} ${hasPK?'':'primary key'}`.trim();
+        return ret;
     }
     if (f.type === 'int') {
         return 'int';
@@ -35,6 +36,15 @@ const typeToType = (f: IDBFieldDef, hasPK: boolean) => {
     if (f.size) return `varchar(${f.size})`;
     return 'varchar(100)';
 }
+const typeToType = (f: IDBFieldDef, hasPK: boolean) => {
+    const v1 = getTypeFromDef(f);    
+    if (f.type === 'ident') {
+        const ret = v1;
+        return `${ret} ${hasPK?'':'primary key'}`.trim();
+    }
+    
+    return `${v1}${f.key === 'UNI' ? ' UNIQUE' : ''}`;
+}
 
 interface ITblColumnRet {
     Field: string;
@@ -42,7 +52,7 @@ interface ITblColumnRet {
 
     Default: string | null;
     Extra: string;
-    Key: 'PRI' | '';
+    Key: 'PRI' | 'UNI' | null;
     Null: 'YES' | 'NO'
 }
 async function check() {
@@ -152,6 +162,9 @@ function corrDbType(dbField: ITblColumnRet) {
     if (type.startsWith('int(')) type = 'int';
     if (dbField.Extra && dbField.Extra.includes(IDENT_ID)) {
         type = `${type} ${IDENT_ID}`
+    }
+    if (dbField.Key === 'UNI') {
+        type = `${type} UNIQUE`;
     }
     return type;
 }
