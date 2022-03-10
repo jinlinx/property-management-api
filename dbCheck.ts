@@ -1,11 +1,13 @@
-const mysql = require('./api/lib/mysql');
+import * as mysql from './api/lib/mysql';
 
-import * as modelsAll from './api/models/index';
-const mod = modelsAll.data;
-const { extensionFields } = require('./api/util/util');
+//import * as modelsAll from './api/models/index';
+import mod, { IDBFieldDef }  from './api/models/index'
+//const mod = modelsAll.data;
+import { extensionFields } from './api/util/util';
 
-const Promise = require('bluebird');
+import bluebird from 'bluebird';
 
+const IDENT_ID = 'auto_increment';
 const {
     conn,
     doQuery,
@@ -13,32 +15,48 @@ const {
 
 const tables = Object.keys(mod);
 
-function throwErr(message) {
+function throwErr(message: string) {
     console.log(message);
     throw { message };
 }
 
-const typeToType=(type,size) => {
-    if ( type==='uuid' ) return 'varchar(100)';
-    if ( type==='date' ) return 'date';
-    if ( type==='datetime' ) return 'datetime';
-    if (type === 'decimal') return 'DECIMAL(12,2)';
-    if (size) return `varchar(${size})`;
+const typeToType = (f: IDBFieldDef, hasPK: boolean) => {
+    if (f.type === 'ident') {
+        const ret = `int ${IDENT_ID} `
+        return `${ret} ${hasPK?'':'primary key'}`.trim();
+    }
+    if (f.type === 'uuid') return 'varchar(100)';
+    if (f.type === 'date') return 'date';
+    if (f.type === 'datetime') return 'datetime';
+    if (f.type === 'decimal') return 'DECIMAL(12,2)';
+    if (f.size) return `varchar(${f.size})`;
     return 'varchar(100)';
 }
+
+interface ITblColumnRet {
+    Field: string;
+    Type: string; //'varchar(100)'
+
+    Default: string | null;
+    Extra: string;
+    Key: 'PRI' | '';
+    Null: 'YES' | 'NO'
+}
 async function check() {
-    await Promise.map( tables, async tabName => {
-        const columnQry=() => doQuery( `SHOW COLUMNS FROM ${tabName}` );
+    
+    await bluebird.Promise.map( tables, async tabName => {
+        const columnQry = (() => doQuery(`SHOW COLUMNS FROM ${tabName}`)) as () => Promise<ITblColumnRet[]>;
         const curMod=mod[ tabName ];
         if ( !curMod ) {
             throwErr( `Table ${tabName} not in DB` );
         }
         try {
             await columnQry()
-        } catch ( exc ) {
-            console.log( exc.message );            
+        } catch (exc: any) {
+            console.log(`error query table ${tabName}, creating`)
+            console.log( exc.message );
             const createSql=`create table ${tabName} (${curMod.fields.map( f => {
-                return `${f.field} ${typeToType( f.type, f.size )}`
+                return `${f.field} ${typeToType( f, false )}`
             } ).join( ',' )})`;
             console.log( createSql );
             await doQuery( createSql );
@@ -48,7 +66,7 @@ async function check() {
         const dbIds = res.reduce((acc, dbf) => {
             acc[dbf.Field] = dbf;
             return acc;
-        }, {});
+        }, {} as { [key: string]: ITblColumnRet; });
         curMod.fields.forEach(myf => {
             if (!dbIds[myf.field]) {
                 console.log( `Table ${tabName} field ${myf.field} not in DB` );
@@ -56,23 +74,28 @@ async function check() {
         });
         console.log(`${tabName} good`);
         
+
+        if (tabName === 'ownerInfo') {
+            console.log('ownerInfo');
+        }
         const mustExistDateCols=[
-            { field: 'created', type: 'datetime', def: 'NOW()' }, { field: 'modified', type: 'datetime', def: 'NOW()' }
+            { field: 'created', type: 'datetime', def: 'NOW()', size: undefined, desc: 'created', } as IDBFieldDef
+            , { field: 'modified', type: 'datetime', def: 'NOW()', size: undefined, desc:'modified' }
         ].concat( curMod.fields );
-        await Promise.map(mustExistDateCols, async col => {
+        await bluebird.Promise.map(mustExistDateCols, async col => {
             const dbField = dbIds[col.field];
             if (!dbField) {
-                const alterTblSql = `alter table ${tabName} add column ${col.field} ${typeToType(col.type)} ${col.def ? ' default ' + col.def : ''};`;
+                const alterTblSql = `alter table ${tabName} add column ${col.field} ${typeToType(col, false)} ${col.def ? ' default ' + col.def : ''};`;
                 try {
                     await doQuery(alterTblSql);
                     console.log(`alter ${tabName} added ${col.field}`);
-                } catch (err) {
+                } catch (err:any) {
                     console.log(`alter table failed ${alterTblSql} ${err.message}`);
                     throw err;
                 }
             } else {
-                const dbType = dbIds[col.field].Type.toLowerCase();
-                const myType = typeToType(col.type, col.size).toLowerCase();
+                const dbType = corrDbType(dbField);                
+                const myType = typeToType(col, dbField.Key === 'PRI').toLowerCase().trim();                
                 if (dbType !== myType) {                    
                     const alterTblSql = `alter table ${tabName} modify column ${col.field} ${myType} ${col.def ? ' default ' + col.def : ''};`;
                     console.log(`type diff ${dbType} mytype=${myType}: ${alterTblSql}`);
@@ -81,7 +104,7 @@ async function check() {
             }            
         }, { concurrency: 1 });
         
-        await Promise.map(res, async dbf => {
+        await bluebird.Promise.map(res, async dbf => {
             const found = mustExistDateCols.filter(c => c.field == dbf.Field);
             if (!found.length) {                
                 const alterTblSql = `alter table ${tabName} drop column ${dbf.Field}`;
@@ -105,9 +128,9 @@ async function check() {
             console.log(createViewSql);
             try {
                 await doQuery(createViewSql);
-            } catch (err) {
+            } catch (err: any) {
                 console.log(`${createViewSql} ${err.message}`);
-                throw err.message
+                //throw err.message
             }
         }
 
@@ -119,4 +142,13 @@ async function check() {
 
 module.exports = {
     check,
+}
+
+function corrDbType(dbField: ITblColumnRet) {
+    let type = dbField.Type.toLowerCase();
+    if (type.startsWith('int(')) type = 'int';
+    if (dbField.Extra && dbField.Extra.includes(IDENT_ID)) {
+        type = `${type} ${IDENT_ID}`
+    }
+    return type;
 }

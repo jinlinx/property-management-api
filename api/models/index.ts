@@ -1,7 +1,7 @@
 //const tenantInfo = require('./tenantInfo');
 const fs = require('fs');
 const keyBy = require('lodash/keyBy');
-const files = fs.readdirSync(__dirname).filter((n:string) => n !== 'index.js') as string[];
+const files = fs.readdirSync(__dirname).filter((n:string) => n !== 'index.js' && (n.endsWith('.js') || n.endsWith('.ts'))) as string[];
 
 export type PossibleDbTypes = (string | number | null | Date);
 export interface IDBFieldDef {
@@ -9,14 +9,20 @@ export interface IDBFieldDef {
   name?: string; //name
   desc: string;
   type: string;
-  required: boolean;
-  isId: boolean;
-  formatter: (v: PossibleDbTypes) => string;
-  autoValueFunc: (row: { [key: string]: (string | number) }, field: IDBFieldDef, val: PossibleDbTypes)=>(string);
-  foreignKey: {
+  size?: string;
+  required?: boolean;
+  isId?: boolean;
+  def?: string; 
+  formatter?: (v: PossibleDbTypes) => string;
+  autoValueFunc?: (row: { [key: string]: (string | number) }, field: IDBFieldDef, val: PossibleDbTypes)=>(string);
+  foreignKey?: {
     table: string;
     field: string;
   };
+}
+
+export interface IDBViewFieldDef extends IDBFieldDef {  
+  table: string; //for views only  
 }
 
 export interface IDBModel {
@@ -26,7 +32,8 @@ export interface IDBModel {
   };
   view: {
     name: string;
-    fields: IDBFieldDef[];
+    fields: IDBViewFieldDef[];
+    extraViewJoins?: string;
   }
 }
 function createFieldMap(model: IDBModel) {
@@ -45,3 +52,5 @@ export const data = files.reduce((acc, fname) => {
 }, {} as { [key: string]: IDBModel});
 
 //module.exports = data;
+
+export default data;

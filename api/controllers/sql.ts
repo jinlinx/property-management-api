@@ -302,7 +302,8 @@ export async function createOrUpdate(req: Request, res: Response) {
               formatter = dateStrFormatter;
             }
             if (mf.autoValueFunc) {
-              formatter = v => mf.autoValueFunc(fields, mf, v as string); //just fake it
+              const fv = mf.autoValueFunc(fields, mf, v as string); //just fake it;
+              formatter = v => fv;
             }
             acc.values.push({
               name: mf.field,
