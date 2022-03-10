@@ -1,10 +1,10 @@
 const mysql = require('./api/lib/mysql');
 
-const mod = require('./api/models/index');
+import * as modelsAll from './api/models/index';
+const mod = modelsAll.data;
 const { extensionFields } = require('./api/util/util');
 
 const Promise = require('bluebird');
-const { coroutine } = require('bluebird');
 
 const {
     conn,

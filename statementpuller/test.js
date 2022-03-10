@@ -4,7 +4,7 @@ const cashapp = require('./cashapp');
 const db = require('../api/lib/db');
 
 const sub = require('./lib/submit');
-return sub.sendReadyToImportPaymentEmail();
+//return sub.sendReadyToImportPaymentEmail(); //comment out for ts
 //return cashapp.doCashApp().then(r => { console.log(r) });
 //return venmo.doVenmo({
 //    log: s => console.log(s),

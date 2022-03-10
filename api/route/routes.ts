@@ -1,11 +1,12 @@
+import {Request, Response} from 'restify'
 const about = require('../controllers/about');
 const model = require('../controllers/model');
-const sql=require('../controllers/sql');
+import * as sql from '../controllers/sql';
 const calc = require('../controllers/calc');
 const email = require('../controllers/email');
 const statement = require('../controllers/statements');
 const sheet = require('../controllers/sheet');
-const routes = {
+export const routes = {
     '/doQuery': {
         method: 'get',
         func: sql.doQuery
@@ -60,11 +61,11 @@ const routes = {
     },
     '/misc/statement': {
         method: 'get',
-      func:statement.doStatement,  
+        func: statement.doStatement,
     },
     '/misc/getStatementProcessingMsg': {
         method: 'get',
-        func: statement.getStatementProcessingMsg,  
+        func: statement.getStatementProcessingMsg,
     },
     '/misc/gsimport': {
         method: 'get',
@@ -80,7 +81,7 @@ const routes = {
     },
     '/misc/rsheet/:name/:op/:id/:range': {
         method: 'get',
-        func:sheet.doGet,
+        func: sheet.doGet,
     },
     '/misc/sheet/:name/:op/:id/:range': {
         method: 'post',
@@ -91,8 +92,10 @@ const routes = {
         method: 'get',
         func: about.version,
     },
-};
-
-module.exports = {
-    routes,
+} as {
+    [key: string]: {
+        auth?: boolean;
+        method: 'get' | 'post';
+        func: (req: Request, res: Response) => any;
+    }
 };

@@ -1,27 +1,28 @@
+import { Request, Response } from 'restify'
 const db = require('../lib/db');
-const models = require('../models/index');
+import * as  models from '../models/index';
 const keyBy = require('lodash/keyBy');
 const get = require('lodash/get');
 const uuid = require('uuid');
 const { formatterYYYYMMDD, extensionFields } = require('../util/util');
-const moment = require('moment');
+import moment from 'moment';
 
-function removeBadChars(str) {
+function removeBadChars(str: string) {
   return str.replace(/[^A-Za-z0-9]/g, '');
 }
-async function doQuery(req, res) {
-    try {
-        const rows = await db.doQuery(req.query.sql);
-  
-      return res.json(rows);
-    } catch (err) {
-      console.log(err);
-      res.send(500, {
-        sql: req.query.sql,
-        message: err.message,
-       errors: err.errors
-      });
-    }
+
+export async function doQuery(req: Request, res: Response) {
+  try {
+    const rows = await db.doQuery(req.query.sql);
+    return res.json(rows);
+  } catch (err: any) {
+    console.log(err);
+    res.send(500, {
+      sql: req.query.sql,
+      message: err.message,
+      errors: err.errors
+    });
+  }
 }
 
 
@@ -39,44 +40,74 @@ const goodOps = Object.freeze({
   '<=': true,
   '!=': true,
   '<>': true,
-});
+}) as { [key: string]: boolean; };
 
 const goodGroupOps = Object.freeze({
   'sum': true
-});
-async function doGet(req, res) {
+}) as { [key: string]: boolean; };
+
+interface ISqlRequestFieldDef {
+  field: string;
+  op: string;
+  name: string;
+}
+interface ISqlOrderDef {
+  name: string;
+  op: 'asc' | 'desc';
+}
+
+interface ISqlRequestWhereItem {
+  field: string;
+  op: string;
+  val: string | number;
+}
+
+interface ISqlRequest {
+  table: string;
+  fields: (ISqlRequestFieldDef | string)[];
+  joins: any;
+  order: ISqlOrderDef[];
+  whereArray: ISqlRequestWhereItem[];
+  groupByArray: {
+    field: string;
+  }[];
+  offset: number | string;
+  rowCount: number | string;
+}
+export async function doGet(req: Request, res: Response) {
   try {
     //joins:{ table:{col:als}}
     const { table, fields, joins, order,
       whereArray,    //field, op, val
       groupByArray,  //field [{"field":"workerID"}, {"op":"sum", "field":"amount"}]
       offset = 0, rowCount = 2147483647
-    } = req.body;
-    const model = models[table];
+    } = req.body as ISqlRequest;
+    const model = models.data[table];
     if (!model) {
       const message = `No model ${table}`;
       throw {
         message
       }
     }
-    const tableOrView = get(model,['view','name'], table);
-    const viewFields = get(model,['view','fields'],[]).map(f=>({...f, field: f.name || f.field}));
+    const tableOrView = get(model, ['view', 'name'], table);
+    const viewFields = (get(model, ['view', 'fields'], []) as models.IDBFieldDef[]).map(f => ({ ...f, field: f.name || f.field }));
 
-    if (parseInt(offset) !== offset)
+    if (parseInt(offset as string) !== offset)
       throw {
         message: 'Bad offset ' + offset
       }
-    if (parseInt(rowCount) !== rowCount) {
+    if (parseInt(rowCount as string) !== rowCount) {
       throw {
         message: 'Bad rowCount ' + rowCount
       }
     }
     //createFieldMap(model);
 
-    const extFields=extensionFields.concat(viewFields)
-    const fieldMap=Object.assign({},model.fieldMap, keyBy(extFields,'field'));
-    const modelFields=model.fields.concat(extFields);
-    const selectNames=fields? fields.filter(f => fieldMap[f] || fieldMap[f.field]).map(f=>{
+    const extFields = extensionFields.concat(viewFields)
+    const fieldMap = Object.assign({}, model.fieldMap, keyBy(extFields, 'field')) as { [key: string]: models.IDBFieldDef };
+    const modelFields = model.fields.concat(extFields);
+    const selectNames = fields ? fields.filter(f => fieldMap[f as string] || fieldMap[(f as ISqlRequestFieldDef).field]).map(ff => {
+      const f = ff as ISqlRequestFieldDef;
       if (!f.op) return `${tableOrView}.${f}`;
       if (goodGroupOps[f.op]) {
         if (fieldMap[f.field]) {
@@ -84,9 +115,9 @@ async function doGet(req, res) {
         }
       }
       if (f.op === 'count') {
-        return `count(1) ${removeBadChars(f.name||'')}`;
+        return `count(1) ${removeBadChars(f.name || '')}`;
       }
-    }):modelFields.map(f => `${tableOrView}.${f.field}`);
+    }) : modelFields.map(f => `${tableOrView}.${f.field}`);
 
     let orderby = '';
     if (order && order.length) {
@@ -96,41 +127,41 @@ async function doGet(req, res) {
       }
     }
 
-    let joinSels = [];
-    let joinTbls = [];
+    let joinSels: string[] = [];
+    let joinTbls: string[] = [];
     if (joins) {
       const joinRes = model.fields.reduce((acc, f) => {
         const fk = f.foreignKey;
         if (fk) {
           const joinFields = joins[fk.table];
           if (joinFields) {
-            const fkModel = models[fk.table];
+            const fkModel = models.data[fk.table];
             acc.innerJoins.push(` left outer join ${fk.table} on ${table}.${f.field}=${fk.table}.${fk.field} `);
-            acc.selects = acc.selects.concat(fkModel.fields.filter(f=>joinFields[f.field]).map(f=>`${fk.table}.${f.field} '${joinFields[f.field]}'`));
+            acc.selects = acc.selects.concat(fkModel.fields.filter(f => joinFields[f.field]).map(f => `${fk.table}.${f.field} '${joinFields[f.field]}'`));
           }
         }
         return acc;
       }, {
-        selects:[],
-        innerJoins:[],
+        selects: [] as string[],
+        innerJoins: [] as string[],
       });
       joinSels = joinRes.selects;
       joinTbls = joinRes.innerJoins;
     }
 
     let whereStr = '';
-    let wherePrm = [];
-    if (whereArray) {      
-      const whereRed = whereArray.reduce((acc,w) => {
-        const pushNop = ()=>{
+    let wherePrm = [] as (string | number)[];
+    if (whereArray) {
+      const whereRed = whereArray.reduce((acc, w) => {
+        const pushNop = () => {
           acc.whr.push('1=?');
           acc.prms.push('1');
-        };        
+        };
         if (fieldMap[w.field]) {
           if (goodOps[w.op]) {
             acc.whr.push(`${w.field} ${w.op} ?`);
             acc.prms.push(w.val);
-          }else {
+          } else {
             console.log(`Warning bad op ${w.field} ${w.op}`);
             pushNop();
           }
@@ -140,8 +171,8 @@ async function doGet(req, res) {
         }
         return acc;
       }, {
-        whr: [],
-        prms:[],
+        whr: [] as string[],
+        prms: [] as (string | number)[],
       });
       if (whereRed.whr.length) {
         whereStr = ` where ${whereRed.whr.join(' and ')}`;
@@ -151,9 +182,9 @@ async function doGet(req, res) {
 
     let groupByStr = '';
     if (groupByArray) {
-      groupBys = groupByArray.map(g=>g.field).filter(f=>fieldMap[f]);
+      const groupBys = groupByArray.map(g => g.field).filter(f => fieldMap[f]) as string[];
       if (groupBys.length) {
-        groupByStr = ' group by '+ groupBys.join(',');
+        groupByStr = ' group by ' + groupBys.join(',');
       }
     }
 
@@ -161,8 +192,8 @@ async function doGet(req, res) {
     const sqlStr = `select ${selectNames.concat(joinSels).join(',')} ${fromAndWhere} ${orderby} ${groupByStr}
     limit ${offset}, ${rowCount}`;
     console.log(sqlStr);
-    const countRes = await db.doQueryOneRow(`select count(1) cnt ${fromAndWhere}  ${groupByStr}`,wherePrm);
-    const rows = await db.doQuery(sqlStr,wherePrm);
+    const countRes = await db.doQueryOneRow(`select count(1) cnt ${fromAndWhere}  ${groupByStr}`, wherePrm);
+    const rows = await db.doQuery(sqlStr, wherePrm);
 
     return res.json({
       offset,
@@ -170,7 +201,7 @@ async function doGet(req, res) {
       total: get(countRes, 'cnt'),
       rows,
     });
-  } catch (err) {
+  } catch (err: any) {
     console.log(err);
     res.send(500, {
       message: err.message,
@@ -179,10 +210,10 @@ async function doGet(req, res) {
   }
 }
 
-function dateStrFormatter(str) {
+function dateStrFormatter(str: (string|number|null|Date)) :Date {
   return moment(str).toDate();
 }
-const vmap = (v, formatter) => {
+const vmap = (v: any, formatter?: (f: any) => string): string | number => {
   if (v === null) return 'null';
   if (v === 0) return 0;
   if (v === '') return "''";
@@ -191,19 +222,21 @@ const vmap = (v, formatter) => {
   return `'${v}'`
 }
 
-const vmap2 = (v, f) => {
+const vmap2 = (v: (models.PossibleDbTypes|undefined), f: models.IDBFieldDef) => {
   if (v === null || v === 0) return v;
   if (v === undefined) v = '';
   if (v === '') {
     if (f.type === 'decimal') return null;
-  }  
+  }
   return v;
 }
 
-async function createOrUpdate(req, res) {
+export async function createOrUpdate(req: Request, res: Response) {
   try {
-    const { table, fields, create} = req.body;
-    const model = models[table];
+    const { table } = req.body as ISqlRequest;
+    const fields = req.body.fields as { [key: string]: string };
+    const { create } = req.body as { create: boolean; }
+    const model = models.data[table];
     if (!model) {
       const message = `No model ${table}`;
       throw {
@@ -214,74 +247,79 @@ async function createOrUpdate(req, res) {
     //createFieldMap(model);
 
     let sqlStr = '';
-    
-    let idVal = '';
-    let sqlArgs = [];
+
+    let idVal = '' as models.PossibleDbTypes;    
+    let sqlArgs = [] as models.PossibleDbTypes[];
     if (create) {
 
       sqlStr = `insert into ${table} (${model.fields.map(f => f.field).join(',')},created,modified)
-       values (${model.fields.map(f => {
-         let val = fields[f.field];
-         if (f.isId) {
-           idVal = uuid.v1();
-           val= idVal;
-         }
-         if (f.formatter) {
-           sqlArgs.push(f.formatter(v));
-         }  else if (f.autoValueFunc) {
-           sqlArgs.push(f.autoValueFunc(fields, f, val))
-         }
-         else {
-           let formatter = (x => x);
-           if (f.type === 'datetime' || f.type === 'date') {
-             formatter = dateStrFormatter;
-           }
-           sqlArgs.push(formatter(vmap2(val, f)));
-         }
-         return '?';
-         //return vmap(val);
-       }).join(',')},NOW(),NOW())`;
+       values (${model.fields.map((f) => {
+        let val = fields[f.field] as models.PossibleDbTypes;
+        if (f.isId) {
+          idVal = uuid.v1();
+          val = idVal;
+        }
+        if (f.formatter) {
+          sqlArgs.push(f.formatter(val));
+        } else if (f.autoValueFunc) {
+          sqlArgs.push(f.autoValueFunc(fields, f, val))
+        }
+        else {
+          let formatter = ((x: models.PossibleDbTypes) => x);
+          if (f.type === 'datetime' || f.type === 'date') {
+            formatter = dateStrFormatter;
+          }
+          sqlArgs.push(formatter(vmap2(val, f)));
+        }
+        return '?';
+        //return vmap(val);
+      }).join(',')},NOW(),NOW())`;
     } else {
+      interface INameVal {
+        name: string;
+        value: models.PossibleDbTypes;
+      }
       const { idField, values } = model.fields.reduce((acc, mf) => {
         if (mf.isId) {
           acc.idField = { name: mf.field, value: fields[mf.field] };
         } else {
           const v = fields[mf.field];
-          if (v !== undefined) {            
-            let formatter = null;
+          if (v !== undefined) {
+            let formatter = (v=>'') as (v:models.PossibleDbTypes)=>(string|Date);
             if (mf.type === 'datetime') {
               formatter = dateStrFormatter;
             }
             if (mf.autoValueFunc) {
-              formatter = v=>mf.autoValueFunc(fields, mf, v);
+              formatter = v => mf.autoValueFunc(fields, mf, v as string); //just fake it
             }
             acc.values.push({
               name: mf.field,
-              value: (formatter || mf.formatter|| vmap2)(v, mf),
+              value: ((formatter || mf.formatter || vmap2) as (v: any, f: any) => models.PossibleDbTypes)(v, mf),
             })
           }
         }
         return acc;
       }, {
-        values:[]
-      }); 
+        idField: null as (null | INameVal),
+        values: [] as INameVal[],
+      });
       if (!idField) {
         throw 'Id field not specified';
       }
       idVal = idField.value;
       //const setValMap = v => `${v.name}=${v.value}`;
-      const setValMap = v=>`${v.name}=?`;
+      const setValMap = (v:INameVal) => `${v.name}=?`;
       sqlStr = `update ${table} set ${values.map(v => setValMap(v)).join(',')},modified=NOW() where ${idField.name}=${vmap(idField.value)}`;
       sqlArgs = values.map(v => v.value);
     }
 
     console.log(sqlStr);
     console.log(sqlArgs);
-    const rows = await db.doQuery(sqlStr,sqlArgs);
+    const rows = await db.doQuery(sqlStr, sqlArgs);
 
     rows.id = idVal;
     return res.json(rows);
-  } catch (err) {
+  } catch (err:any) {
     console.log(err);
     res.send(500, {
       message: err.message,
@@ -291,10 +329,10 @@ async function createOrUpdate(req, res) {
 }
 
 
-async function del(req, res) {
+export async function del(req: Request, res: Response) {
   try {
-    const { table, id} = req.body;
-    const model = models[table];
+    const { table, id } = req.body;
+    const model = models.data[table];
     if (!model) {
       const message = `No model ${table}`;
       throw {
@@ -306,11 +344,11 @@ async function del(req, res) {
 
     const idField = model.fields.filter(f => f.isId)[0];
     const sqlStr = `delete from ${table} where ${idField.field}=${vmap(id)}`;
-    
+
     console.log(sqlStr);
     const rows = await db.doQuery(sqlStr);
     return res.json(rows);
-  } catch (err) {
+  } catch (err: any) {
     console.log(err);
     res.send(500, {
       message: err.message,
@@ -319,24 +357,24 @@ async function del(req, res) {
   }
 }
 
-async function getDatabases(req, res) {
+export async function getDatabases(req: Request, res: Response) {
   const dbs = await db.getAllDatabases();
   return res.json(dbs);
 }
 
-async function getTables(req, res) {
+export async function getTables(req: Request, res: Response) {
   const dbs = await db.getAllTables();
   return res.json(dbs);
 }
 
-async function importPayment(req, res) {
+export async function importPayment(req: Request, res: Response) {
   const { date, amount, name, notes, source } = req.body;
   if (!date.match(/^\d{4}-\d{2}-\d{2}$/)) {
     return res.json({
       error: `Date mismatch ${date}`,
     })
   }
-    
+
   const parms = [date, amount, name, notes || '', source || ''];
   const existing = await db.doQuery(`select 1 from importPayments where date=? and amount=? and name=? and notes=? and source=?`,
     parms);
@@ -354,7 +392,7 @@ async function importPayment(req, res) {
   }
 }
 
-async function getTableInfo(req, res) {
+export async function getTableInfo(req: Request, res: Response) {
   const table = req.query.table;
   const fields = await db.getTableFields(table);
   const indexes = await db.getTableIndexes(table);
@@ -366,32 +404,18 @@ async function getTableInfo(req, res) {
   })
 }
 
-async function freeFormSql(req, res) {
+export async function freeFormSql(req: Request, res: Response) {
   try {
     const sqlStr = req.body.sql;
     const parms = req.body.parms;
     console.log(sqlStr);
     const rows = await db.doQuery(sqlStr, parms);
     return res.json(rows);
-  } catch (err) {
+  } catch (err: any) {
     console.log(err);
     res.send(500, {
       message: err.message,
       errors: err.errors
     });
   }
-}
-  
-module.exports = {
-  doQuery,
-  doGet,
-  createOrUpdate,
-  del,
-
-  getDatabases,
-  getTables,
-  getTableInfo,
-  freeFormSql,
-
-  importPayment,
 }
