@@ -6,7 +6,7 @@ module.exports = {
             { field: 'city', desc: 'City', },
             { field: 'state', desc: 'State',  },
             { field: 'zip', desc: 'Zip', },
-            { field: 'ownerID', desc: 'Owner ID', require: true, foreignKey: { table: 'ownerInfo', field: 'ownerID' } },
+            { field: 'ownerID', type: 'int', desc: 'Owner ID', require: true, foreignKey: { table: 'ownerInfo', field: 'ownerID' } },
             { field: 'vdPosControl', desc: 'PosControl' },
         ],
     view:{

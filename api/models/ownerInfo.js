@@ -5,6 +5,5 @@ module.exports = {
             { field: 'ownerName', desc: 'Owner Name', required: true, unique: true, },
             { field: 'password', desc:'Password', required: false },
             { field: 'shortName', desc: 'Short Name', require: true },
-            { field: 'vdPosControl', desc:'PosControl'},
         ]
 };

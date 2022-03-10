@@ -25,6 +25,9 @@ const typeToType = (f: IDBFieldDef, hasPK: boolean) => {
         const ret = `int ${IDENT_ID} `
         return `${ret} ${hasPK?'':'primary key'}`.trim();
     }
+    if (f.type === 'int') {
+        return 'int';
+    }
     if (f.type === 'uuid') return 'varchar(100)';
     if (f.type === 'date') return 'date';
     if (f.type === 'datetime') return 'datetime';
