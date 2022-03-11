@@ -5,6 +5,8 @@ import { keyBy, get } from 'lodash';
 import * as uuid from 'uuid';
 import { extensionFields } from '../util/util';
 import moment from 'moment';
+import {getUserAuth } from '../util/pauth'
+
 
 function removeBadChars(str: string) {
   return str.replace(/[^A-Za-z0-9]/g, '');
@@ -76,6 +78,14 @@ interface ISqlRequest {
   rowCount: number | string;
 }
 export async function doGet(req: Request, res: Response) {
+  const auth = getUserAuth(req);
+  if (!auth) {
+    const message = 'not authorized';
+    return res.json({
+      message,
+      error: message,
+    })
+  }
   try {
     //joins:{ table:{col:als}}
     const { table, fields, joins, order,
@@ -153,8 +163,9 @@ export async function doGet(req: Request, res: Response) {
     let whereStr = '';
     type IPrmType = models.PossibleDbTypes | models.PossibleDbTypes[];
     let wherePrm = [] as IPrmType[];
-    if (whereArray) {
-      const whereRed = whereArray.reduce((acc, w) => {
+    //if (whereArray)
+    {
+      const whereRed = (whereArray|| []).reduce((acc, w) => {
         const pushNop = () => {
           acc.whr.push('1=?');
           acc.prms.push('1');
@@ -186,6 +197,11 @@ export async function doGet(req: Request, res: Response) {
         whr: [] as string[],
         prms: [] as IPrmType[],
       });
+      
+      if (fieldMap['ownerId']) {
+        whereRed.whr.push(` ownerId in (${auth.pmInfo.ownerCodes.map(x => '?').join(',')})`);
+        auth.pmInfo.ownerCodes.forEach(c => whereRed.prms.push(c));        
+      }
       if (whereRed.whr.length) {
         whereStr = ` where ${whereRed.whr.join(' and ')}`;
       }
