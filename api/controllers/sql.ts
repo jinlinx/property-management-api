@@ -5,7 +5,7 @@ import { keyBy, get } from 'lodash';
 import * as uuid from 'uuid';
 import { extensionFields } from '../util/util';
 import moment from 'moment';
-import {getUserAuth } from '../util/pauth'
+import {getUserAuth, IUserAuth } from '../util/pauth'
 
 const OWNER_SEC_FIELD = 'ownerID';
 
@@ -78,6 +78,152 @@ interface ISqlRequest {
   offset: number | string;
   rowCount: number | string;
 }
+
+export async function doSqlGetInternal(auth: IUserAuth, sqlReq: ISqlRequest) {
+  //joins:{ table:{col:als}}
+  const { table, fields, joins, order,
+    whereArray,    //field, op, val
+    groupByArray,  //field [{"field":"workerID"}, {"op":"sum", "field":"amount"}]
+    offset = 0, rowCount = 2147483647
+  } = sqlReq;
+  const model = models.data[table];
+  if (!model) {
+    const message = `No model ${table}`;
+    throw {
+      message
+    }
+  }
+  const tableOrView = get(model, ['view', 'name'], table);
+  const viewFields = (get(model, ['view', 'fields'], []) as models.IDBFieldDef[]).map(f => ({ ...f, field: f.name || f.field }));
+
+  if (parseInt(offset as string) !== offset)
+    throw {
+      message: 'Bad offset ' + offset
+    }
+  if (parseInt(rowCount as string) !== rowCount) {
+    throw {
+      message: 'Bad rowCount ' + rowCount
+    }
+  }
+  //createFieldMap(model);
+
+  const extFields = extensionFields.concat(viewFields)
+  const fieldMap = Object.assign({}, model.fieldMap, keyBy(extFields, 'field')) as { [key: string]: models.IDBFieldDef };
+  const modelFields = model.fields.concat(extFields);
+  const selectNames = fields ? fields.filter(f => fieldMap[f as string] || fieldMap[(f as ISqlRequestFieldDef).field]).map(ff => {
+    const f = ff as ISqlRequestFieldDef;
+    if (!f.op) return `${tableOrView}.${f}`;
+    if (goodGroupOps[f.op]) {
+      if (fieldMap[f.field]) {
+        return `${f.op}(${tableOrView}.${f.field}) ${removeBadChars(f.name || '')}`;
+      }
+    }
+    if (f.op === 'count') {
+      return `count(1) ${removeBadChars(f.name || '')}`;
+    }
+  }) : modelFields.map(f => `${tableOrView}.${f.field}`);
+
+  let orderby = '';
+  if (order && order.length) {
+    const orders = order.filter(o => fieldMap[o.name] && o.op).map(o => ` ${o.name} ${o.op === 'asc' ? 'ASC' : 'DESC'}`);
+    if (orders.length) {
+      orderby = ` order by ${orders.join(', ')}`;
+    }
+  }
+
+  let joinSels: string[] = [];
+  let joinTbls: string[] = [];
+  if (joins) {
+    const joinRes = model.fields.reduce((acc, f) => {
+      const fk = f.foreignKey;
+      if (fk) {
+        const joinFields = joins[fk.table];
+        if (joinFields) {
+          const fkModel = models.data[fk.table];
+          acc.innerJoins.push(` left outer join ${fk.table} on ${table}.${f.field}=${fk.table}.${fk.field} `);
+          acc.selects = acc.selects.concat(fkModel.fields.filter(f => joinFields[f.field]).map(f => `${fk.table}.${f.field} '${joinFields[f.field]}'`));
+        }
+      }
+      return acc;
+    }, {
+      selects: [] as string[],
+      innerJoins: [] as string[],
+    });
+    joinSels = joinRes.selects;
+    joinTbls = joinRes.innerJoins;
+  }
+
+  let whereStr = '';
+  type IPrmType = models.PossibleDbTypes | models.PossibleDbTypes[];
+  let wherePrm = [] as IPrmType[];
+  //if (whereArray)
+  {
+    const whereRed = (whereArray || []).reduce((acc, w) => {
+      const pushNop = () => {
+        acc.whr.push('1=?');
+        acc.prms.push('1');
+      };
+      if (fieldMap[w.field]) {
+        if (goodOps[w.op]) {
+          if (w.op === 'in') {
+            if (Array.isArray(w.val)) {
+              acc.whr.push(`${w.field} in(${Array(w.val.length).fill('?').join(',')})`);
+              w.val.forEach(v => acc.prms.push(v));
+            } else {
+              acc.whr.push(`${w.field} in(?)`);
+              acc.prms.push(w.val);
+            }
+          } else {
+            acc.whr.push(`${w.field} ${w.op} ?`);
+            acc.prms.push(w.val);
+          }
+        } else {
+          console.log(`Warning bad op ${w.field} ${w.op}`);
+          pushNop();
+        }
+      } else {
+        console.log(`Warning field not mapped ${w.field}`);
+        pushNop();
+      }
+      return acc;
+    }, {
+      whr: [] as string[],
+      prms: [] as IPrmType[],
+    });
+
+    if (fieldMap[OWNER_SEC_FIELD]) {
+      whereRed.whr.push(` ${OWNER_SEC_FIELD} in (${auth.pmInfo.ownerCodes.map(x => '?').join(',')})`);
+      auth.pmInfo.ownerCodes.forEach(c => whereRed.prms.push(c));
+    }
+    if (whereRed.whr.length) {
+      whereStr = ` where ${whereRed.whr.join(' and ')}`;
+    }
+    wherePrm = whereRed.prms;
+  }
+
+  let groupByStr = '';
+  if (groupByArray) {
+    const groupBys = groupByArray.map(g => g.field).filter(f => fieldMap[f]) as string[];
+    if (groupBys.length) {
+      groupByStr = ' group by ' + groupBys.join(',');
+    }
+  }
+
+  const fromAndWhere = ` from ${[tableOrView].concat(joinTbls).join(' ')} ${whereStr} `;
+  const sqlStr = `select ${selectNames.concat(joinSels).join(',')} ${fromAndWhere} ${orderby} ${groupByStr}
+    limit ${offset}, ${rowCount}`;
+  console.log(sqlStr);
+  const countRes = await db.doQueryOneRow(`select count(1) cnt ${fromAndWhere}  ${groupByStr}`, wherePrm);
+  const rows = await db.doQuery(sqlStr, wherePrm);
+
+  return ({
+    offset,
+    rowCount,
+    total: get(countRes, 'cnt'),
+    rows,
+  });
+}
+
 export async function doGet(req: Request, res: Response) {
   const auth = getUserAuth(req);
   if (!auth) {
@@ -88,148 +234,10 @@ export async function doGet(req: Request, res: Response) {
     })
   }
   try {
+    const rspRes = await doSqlGetInternal(auth, req.body as ISqlRequest);
     //joins:{ table:{col:als}}
-    const { table, fields, joins, order,
-      whereArray,    //field, op, val
-      groupByArray,  //field [{"field":"workerID"}, {"op":"sum", "field":"amount"}]
-      offset = 0, rowCount = 2147483647
-    } = req.body as ISqlRequest;
-    const model = models.data[table];
-    if (!model) {
-      const message = `No model ${table}`;
-      throw {
-        message
-      }
-    }
-    const tableOrView = get(model, ['view', 'name'], table);
-    const viewFields = (get(model, ['view', 'fields'], []) as models.IDBFieldDef[]).map(f => ({ ...f, field: f.name || f.field }));
-
-    if (parseInt(offset as string) !== offset)
-      throw {
-        message: 'Bad offset ' + offset
-      }
-    if (parseInt(rowCount as string) !== rowCount) {
-      throw {
-        message: 'Bad rowCount ' + rowCount
-      }
-    }
-    //createFieldMap(model);
-
-    const extFields = extensionFields.concat(viewFields)
-    const fieldMap = Object.assign({}, model.fieldMap, keyBy(extFields, 'field')) as { [key: string]: models.IDBFieldDef };
-    const modelFields = model.fields.concat(extFields);
-    const selectNames = fields ? fields.filter(f => fieldMap[f as string] || fieldMap[(f as ISqlRequestFieldDef).field]).map(ff => {
-      const f = ff as ISqlRequestFieldDef;
-      if (!f.op) return `${tableOrView}.${f}`;
-      if (goodGroupOps[f.op]) {
-        if (fieldMap[f.field]) {
-          return `${f.op}(${tableOrView}.${f.field}) ${removeBadChars(f.name || '')}`;
-        }
-      }
-      if (f.op === 'count') {
-        return `count(1) ${removeBadChars(f.name || '')}`;
-      }
-    }) : modelFields.map(f => `${tableOrView}.${f.field}`);
-
-    let orderby = '';
-    if (order && order.length) {
-      const orders = order.filter(o => fieldMap[o.name] && o.op).map(o => ` ${o.name} ${o.op === 'asc' ? 'ASC' : 'DESC'}`);
-      if (orders.length) {
-        orderby = ` order by ${orders.join(', ')}`;
-      }
-    }
-
-    let joinSels: string[] = [];
-    let joinTbls: string[] = [];
-    if (joins) {
-      const joinRes = model.fields.reduce((acc, f) => {
-        const fk = f.foreignKey;
-        if (fk) {
-          const joinFields = joins[fk.table];
-          if (joinFields) {
-            const fkModel = models.data[fk.table];
-            acc.innerJoins.push(` left outer join ${fk.table} on ${table}.${f.field}=${fk.table}.${fk.field} `);
-            acc.selects = acc.selects.concat(fkModel.fields.filter(f => joinFields[f.field]).map(f => `${fk.table}.${f.field} '${joinFields[f.field]}'`));
-          }
-        }
-        return acc;
-      }, {
-        selects: [] as string[],
-        innerJoins: [] as string[],
-      });
-      joinSels = joinRes.selects;
-      joinTbls = joinRes.innerJoins;
-    }
-
-    let whereStr = '';
-    type IPrmType = models.PossibleDbTypes | models.PossibleDbTypes[];
-    let wherePrm = [] as IPrmType[];
-    //if (whereArray)
-    {
-      const whereRed = (whereArray|| []).reduce((acc, w) => {
-        const pushNop = () => {
-          acc.whr.push('1=?');
-          acc.prms.push('1');
-        };
-        if (fieldMap[w.field]) {
-          if (goodOps[w.op]) {
-            if (w.op === 'in') {
-              if (Array.isArray(w.val)) {
-                acc.whr.push(`${w.field} in(${Array(w.val.length).fill('?').join(',')})`);
-                w.val.forEach(v=>acc.prms.push(v));
-              } else {
-                acc.whr.push(`${w.field} in(?)`);
-                acc.prms.push(w.val);
-              }
-            } else {
-              acc.whr.push(`${w.field} ${w.op} ?`);
-              acc.prms.push(w.val);
-            }            
-          } else {
-            console.log(`Warning bad op ${w.field} ${w.op}`);
-            pushNop();
-          }
-        } else {
-          console.log(`Warning field not mapped ${w.field}`);
-          pushNop();
-        }
-        return acc;
-      }, {
-        whr: [] as string[],
-        prms: [] as IPrmType[],
-      });
-      
-      if (fieldMap[OWNER_SEC_FIELD]) {
-        whereRed.whr.push(` ${OWNER_SEC_FIELD} in (${auth.pmInfo.ownerCodes.map(x => '?').join(',')})`);
-        auth.pmInfo.ownerCodes.forEach(c => whereRed.prms.push(c));        
-      }
-      if (whereRed.whr.length) {
-        whereStr = ` where ${whereRed.whr.join(' and ')}`;
-      }
-      wherePrm = whereRed.prms;
-    }
-
-    let groupByStr = '';
-    if (groupByArray) {
-      const groupBys = groupByArray.map(g => g.field).filter(f => fieldMap[f]) as string[];
-      if (groupBys.length) {
-        groupByStr = ' group by ' + groupBys.join(',');
-      }
-    }
-
-    const fromAndWhere = ` from ${[tableOrView].concat(joinTbls).join(' ')} ${whereStr} `;
-    const sqlStr = `select ${selectNames.concat(joinSels).join(',')} ${fromAndWhere} ${orderby} ${groupByStr}
-    limit ${offset}, ${rowCount}`;
-    console.log(sqlStr);
-    const countRes = await db.doQueryOneRow(`select count(1) cnt ${fromAndWhere}  ${groupByStr}`, wherePrm);
-    const rows = await db.doQuery(sqlStr, wherePrm);
-
-    return res.json({
-      offset,
-      rowCount,
-      total: get(countRes, 'cnt'),
-      rows,
-    });
+    
+    return res.json(rspRes);
   } catch (err: any) {
     console.log(err);
     res.send(500, {
