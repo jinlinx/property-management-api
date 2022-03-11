@@ -1,4 +1,5 @@
-module.exports = {
+import { IDBModel } from './types';
+export const rentPaymentInfo = {
     fields:
         [
             { field: 'paymentID', desc: 'Id', type: 'uuid', required: true, unique: true, isId: true },
@@ -26,4 +27,4 @@ module.exports = {
             ], 
             extraViewJoins: ' inner join ownerInfo oi on oi.ownerID  = houseInfo.ownerID left join importPayments ip  on ip.paymentID  = rentPaymentInfo.paymentID ',
         }
-};
+} as IDBModel;

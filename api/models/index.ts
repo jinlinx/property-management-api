@@ -1,43 +1,12 @@
 //const tenantInfo = require('./tenantInfo');
 const fs = require('fs');
 const keyBy = require('lodash/keyBy');
-const files = fs.readdirSync(__dirname).filter((n:string) => n !== 'index.js' && (n.endsWith('.js') || n.endsWith('.ts'))) as string[];
+const files = fs.readdirSync(__dirname).filter((n:string) => n !== 'index.js' && n !== 'types.js' && (n.endsWith('.js'))) as string[];
 
-export type PossibleDbTypes = (string | number | null | Date);
-export interface IDBFieldDef {
-  field: string; //actual field
-  name?: string; //name
-  desc: string;
-  type: string;
-  size?: string;
-  required?: boolean;
-  isId?: boolean;
-  def?: string; 
-  unique?: boolean;
-  //key?: 'UNI' | 'PRI' | null;
-  formatter?: (v: PossibleDbTypes) => string;
-  autoValueFunc?: (row: { [key: string]: (string | number) }, field: IDBFieldDef, val: PossibleDbTypes)=>(string);
-  foreignKey?: {
-    table: string;
-    field: string;
-  };
-}
+import { PossibleDbTypes, IDBFieldDef, IDBViewFieldDef, IDBModel } from './types'
 
-export interface IDBViewFieldDef extends IDBFieldDef {  
-  table: string; //for views only  
-}
+export { PossibleDbTypes, IDBFieldDef, IDBViewFieldDef, IDBModel };
 
-export interface IDBModel {
-  fields: IDBFieldDef[];
-  fieldMap?: {
-    [key: string]: IDBFieldDef;
-  };
-  view: {
-    name: string;
-    fields: IDBViewFieldDef[];
-    extraViewJoins?: string;
-  }
-}
 function createFieldMap(model: IDBModel) {
     if(!model.fieldMap) {    
       model.fieldMap = keyBy(model.fields, 'field');
@@ -46,11 +15,20 @@ function createFieldMap(model: IDBModel) {
 
   
 export const data = files.reduce((acc, fname) => {
-    const modName = fname.split('.')[0];
+  const modName = fname.split('.')[0];
   const model = require(`./${modName}`) as IDBModel;
+  if (!model.fields) {
+    const modelNames = Object.keys(model);
+    modelNames.forEach(name => {
+      const act = (model as any)[name] as IDBModel;
+      createFieldMap(act);
+      acc[name] = act;  
+    })
+  } else {
     createFieldMap(model);
     acc[modName] = model;
-    return acc;   
+  }
+  return acc;
 }, {} as { [key: string]: IDBModel});
 
 //module.exports = data;

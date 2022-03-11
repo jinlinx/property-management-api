@@ -1,4 +1,5 @@
-module.exports = {
+import { IDBModel } from './types';
+export const ownerInfo = {
     fields:
         [
             { field: 'ownerID', desc: 'Id', type: 'ident', required: true, isId: true },
@@ -7,4 +8,4 @@ module.exports = {
             { field: 'password', desc:'Password', required: false },
             { field: 'shortName', desc: 'Short Name', required: true },
         ]
-};
+} as IDBModel;
