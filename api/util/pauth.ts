@@ -3,8 +3,7 @@ import { signJwt, verifyJwt } from './jwt';
 
 export interface IUserAuth {
     username: string;
-    code: string;
-    exp: number;
+    code: number;
     pmInfo: {
         ownerCodes: number[];
     }
@@ -16,6 +15,13 @@ export function getUserAuth(req: Request): (IUserAuth | null) {
     return auth.info as IUserAuth;
 }
 
+export function createUserToken(usr: IUserAuth): string {
+    return signJwt({
+        ...usr,
+        expiresIn: '1d',
+    });
+}
+
 export function initAuth(server: Server) {
     server.use((req, res, next) => {
         const auth = req.headers.authorization;
@@ -25,7 +31,7 @@ export function initAuth(server: Server) {
             try {
                 const vres = verifyJwt(tk) as IUserAuth;
                 const rauth = {
-                    credentials: vres.code,
+                    credentials: tk,
                     scheme: 'Bearer',
                     basic: {
                         username: vres.username,
@@ -36,14 +42,7 @@ export function initAuth(server: Server) {
                 req.authorization = rauth;
             } catch (err) {
                 console.log(err);
-            }
-            const jj = signJwt({
-                test: 1,
-                dd: 2,
-                code: 'testcode',
-                expiresIn: '1d',
-            });
-            console.log(jj);            
+            }         
         }        
         //jwt.verify()
         return next();

@@ -6,6 +6,9 @@ const calc = require('../controllers/calc');
 const email = require('../controllers/email');
 const statement = require('../controllers/statements');
 const sheet = require('../controllers/sheet');
+
+import * as steps from '../controllers/step';
+
 export const routes = {
     '/doQuery': {
         method: 'get',
@@ -86,6 +89,10 @@ export const routes = {
     '/misc/sheet/:name/:op/:id/:range': {
         method: 'post',
         func: sheet.doGet,
+    },
+    '/auth/login': {
+        method: 'post',
+        func: steps.login,
     },
     '/version': {
         auth: false,
