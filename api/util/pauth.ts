@@ -1,7 +1,7 @@
 import { Server, Request } from 'restify'
 import { signJwt, verifyJwt } from './jwt';
 
-interface IUserAuth {
+export interface IUserAuth {
     username: string;
     code: string;
     exp: number;
