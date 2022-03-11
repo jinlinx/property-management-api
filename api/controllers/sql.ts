@@ -1,10 +1,9 @@
 import { Request, Response } from 'restify'
-const db = require('../lib/db');
+import * as db from '../lib/db';
 import * as  models from '../models/index';
-const keyBy = require('lodash/keyBy');
-const get = require('lodash/get');
-const uuid = require('uuid');
-const { formatterYYYYMMDD, extensionFields } = require('../util/util');
+import { keyBy, get } from 'lodash';
+import * as uuid from 'uuid';
+import { extensionFields } from '../util/util';
 import moment from 'moment';
 
 function removeBadChars(str: string) {
@@ -12,6 +11,7 @@ function removeBadChars(str: string) {
 }
 
 export async function doQuery(req: Request, res: Response) {
+  ///TODO: limit with security
   try {
     const rows = await db.doQuery(req.query.sql);
     return res.json(rows);
@@ -328,7 +328,7 @@ export async function createOrUpdate(req: Request, res: Response) {
 
     console.log(sqlStr);
     console.log(sqlArgs);
-    const rows = await db.doQuery(sqlStr, sqlArgs);
+    const rows = await db.doQuery(sqlStr, sqlArgs) as any;
 
     rows.id = idVal;
     return res.json(rows);

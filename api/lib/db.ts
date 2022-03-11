@@ -1,15 +1,15 @@
-const mysql=require('./mysql');
+import { createConn} from './mysql';
 const {
     conn,
     doQuery,
     doQueryOneRow,
-}=mysql.createConn();
+} = createConn();
 
-async function findUser(qryPrms) {
+export async function findUser(qryPrms: {[key:string]:string}) {
     let query='';
-    let prm=[];
+    let prm: any[]=[];
     const prmNames=['id','email','username'];
-    const add=(op, name,val) => {
+    const add=(op: string, name: string,val:string) => {
         if(val===undefined) {
             return;
         };
@@ -23,13 +23,13 @@ async function findUser(qryPrms) {
     })
 }
 
-async function getAllDatabases() {    
+export async function getAllDatabases() {    
     const dbs = await doQuery('show databases');
     const mapped = dbs.map(d => d.Database);
     return mapped;
 }
 
-async function getAllTables() {
+export async function getAllTables() {
     const tables = await doQuery('show tables');
     if (!tables.length) return [];
     const first = tables[0];
@@ -38,7 +38,7 @@ async function getAllTables() {
     return mapped;
 }
 
-async function getTableFields(table) {
+export async function getTableFields(table: string) {
     const fields = await doQuery(`desc ${table}`);      
     const mapped = fields.map(f => ({
         fieldName: f.Field,
@@ -50,7 +50,7 @@ async function getTableFields(table) {
     return mapped;
 }
 
-async function getTableIndexes(table) {
+export async function getTableIndexes(table: string) {
     const sqlStr = `SHOW INDEXES FROM ${table};`
     const idxes = await doQuery(sqlStr);
     const mapped = idxes.map(idx => ({
@@ -63,7 +63,7 @@ async function getTableIndexes(table) {
     console.log(mapped);
     return mapped;
 }
-async function getTableConstraints(table) {
+export async function getTableConstraints(table: string) {
     const constraints = await doQuery(`select COLUMN_NAME columnName, CONSTRAINT_NAME constraintName,
      REFERENCED_COLUMN_NAME refColumn, REFERENCED_TABLE_NAME refTable
     from information_schema.KEY_COLUMN_USAGE
@@ -72,15 +72,10 @@ async function getTableConstraints(table) {
     return constraints;
 }
 
-module.exports = {
-    end: ()=>conn.end(),
+export const end = () => conn.end();
+
+export {
     conn,
     doQuery,
     doQueryOneRow,
-    findUser,
-    getAllDatabases,
-    getAllTables,
-    getTableFields,
-    getTableIndexes,
-    getTableConstraints,
-}
+};
