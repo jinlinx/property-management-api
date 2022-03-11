@@ -43,7 +43,7 @@ const typeToType = (f: IDBFieldDef, hasPK: boolean) => {
         return `${ret} ${hasPK?'':'primary key'}`.trim();
     }
     
-    return `${v1}${f.unique ? ' UNIQUE' : ''}`;
+    return `${v1}${f.unique ? ' UNIQUE' : ''}${f.required?' NOT NULL':''}`;
 }
 
 interface ITblColumnRet {
@@ -165,6 +165,9 @@ function corrDbType(dbField: ITblColumnRet) {
     }
     if (dbField.Key === 'UNI') {
         type = `${type} UNIQUE`;
+    }
+    if (dbField.Null === 'NO') {
+        type = `${type} NOT NULL`;
     }
     return type;
 }
