@@ -278,10 +278,19 @@ export async function createOrUpdate(req: Request, res: Response) {
 
     let idVal = '' as models.PossibleDbTypes;    
     let sqlArgs = [] as models.PossibleDbTypes[];
+
+    const auth = getUserAuth(req);
+  if (!auth) {
+    const message = 'not authorized';
+    return res.json({
+      message,
+      error: message,
+    })
+  }
     if (create) {
 
-      sqlStr = `insert into ${table} (${model.fields.map(f => f.field).join(',')},created,modified)
-       values (${model.fields.map((f) => {
+      sqlStr = `insert into ${table} (${model.fields.filter(f=>!f.ident).map(f => f.field).join(',')},created,modified)
+       values (${model.fields.filter(f=>!f.ident).map((f) => {
         let val = fields[f.field] as models.PossibleDbTypes;
         if (f.isId) {
           idVal = uuid.v1();

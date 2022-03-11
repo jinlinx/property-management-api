@@ -22,11 +22,8 @@ function throwErr(message: string) {
 
 
 function getTypeFromDef(f: IDBFieldDef) {
-    if (f.type === 'ident') {
-        const ret = `int ${IDENT_ID} `
-        return ret;
-    }
     if (f.type === 'int') {
+        if (f.ident) return `int ${IDENT_ID} `
         return 'int';
     }
     if (f.type === 'uuid') return 'varchar(100)';
@@ -39,7 +36,7 @@ function getTypeFromDef(f: IDBFieldDef) {
 const typeToType = (f: IDBFieldDef, hasPK: boolean) => {
     let v1 = getTypeFromDef(f);    
     let isPK = hasPK;
-    if (f.type === 'ident') {        
+    if (f.ident) {        
         v1 = `${v1}${hasPK ? '' : ' primary key'}`.trim();
         isPK = true;
     }
@@ -92,10 +89,10 @@ async function check() {
         if (tabName === 'importPayments') {
             console.log('ownerInfo');
         }
-        const mustExistDateCols=[
-            { field: 'created', type: 'datetime', def: 'NOW()', size: undefined, desc: 'created', } as IDBFieldDef
+        const mustExistDateCols=([
+            { field: 'created', type: 'datetime', def: 'NOW()', size: undefined, desc: 'created', }
             , { field: 'modified', type: 'datetime', def: 'NOW()', size: undefined, desc:'modified' }
-        ].concat( curMod.fields );
+        ] as IDBFieldDef[]).concat( curMod.fields ) ;
         await bluebird.Promise.map(mustExistDateCols, async col => {
             const dbField = dbIds[col.field];
             if (!dbField) {
