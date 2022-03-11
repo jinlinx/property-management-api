@@ -1,7 +1,8 @@
 //const tenantInfo = require('./tenantInfo');
-const fs = require('fs');
-const keyBy = require('lodash/keyBy');
-const files = fs.readdirSync(__dirname).filter((n:string) => n !== 'index.js' && n !== 'types.js' && (n.endsWith('.js'))) as string[];
+import {readdirSync}  from 'fs';
+import {keyBy} from 'lodash'
+
+const files = readdirSync(__dirname).filter((n:string) => n !== 'index.js' && n !== 'types.js' && (n.endsWith('.js'))) as string[];
 
 import { PossibleDbTypes, IDBFieldDef, IDBViewFieldDef, IDBModel } from './types'
 
