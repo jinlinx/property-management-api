@@ -37,13 +37,14 @@ function getTypeFromDef(f: IDBFieldDef) {
     return 'varchar(100)';
 }
 const typeToType = (f: IDBFieldDef, hasPK: boolean) => {
-    const v1 = getTypeFromDef(f);    
-    if (f.type === 'ident') {
-        const ret = v1;
-        return `${ret} ${hasPK?'':'primary key'}`.trim();
+    let v1 = getTypeFromDef(f);    
+    let isPK = hasPK;
+    if (f.type === 'ident') {        
+        v1 = `${v1}${hasPK ? '' : ' primary key'}`.trim();
+        isPK = true;
     }
     
-    return `${v1}${f.unique ? ' UNIQUE' : ''}${f.required?' NOT NULL':''}`;
+    return `${v1}${(f.unique && !isPK) ? ' UNIQUE' : ''}${f.required?' NOT NULL':''}`;
 }
 
 interface ITblColumnRet {
@@ -88,7 +89,7 @@ async function check() {
         console.log(`${tabName} good`);
         
 
-        if (tabName === 'ownerInfo') {
+        if (tabName === 'importPayments') {
             console.log('ownerInfo');
         }
         const mustExistDateCols=[
