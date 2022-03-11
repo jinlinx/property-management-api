@@ -7,6 +7,7 @@ import { extensionFields } from '../util/util';
 import moment from 'moment';
 import {getUserAuth } from '../util/pauth'
 
+const OWNER_SEC_FIELD = 'ownerID';
 
 function removeBadChars(str: string) {
   return str.replace(/[^A-Za-z0-9]/g, '');
@@ -198,8 +199,8 @@ export async function doGet(req: Request, res: Response) {
         prms: [] as IPrmType[],
       });
       
-      if (fieldMap['ownerId']) {
-        whereRed.whr.push(` ownerId in (${auth.pmInfo.ownerCodes.map(x => '?').join(',')})`);
+      if (fieldMap[OWNER_SEC_FIELD]) {
+        whereRed.whr.push(` ${OWNER_SEC_FIELD} in (${auth.pmInfo.ownerCodes.map(x => '?').join(',')})`);
         auth.pmInfo.ownerCodes.forEach(c => whereRed.prms.push(c));        
       }
       if (whereRed.whr.length) {
@@ -296,6 +297,10 @@ export async function createOrUpdate(req: Request, res: Response) {
           idVal = uuid.v1();
           val = idVal;
         }
+        if (f.field === OWNER_SEC_FIELD) {
+          sqlArgs.push(auth.code);
+          return '?';
+        }
         if (f.formatter) {
           sqlArgs.push(f.formatter(val));
         } else if (f.autoValueFunc) {
@@ -316,10 +321,16 @@ export async function createOrUpdate(req: Request, res: Response) {
         name: string;
         value: models.PossibleDbTypes;
       }
-      const { idField, values } = model.fields.reduce((acc, mf) => {
+      const { idField, values } = model.fields.filter(f=>!f.ident).reduce((acc, mf) => {
         if (mf.isId) {
           acc.idField = { name: mf.field, value: fields[mf.field] };
         } else {
+          if (mf.field === OWNER_SEC_FIELD) {
+            acc.values.push({
+              name: mf.field,
+              value: ''
+            })
+          }else {
           const v = fields[mf.field];
           if (v !== undefined) {
             let formatter = (v=>'') as (v:models.PossibleDbTypes)=>(string|Date);
@@ -335,6 +346,7 @@ export async function createOrUpdate(req: Request, res: Response) {
               value: ((formatter || mf.formatter || vmap2) as (v: any, f: any) => models.PossibleDbTypes)(v, mf),
             })
           }
+        }
         }
         return acc;
       }, {
