@@ -1,5 +1,5 @@
 const get = require('lodash/get');
-const sheet = require('../lib/getSheet').createSheet();
+const sheet = require('../lib/googleApiReq').getClient('test')
 const sheetId = require('../../credentials.json').propertyManagementGSID;
 const Promise = require('bluebird');
 const db = require('../lib/db');
