@@ -1,4 +1,5 @@
-import { IDBModel } from './types';
+import { IDBModel, IUserAuth } from './types';
+
 export const ownerInfo = {
     fields:
         [
@@ -7,5 +8,9 @@ export const ownerInfo = {
             { field: 'username', desc: 'username', required: true, unique: true, },
             { field: 'password', desc:'Password', required: false },
             { field: 'shortName', desc: 'Short Name', required: true },
+            {
+                field: 'parentID', type: 'int', desc: 'Parent', def: '0', required: true,
+                //specialCreateVal: (auth: IUserAuth) => auth.code automatic
+            }            
         ]
 } as IDBModel;

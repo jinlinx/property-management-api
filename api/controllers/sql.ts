@@ -304,11 +304,15 @@ export async function createOrUpdate(req: Request, res: Response) {
         if (f.isId) {
           idVal = uuid.v1();
           val = idVal;
-        }
-        if (f.field === OWNER_SEC_FIELD) {
-          sqlArgs.push(auth.code);
-          return '?';
-        }
+         }
+         if (f.specialCreateVal) {
+           sqlArgs.push(f.specialCreateVal(auth));
+           return '?';
+         }
+        //if (f.field === OWNER_SEC_FIELD) {
+        //  sqlArgs.push(auth.code);
+        //  return '?';
+        //}
         if (f.formatter) {
           sqlArgs.push(f.formatter(val));
         } else if (f.autoValueFunc) {
@@ -325,18 +329,19 @@ export async function createOrUpdate(req: Request, res: Response) {
         //return vmap(val);
       }).join(',')},NOW(),NOW())`;
     } else {
+      //update
       interface INameVal {
         name: string;
         value: models.PossibleDbTypes;
       }
-      const { idField, values } = model.fields.filter(f=>!f.ident).reduce((acc, mf) => {
+      const { idField, values } = model.fields.filter(f=>!f.dontUpdate).reduce((acc, mf) => {
         if (mf.isId) {
           acc.idField = { name: mf.field, value: fields[mf.field] };
         } else {
-          if (mf.field === OWNER_SEC_FIELD) {
+          if (mf.specialCreateVal) {            
             acc.values.push({
               name: mf.field,
-              value: ''
+              value: mf.specialCreateVal(auth),
             })
           }else {
           const v = fields[mf.field];

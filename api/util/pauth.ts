@@ -1,13 +1,7 @@
 import { Server, Request } from 'restify'
 import { signJwt, verifyJwt } from './jwt';
-
-export interface IUserAuth {
-    username: string;
-    code: number;
-    pmInfo: {
-        ownerCodes: number[];
-    }
-}
+import { IUserAuth } from '../models/types';
+export { IUserAuth };
 
 export function getUserAuth(req: Request): (IUserAuth | null) {
     const auth = req.authorization as any;
