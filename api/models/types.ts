@@ -2,7 +2,10 @@ export interface IUserAuth {
     username: string;
     code: number;
     pmInfo: {
-        ownerCodes: number[];
+        ownerCodes: {
+            ownerID: number;
+            ownerName: string
+        }[];
     }
 }
 

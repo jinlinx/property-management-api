@@ -198,7 +198,7 @@ export async function doSqlGetInternal(auth: IUserAuth, sqlReq: ISqlRequest) {
         cond = `(${cond} or ${OWNER_PARENT_SEC_FIELD} in(${goodIds}) )`;
       }
       whereRed.whr.push(cond);
-      auth.pmInfo.ownerCodes.forEach(c => whereRed.prms.push(c));
+      auth.pmInfo.ownerCodes.forEach(c => whereRed.prms.push(c.ownerID));
     }
     if (whereRed.whr.length) {
       whereStr = ` where ${whereRed.whr.join(' and ')}`;
