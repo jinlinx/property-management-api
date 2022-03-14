@@ -7,7 +7,7 @@ import { extensionFields } from '../util/util';
 import moment from 'moment';
 import {getUserAuth, IUserAuth } from '../util/pauth'
 
-const OWNER_SEC_FIELD = 'ownerID';
+import { OWNER_SEC_FIELD, OWNER_PARENT_SEC_FIELD } from '../models/types';
 
 function removeBadChars(str: string) {
   return str.replace(/[^A-Za-z0-9]/g, '');
@@ -192,7 +192,12 @@ export async function doSqlGetInternal(auth: IUserAuth, sqlReq: ISqlRequest) {
     });
 
     if (fieldMap[OWNER_SEC_FIELD]) {
-      whereRed.whr.push(` ${OWNER_SEC_FIELD} in (${auth.pmInfo.ownerCodes.map(x => '?').join(',')})`);
+      const goodIds = auth.pmInfo.ownerCodes.map(x => '?').join(',');
+      let cond = ` ${OWNER_SEC_FIELD} in (${goodIds})`;
+      if (fieldMap[OWNER_PARENT_SEC_FIELD]) {
+        cond = `(${cond} or ${OWNER_PARENT_SEC_FIELD} in(${goodIds}) )`;
+      }
+      whereRed.whr.push(cond);
       auth.pmInfo.ownerCodes.forEach(c => whereRed.prms.push(c));
     }
     if (whereRed.whr.length) {

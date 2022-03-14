@@ -7,6 +7,7 @@ export interface IUserAuth {
 }
 
 export const OWNER_SEC_FIELD = 'ownerID';
+export const OWNER_PARENT_SEC_FIELD = 'parentID';
 export type PossibleDbTypes = (string | number | null | Date);
 export interface IDBFieldDef {
     field: string; //actual field

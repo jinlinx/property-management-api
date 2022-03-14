@@ -5,7 +5,7 @@ import { OWNER_SEC_FIELD, IUserAuth } from './types'
 
 const files = readdirSync(__dirname).filter((n:string) => n !== 'index.js' && n !== 'types.js' && (n.endsWith('.js'))) as string[];
 
-import { PossibleDbTypes, IDBFieldDef, IDBViewFieldDef, IDBModel } from './types'
+import { PossibleDbTypes, IDBFieldDef, IDBViewFieldDef, IDBModel, OWNER_PARENT_SEC_FIELD } from './types'
 
 export { PossibleDbTypes, IDBFieldDef, IDBViewFieldDef, IDBModel };
 
@@ -29,8 +29,7 @@ export const data = files.reduce((acc, fname) => {
         }
         if (f.field === OWNER_SEC_FIELD) {
           f.dontUpdate = true;
-        } else
-        if (f.field === 'parentID') {
+        } else if (f.field === OWNER_PARENT_SEC_FIELD) {
           f.dontUpdate = true;
           f.specialCreateVal = (auth: IUserAuth) => auth.code;
         }
