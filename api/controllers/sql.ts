@@ -194,11 +194,12 @@ export async function doSqlGetInternal(auth: IUserAuth, sqlReq: ISqlRequest) {
     if (fieldMap[OWNER_SEC_FIELD]) {
       const goodIds = auth.pmInfo.ownerCodes.map(x => '?').join(',');
       let cond = ` ${OWNER_SEC_FIELD} in (${goodIds})`;
-      if (fieldMap[OWNER_PARENT_SEC_FIELD]) {
-        cond = `(${cond} or ${OWNER_PARENT_SEC_FIELD} in(${goodIds}) )`;
-      }
-      whereRed.whr.push(cond);
       auth.pmInfo.ownerCodes.forEach(c => whereRed.prms.push(c.ownerID));
+      if (fieldMap[OWNER_PARENT_SEC_FIELD]) {
+        cond = `(${cond} or ${OWNER_PARENT_SEC_FIELD} =? )`;
+        whereRed.prms.push(auth.code);
+      }
+      whereRed.whr.push(cond);      
     }
     if (whereRed.whr.length) {
       whereStr = ` where ${whereRed.whr.join(' and ')}`;
