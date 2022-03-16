@@ -219,6 +219,7 @@ export async function doSqlGetInternal(auth: IUserAuth, sqlReq: ISqlRequest) {
   const sqlStr = `select ${selectNames.concat(joinSels).join(',')} ${fromAndWhere} ${orderby} ${groupByStr}
     limit ${offset}, ${rowCount}`;
   console.log(sqlStr);
+  console.log(wherePrm);
   const countRes = await db.doQueryOneRow(`select count(1) cnt ${fromAndWhere}  ${groupByStr}`, wherePrm);
   const rows = await db.doQuery(sqlStr, wherePrm);
 
