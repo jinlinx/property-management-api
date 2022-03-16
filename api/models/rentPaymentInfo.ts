@@ -22,8 +22,7 @@ export const rentPaymentInfo = {
                 { name: 'address', field: 'address', desc: 'House', table: 'houseInfo' },
                 { name: 'addressId', field: 'houseID', desc: 'HouseID', table: 'houseInfo' },
                 { field: 'source', desc: 'Source', table: 'ip' },
-                { name:'ownerName', field: 'shortName', desc: 'OwnerName', table: 'oi' },
-                { field: 'ownerID', desc: 'OwnerID', table: 'oi' },
+                { name:'ownerName', field: 'shortName', desc: 'OwnerName', table: 'oi' },                
             ], 
             extraViewJoins: ' inner join ownerInfo oi on oi.ownerID  = houseInfo.ownerID left join importPayments ip  on ip.paymentID  = rentPaymentInfo.paymentID ',
         }

@@ -100,8 +100,8 @@ async function check() {
                 try {
                     await doQuery(alterTblSql);
                     console.log(`alter ${tabName} added ${col.field}`);
-                } catch (err:any) {
-                    console.log(`alter table failed ${alterTblSql} ${err.message}`);
+                } catch (err) {                    
+                    console.log(`alter table failed ${alterTblSql} ${(err as any)?.message}`);
                     throw err;
                 }
             } else {
