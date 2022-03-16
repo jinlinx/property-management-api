@@ -1,4 +1,4 @@
-const ver = require('../../version');
+import * as ver from '../../version.json';
 function version(req, res) {
     const date = new Date();
     console.log(`version ${date}`);

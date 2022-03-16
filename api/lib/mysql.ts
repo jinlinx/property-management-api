@@ -1,6 +1,6 @@
-const mysql=require('mysql');
+import * as  mysql from 'mysql';
 
-function createConn(config) {
+export function createConn(config?: mysql.PoolConfig) {
     const conn = mysql.createPool(config || {
         connectionLimit: 3,
         //host: 'localhost',
@@ -12,7 +12,7 @@ function createConn(config) {
         charset: "utf8mb4_unicode_ci",
     });
 
-    function doQuery(sql, param = []) {
+    function doQuery(sql: string, param:any[] = []): Promise<any[]> {
         return new Promise((resolve,reject) => {
                 conn.query(sql, param, (err,result) => {
                     if(err) return reject(err);
@@ -21,7 +21,7 @@ function createConn(config) {
         });
     }
 
-    async function doQueryOneRow(sql, parm) {
+    async function doQueryOneRow(sql: string, parm: any[]) {
         const rows = await doQuery(sql, parm);
         return rows[0];
     }
@@ -33,7 +33,3 @@ function createConn(config) {
         doQueryOneRow,
     }
 }
-
-module.exports={
-    createConn,
-};

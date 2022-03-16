@@ -1,9 +1,9 @@
 
-const restify = require('restify');
+const restify1 = require('restify');
 const route = require('./api/route/route');
-const fs = require('fs');
 const check = require('./dbCheck');
-const TrustedComms = require('twilio/lib/rest/preview/TrustedComms');
+
+import * as restify from 'restify'
 
 const HTTPS = false; //process.env.PORT?false:true;
 const globalServerOpt = {
@@ -16,7 +16,7 @@ const serverHttpsOpt = Object.assign({}, globalServerOpt, {
 });
 const server = restify.createServer(HTTPS ? serverHttpsOpt : globalServerOpt);
 
-function serverInit(server) {
+function serverInit(server: restify.Server) {
   server.use(restify.plugins.queryParser());
   server.use(restify.plugins.bodyParser({requestBodyOnGet: true}));
   server.use(restify.plugins.authorizationParser());

@@ -8,7 +8,7 @@ module.exports = {
             { field: 'startDate', desc: 'Start Date',  type: 'date'},
             { field: 'houseID', desc: 'House ID', foreignKey: {table: 'houseInfo', field:'houseID'}},
             { field: 'comment', desc: 'Comment' },
-            { field: 'monthlyRent', desc: 'Monthly Rent', require: true, type: 'decimal', },
+            { field: 'monthlyRent', desc: 'Monthly Rent', required: true, type: 'decimal', },
             { field: 'vdPosControl', desc: 'PosControl' },
         ],
         view:{
