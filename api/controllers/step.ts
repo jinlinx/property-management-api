@@ -22,21 +22,23 @@ export async function login(req: Request, res:Response) : Promise<void> {
         const id = user.ownerID;
         if (users[0].password === password) {
             const subUsers = await doQuery(`select * from ownerInfo where parentID=?`, [id]) as IOwnerInfo[];
+            const ownerCodes = [{ ownerID: id, ownerName: user.ownerName }].concat(subUsers.map(u => {
+                return {
+                    ownerID: u.ownerID,
+                    ownerName: u.ownerName,
+                }
+            }));
             const token = createUserToken({
                 code: id,
                 pmInfo: {
-                    ownerCodes: [{ ownerID: id, ownerName: user.ownerName }].concat(subUsers.map(u => {
-                        return {
-                            ownerID: u.ownerID,
-                            ownerName: u.ownerName,
-                        }
-                    })),
+                    ownerCodes,
                 },
                 username,
             });
             return res.send({
                 id: id,
                 exp: 1,
+                ownerCodes,
                 token,
             });
         }
