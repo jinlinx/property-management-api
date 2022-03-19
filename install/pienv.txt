@@ -1,1 +1,3 @@
 PI=true
+google.gzperm.client_id=xxxx.apps.googleusercontent.com
+google.gzperm.client_secret=Gsecret

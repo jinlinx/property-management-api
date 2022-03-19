@@ -8,6 +8,7 @@ const statement = require('../controllers/statements');
 const sheet = require('../controllers/sheet');
 
 import * as steps from '../controllers/step';
+import * as googleApi from '../controllers/google';
 
 export const routes = {
     '/doQuery': {
@@ -93,6 +94,10 @@ export const routes = {
     '/auth/login': {
         method: 'post',
         func: steps.login,
+    },
+    '/google/token': {
+        method: 'post',
+        func: googleApi.getToken,
     },
     '/version': {
         auth: false,
