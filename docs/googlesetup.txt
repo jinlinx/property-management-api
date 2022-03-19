@@ -1,0 +1,13 @@
+https://developers.google.com/identity/sign-in/web/server-side-flow
+
+https://developers.google.com/oauthplayground/
+
+--- exchange refhs GET /oauthplayground/?code=4/0xxxxxx&scope=https://www.googleapis.com/auth/spreadsheets HTTP/1.1
+Host: developers.google.com
+
+POST /token HTTP/1.1
+Host: oauth2.googleapis.com
+Content-length: 261
+content-type: application/x-www-form-urlencoded
+
+code=code&redirect_uri=https%3A%2F%2Fdevelopers.google.com%2Foauthplayground&client_id=[id]]&client_secret=************&scope=&grant_type=authorization_code
