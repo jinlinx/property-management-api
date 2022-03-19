@@ -95,6 +95,10 @@ export const routes = {
         method: 'post',
         func: steps.login,
     },
+    '/google/clientId': {
+        method: 'get',
+        func: googleApi.getGoogleClientId,
+    },
     '/google/token': {
         method: 'post',
         func: googleApi.getToken,
