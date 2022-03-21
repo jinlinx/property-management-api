@@ -13,7 +13,11 @@ export async function getToken(req: Request, res: Response): Promise<void> {
     };
     const creds = getCreds();
     console.log(`creating code for ${code} redir=${redirectUrl}`);
-    const tk = await getTokenFromCode(creds, code, redirectUrl);
+    const tk = await getTokenFromCode(creds, code, redirectUrl).catch(err => {
+        console.log('somethig happened to getting code');
+        console.log(err);
+        return err;
+    })
     console.log(`google.getToken ${tk.access_token} ${tk.expires_in} ${tk.scope}`);
     res.send(tk);
 }
