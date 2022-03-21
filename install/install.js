@@ -19,7 +19,7 @@ conn.on('ready', async function() {
         });
     }));
 
-    let res = await exec('cd property-management-api;git pull;npm install;npm run build;sudo systemctl restart propertyManagement.service;');
+    let res = await exec('cd property-management-api;cp /home/pi/creds//home/pi/creds install;git pull;npm install;npm run build;sudo systemctl restart propertyManagement.service;');
     console.log(res);
     conn.end();
 
