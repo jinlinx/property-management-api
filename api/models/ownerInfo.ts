@@ -11,6 +11,8 @@ export const ownerInfo = {
             {
                 field: 'parentID', type: 'int', desc: 'Parent', def: '0', required: true,
                 //specialCreateVal: (auth: IUserAuth) => auth.code automatic
-            }            
+            },
+            { field: 'googleToken', desc: 'Google Token' },
+            { field: 'googleSheetId', desc:'Google SheetId'},
         ]
 } as IDBModel;
