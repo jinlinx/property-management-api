@@ -83,11 +83,15 @@ export const routes = {
         method: 'get',
         func: statement.sendPaymentNotification,
     },
-    '/misc/rsheet/:name/:op/:id/:range': {
+    '/misc/rsheet1/:op/:id/:range': {
         method: 'get',
         func: sheet.doGet,
     },
-    '/misc/sheet/:name/:op/:id/:range': {
+    '/misc/sheetorig/:op/:id/:range': {
+        method: 'post',
+        func: sheet.doGet,
+    },
+    '/misc/sheet/:op/:id/:range': {
         method: 'post',
         func: sheet.doGet,
     },

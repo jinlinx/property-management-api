@@ -69,14 +69,14 @@ interface ISqlRequestWhereItem {
 interface ISqlRequest {
   table: string;
   fields: (ISqlRequestFieldDef | string)[];
-  joins: any;
-  order: ISqlOrderDef[];
-  whereArray: ISqlRequestWhereItem[];
-  groupByArray: {
+  joins?: any;
+  order?: ISqlOrderDef[];
+  whereArray?: ISqlRequestWhereItem[];
+  groupByArray?: {
     field: string;
   }[];
-  offset: number | string;
-  rowCount: number | string;
+  offset?: number | string;
+  rowCount?: number | string;
 }
 
 type IPrmType = models.PossibleDbTypes ;
