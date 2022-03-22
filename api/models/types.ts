@@ -2,10 +2,7 @@ export interface IUserAuth {
     username: string;
     code: number;
     pmInfo: {
-        ownerCodes: {
-            ownerID: number;
-            ownerName: string
-        }[];
+        ownerPCodes: number[];
     }
 }
 
@@ -24,6 +21,8 @@ export interface IDBFieldDef {
     unique?: boolean;
     ident?: boolean;
     dontUpdate?: boolean;
+    isOwnerSecurityField?: boolean;
+    isOwnerSecurityParentField?: boolean;
     //key?: 'UNI' | 'PRI' | null;
     formatter?: (v: PossibleDbTypes) => string;
     autoValueFunc?: (row: { [key: string]: (string | number) }, field: IDBFieldDef, val: PossibleDbTypes) => (string);

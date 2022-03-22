@@ -11,7 +11,7 @@ export const rentPaymentInfo = {
             { field: 'paymentTypeID', desc: 'PaymentType', foreignKey:{table:'paymentType', field:'paymentTypeID'} },
             //{ field: 'leaseID', desc: 'Lease ID', foreignKey: {table: 'leaseInfo', field:'leaseID'}},
             { field: 'houseID', desc: 'House', foreignKey: { table: 'houseInfo', field: 'houseID' } },
-            { field: 'ownerID', type: 'int', desc: 'Owner', foreignKey: { table: 'ownerInfo', field: 'ownerID' }, required: true, def:'0'},
+            { field: 'ownerID', type: 'int', desc: 'Owner', foreignKey: { table: 'ownerInfo', field: 'ownerID' }, required: true, def:'0', isOwnerSecurityField: true,},
             { field: 'paymentProcessor', desc: 'Processor', },
         ],
         view:{

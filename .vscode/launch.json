@@ -9,7 +9,9 @@
             "request": "launch",
             "name": "Launch Program",
             "env": {
-                "DBHOST": "192.168.1.41"
+                "DBHOST": "192.168.1.41",
+                "google.gzperm.client_id":"test.apps.googleusercontent.com",
+                "google.gzperm.client_secret":"test"
             },
             "skipFiles": [
                 "<node_internals>/**"

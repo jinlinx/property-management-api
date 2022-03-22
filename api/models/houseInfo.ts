@@ -7,7 +7,7 @@ export const houseInfo = {
             { field: 'city', desc: 'City', },
             { field: 'state', desc: 'State',  },
             { field: 'zip', desc: 'Zip', },
-            { field: 'ownerID', type: 'int', desc: 'Owner ID', required: true, foreignKey: { table: 'ownerInfo', field: 'ownerID' } },
+            { field: 'ownerID', type: 'int', desc: 'Owner ID', required: true, foreignKey: { table: 'ownerInfo', field: 'ownerID', isOwnerSecurityField: true } },
             { field: 'vdPosControl', desc: 'PosControl' },
         ],
     view:{

@@ -79,6 +79,35 @@ interface ISqlRequest {
   rowCount: number | string;
 }
 
+type IPrmType = models.PossibleDbTypes ;
+interface IInternalWherePrm 
+{
+  whr: string[];
+  prms: IPrmType[];
+}
+
+function cleanId(num: any): number {
+  return parseInt(num);
+}
+function getSecAuthWhereCond(fields: models.IDBFieldDef[], auth: IUserAuth) {  
+  const res = fields.reduce((acc, f) => {
+    if (f.isOwnerSecurityField) {
+      const goodIds = auth.pmInfo.ownerPCodes.map(cleanId).join(',');
+      //OWNER_SEC_FIELD
+      const cond = ` ${f.field} in (${goodIds})`;
+      acc.cond = cond;
+      //cond = `(${cond} or ${OWNER_PARENT_SEC_FIELD} =${auth.code} )`;       
+    } else if (f.isOwnerSecurityParentField) {
+      //acc.parentCond = `${OWNER_PARENT_SEC_FIELD} =${auth.code} )`;       
+      acc.parentCond = `${f.field}=${cleanId(auth.code)}`;
+    }    
+    return acc;
+  }, {
+    cond: '',
+    parentCond: ''
+  });  
+  return !res.parentCond? res.cond : ` (${res.cond} OR ${res.parentCond})`;
+}
 export async function doSqlGetInternal(auth: IUserAuth, sqlReq: ISqlRequest) {
   //joins:{ table:{col:als}}
   const { table, fields, joins, order,
@@ -153,8 +182,7 @@ export async function doSqlGetInternal(auth: IUserAuth, sqlReq: ISqlRequest) {
     joinTbls = joinRes.innerJoins;
   }
 
-  let whereStr = '';
-  type IPrmType = models.PossibleDbTypes | models.PossibleDbTypes[];
+  let whereStr = '';  
   let wherePrm = [] as IPrmType[];
   //if (whereArray)
   {
@@ -175,32 +203,43 @@ export async function doSqlGetInternal(auth: IUserAuth, sqlReq: ISqlRequest) {
             }
           } else {
             acc.whr.push(`${w.field} ${w.op} ?`);
-            acc.prms.push(w.val);
+            if (!Array.isArray(w.val)) {
+              acc.prms.push(w.val);
+            } else {
+              const error = `File can't be array ${table}.${w.field}`;
+              throw {
+                error,
+                message: error,
+              }
+            }
           }
         } else {
           console.log(`Warning bad op ${w.field} ${w.op}`);
-          pushNop();
+          //pushNop();
         }
       } else {
         console.log(`Warning field not mapped ${w.field}`);
-        pushNop();
+        //pushNop();
       }
       return acc;
     }, {
-      whr: [] as string[],
-      prms: [] as IPrmType[],
-    });
+      whr: [],
+      prms: [],
+    } as IInternalWherePrm);
 
-    if (fieldMap[OWNER_SEC_FIELD]) {
-      const goodIds = auth.pmInfo.ownerCodes.map(x => '?').join(',');
+    if (fieldMap[OWNER_SEC_FIELD+'dontuseanymore'])
+    {
+      const goodIds = auth.pmInfo.ownerPCodes.map(x => '?').join(',');
       let cond = ` ${OWNER_SEC_FIELD} in (${goodIds})`;
-      auth.pmInfo.ownerCodes.forEach(c => whereRed.prms.push(c.ownerID));
+      auth.pmInfo.ownerPCodes.forEach(c => whereRed.prms.push(c));
       if (fieldMap[OWNER_PARENT_SEC_FIELD]) {
         cond = `(${cond} or ${OWNER_PARENT_SEC_FIELD} =? )`;
         whereRed.prms.push(auth.code);
       }
       whereRed.whr.push(cond);      
     }
+    const secCond = getSecAuthWhereCond(model.fields, auth);
+    if (secCond) whereRed.whr.push(secCond);
     if (whereRed.whr.length) {
       whereStr = ` where ${whereRed.whr.join(' and ')}`;
     }
@@ -218,7 +257,7 @@ export async function doSqlGetInternal(auth: IUserAuth, sqlReq: ISqlRequest) {
   const fromAndWhere = ` from ${[tableOrView].concat(joinTbls).join(' ')} ${whereStr} `;
   const sqlStr = `select ${selectNames.concat(joinSels).join(',')} ${fromAndWhere} ${orderby} ${groupByStr}
     limit ${offset}, ${rowCount}`;
-  console.log(sqlStr);
+  console.log([sqlStr]);
   console.log(wherePrm);
   const countRes = await db.doQueryOneRow(`select count(1) cnt ${fromAndWhere}  ${groupByStr}`, wherePrm);
   const rows = await db.doQuery(sqlStr, wherePrm);
@@ -275,119 +314,131 @@ const vmap2 = (v: (models.PossibleDbTypes|undefined), f: models.IDBFieldDef) => 
   return v;
 }
 
-export async function createOrUpdate(req: Request, res: Response) {
-  try {
-    const { table } = req.body as ISqlRequest;
-    const fields = req.body.fields as { [key: string]: string };
-    const { create } = req.body as { create: boolean; }
-    const model = models.data[table];
-    if (!model) {
-      const message = `No model ${table}`;
-      throw {
-        message
-      }
+interface ICreateUpdateParms {
+  table: string;
+  fields: { [key: string]: string };
+  create: boolean;
+}
+export async function createOrUpdateInternal(body: ICreateUpdateParms, auth: IUserAuth) {
+  const { table, create } = body;
+  const fields = body.fields;
+  const model = models.data[table];
+  if (!model) {
+    const message = `No model ${table}`;
+    throw {
+      message
     }
-
-    //createFieldMap(model);
-
-    let sqlStr = '';
-
-    let idVal = '' as models.PossibleDbTypes;    
-    let sqlArgs = [] as models.PossibleDbTypes[];
-
-    const auth = getUserAuth(req);
-  if (!auth) {
-    const message = 'not authorized';
-    return res.json({
-      message,
-      error: message,
-    })
   }
-    if (create) {
 
-      sqlStr = `insert into ${table} (${model.fields.filter(f=>!f.ident).map(f => f.field).join(',')},created,modified)
-       values (${model.fields.filter(f=>!f.ident).map((f) => {
-        let val = fields[f.field] as models.PossibleDbTypes;
-        if (f.isId) {
-          idVal = uuid.v1();
-          val = idVal;
-         }
-         if (f.specialCreateVal) {
-           sqlArgs.push(f.specialCreateVal(auth));
-           return '?';
-         }
-        //if (f.field === OWNER_SEC_FIELD) {
-        //  sqlArgs.push(auth.code);
-        //  return '?';
-        //}
-        if (f.formatter) {
-          sqlArgs.push(f.formatter(val));
-        } else if (f.autoValueFunc) {
-          sqlArgs.push(f.autoValueFunc(fields, f, val))
-        }
-        else {
-          let formatter = ((x: models.PossibleDbTypes) => x);
-          if (f.type === 'datetime' || f.type === 'date') {
-            formatter = dateStrFormatter;
-          }
-          sqlArgs.push(formatter(vmap2(val, f)));
-        }
-        return '?';
-        //return vmap(val);
-      }).join(',')},NOW(),NOW())`;
-    } else {
-      //update
-      interface INameVal {
-        name: string;
-        value: models.PossibleDbTypes;
+  //createFieldMap(model);
+
+  let sqlStr = '';
+
+  let idVal = '' as models.PossibleDbTypes;
+  let sqlArgs = [] as models.PossibleDbTypes[];
+    
+  if (create) {
+
+    sqlStr = `insert into ${table} (${model.fields.filter(f => !f.ident).map(f => f.field).join(',')},created,modified)
+       values (${model.fields.filter(f => !f.ident).map((f) => {
+      let val = fields[f.field] as models.PossibleDbTypes;
+      if (f.isId) {
+        idVal = uuid.v1();
+        val = idVal;
       }
-      const { idField, values } = model.fields.filter(f=>!f.dontUpdate).reduce((acc, mf) => {
-        if (mf.isId) {
-          acc.idField = { name: mf.field, value: fields[mf.field] };
+      if (f.specialCreateVal) {
+        sqlArgs.push(f.specialCreateVal(auth));
+        return '?';
+      }
+      //if (f.field === OWNER_SEC_FIELD) {
+      //  sqlArgs.push(auth.code);
+      //  return '?';
+      //}
+      if (f.formatter) {
+        sqlArgs.push(f.formatter(val));
+      } else if (f.autoValueFunc) {
+        sqlArgs.push(f.autoValueFunc(fields, f, val))
+      }
+      else {
+        let formatter = ((x: models.PossibleDbTypes) => x);
+        if (f.type === 'datetime' || f.type === 'date') {
+          formatter = dateStrFormatter;
+        }
+        sqlArgs.push(formatter(vmap2(val, f)));
+      }
+      return '?';
+      //return vmap(val);
+    }).join(',')},NOW(),NOW())`;
+  } else {
+    //update
+    interface INameVal {
+      name: string;
+      value: models.PossibleDbTypes;
+    }
+    const { idField, values } = model.fields.reduce((acc, mf) => {
+      if (mf.isId) {
+        acc.idField = { name: mf.field, value: fields[mf.field] };
+      } else if (!mf.dontUpdate){
+        if (mf.specialCreateVal) {
+          acc.values.push({
+            name: mf.field,
+            value: mf.specialCreateVal(auth),
+          })
         } else {
-          if (mf.specialCreateVal) {            
-            acc.values.push({
-              name: mf.field,
-              value: mf.specialCreateVal(auth),
-            })
-          }else {
           const v = fields[mf.field];
           if (v !== undefined) {
-            let formatter = (v=>'') as (v:models.PossibleDbTypes)=>(string|Date);
+            let formatter = mf.formatter || vmap2;
             if (mf.type === 'datetime') {
-              formatter = dateStrFormatter;
+              formatter = dateStrFormatter as any;
             }
             if (mf.autoValueFunc) {
               const fv = mf.autoValueFunc(fields, mf, v as string); //just fake it;
-              formatter = v => fv;
+              formatter = () => fv;
             }
             acc.values.push({
               name: mf.field,
-              value: ((formatter || mf.formatter || vmap2) as (v: any, f: any) => models.PossibleDbTypes)(v, mf),
+              value: formatter(v, mf),
             })
           }
         }
-        }
-        return acc;
-      }, {
-        idField: null as (null | INameVal),
-        values: [] as INameVal[],
-      });
-      if (!idField) {
-        throw 'Id field not specified';
-      }
-      idVal = idField.value;
-      //const setValMap = v => `${v.name}=${v.value}`;
-      const setValMap = (v:INameVal) => `${v.name}=?`;
-      sqlStr = `update ${table} set ${values.map(v => setValMap(v)).join(',')},modified=NOW() where ${idField.name}=${vmap(idField.value)}`;
-      sqlArgs = values.map(v => v.value);
+      }      
+      return acc;
+    }, {
+      idField: null as (null | INameVal),
+      values: [] as INameVal[],
+    });
+    if (!idField) {
+      throw 'Id field not specified';
     }
+    idVal = idField.value;
+    //const setValMap = v => `${v.name}=${v.value}`;
+    const setValMap = (v: INameVal) => `${v.name}=?`;
+    const whereCond = [`${idField.name}=${vmap(idField.value)}`];
+    const secCond = getSecAuthWhereCond(model.fields, auth);
+    if (secCond) whereCond.push(secCond);
+    sqlStr = `update ${table} set ${values.map(v => setValMap(v)).join(',')},modified=NOW() where ${whereCond.join(' and ')}`;
+    sqlArgs = values.map(v => v.value);
+  }
 
-    console.log(sqlStr);
-    console.log(sqlArgs);
-    const rows = await db.doQuery(sqlStr, sqlArgs) as any;
+  console.log(sqlStr);
+  console.log(sqlArgs);
+  const rows = await db.doQuery(sqlStr, sqlArgs) as any;
 
-    rows.id = idVal;
+  rows.id = idVal;
+  return rows;
+}
+
+export async function createOrUpdate(req: Request, res: Response) {
+  try {
+    const auth = getUserAuth(req);
+    if (!auth) {
+      const message = 'not authorized';
+      return res.json({
+        message,
+        error: message,
+      })
+    }
+    const rows = await createOrUpdateInternal(req.body, auth);    
     return res.json(rows);
   } catch (err:any) {
     console.log(err);

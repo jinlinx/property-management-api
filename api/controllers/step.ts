@@ -1,7 +1,7 @@
 import {Request, Response} from 'restify'
 import { doQuery } from '../lib/db';
 import { createUserToken } from '../util/pauth'
-
+import {uniq} from 'lodash'
 interface ILoginParms {
     username: string;
     password: string;
@@ -14,6 +14,10 @@ interface IOwnerInfo {
     password: string;
 
 }
+
+function cleanId(id: number): number {
+    return parseInt(id as any);
+}
 export async function login(req: Request, res:Response) : Promise<void> {
     const {username, password} = (req.body || {}) as ILoginParms;
     const users = await doQuery(`select * from ownerInfo where username=?`, [username]) as IOwnerInfo[];
@@ -22,23 +26,18 @@ export async function login(req: Request, res:Response) : Promise<void> {
         const id = user.ownerID;
         if (users[0].password === password) {
             const subUsers = await doQuery(`select * from ownerInfo where parentID=?`, [id]) as IOwnerInfo[];
-            const ownerCodes = [{ ownerID: id, ownerName: user.ownerName }].concat(subUsers.map(u => {
-                return {
-                    ownerID: u.ownerID,
-                    ownerName: u.ownerName,
-                }
-            }));
+            const ownerPCodes = uniq([id].concat(subUsers.map(u => u.ownerID))).map(cleanId);
             const token = createUserToken({
                 code: id,
                 pmInfo: {
-                    ownerCodes,
+                    ownerPCodes,
                 },
                 username,
             });
             return res.send({
                 id: id,
                 exp: 1,
-                ownerCodes,
+                ownerPCodes,
                 token,
             });
         }

@@ -86,7 +86,7 @@ async function check() {
         console.log(`${tabName} good`);
         
 
-        if (tabName === 'houseInfo') {
+        if (tabName === 'ownerInfo') {
             console.log('ownerInfo');
         }
         const mustExistDateCols=([
