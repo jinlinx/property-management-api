@@ -1,7 +1,7 @@
 //const tenantInfo = require('./tenantInfo');
 import {readdirSync}  from 'fs';
 import { keyBy } from 'lodash'
-import { OWNER_SEC_FIELD, IUserAuth } from './types'
+import { IUserAuth } from './types'
 
 const files = readdirSync(__dirname).filter((n:string) => n !== 'index.js' && n !== 'types.js' && (n.endsWith('.js'))) as string[];
 
@@ -27,9 +27,9 @@ export const data = files.reduce((acc, fname) => {
         if (f.ident) {
           f.dontUpdate = true;
         }
-        if (f.field === OWNER_SEC_FIELD) {
+        if (f.isOwnerSecurityField) {//OWNER_SEC_FIELD
           f.dontUpdate = true;
-        } else if (f.field === OWNER_PARENT_SEC_FIELD) {
+        } else if (f.isOwnerSecurityParentField) {
           f.dontUpdate = true;
           f.specialCreateVal = (auth: IUserAuth) => auth.code;
         }
