@@ -349,7 +349,18 @@ export async function createOrUpdateInternal(body: ICreateUpdateParms, auth: IUs
       if (f.specialCreateVal) {
         sqlArgs.push(f.specialCreateVal(auth));
         return '?';
-      }
+         }
+         
+         if (f.isOwnerSecurityField) {
+           const vi = parseInt(val as string);
+           if (vi !== auth.code && !auth.pmInfo.ownerPCodes.includes(vi)) {
+             const error = `Code ${vi} is not authorized`;
+             throw {
+               message: error,
+               error,
+             }
+           }
+         }
       //if (f.field === OWNER_SEC_FIELD) {
       //  sqlArgs.push(auth.code);
       //  return '?';
