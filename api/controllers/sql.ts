@@ -52,7 +52,7 @@ const goodGroupOps = Object.freeze({
 
 interface ISqlRequestFieldDef {
   field: string;
-  op: string;
+  op: '>' | '>=' | '=' | '<' | '<=' | '!=' | '<>' | 'in' | 'sum' | 'count';
   name: string;
 }
 interface ISqlOrderDef {
