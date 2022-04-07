@@ -68,12 +68,13 @@ async function doGet(req: Request, res: Response) {
         }
         return res.json(rsp);
     } catch (err: any) {
-        const rspErr = get(err, 'response.text');
+        const rspErr = get(err, 'response.text') || get(err, 'response.data.error');
         console.log(rspErr || err);
         console.log(req.params)
         res.send(500, {
             message: err.message,
-            errors: err.errors
+            errors: err.errors,
+            rspErr,
         });
     }
 }
