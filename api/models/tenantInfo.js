@@ -4,6 +4,7 @@ module.exports = {
             { field: 'tenantID', desc: 'Id', type: 'uuid', required: true, isId: true },
             { field: 'firstName', desc: 'First Name', required: true },
             { field: 'lastName', desc: 'Last Name', required: true },
+            { field: 'fullName', desc: 'Full Name', required: true, def: '' },
             { field: 'email', desc: 'Email', },
             { field: 'phone', desc: 'Phone', },
             { field: 'ssn', desc: 'SSN', },
@@ -14,6 +15,5 @@ module.exports = {
             { field: 'dadName', desc: 'Dad Name', },
             { field: 'dadPhone', desc: 'Dad Phone', },
             { field: 'ownerID', type: 'int', desc: 'Owner', foreignKey: { table: 'ownerInfo', field: 'ownerID' }, required: true, def:'0', isOwnerSecurityField: true,},
-            { field: 'vdPosControl', desc: 'PosControl' },
         ]
 };
