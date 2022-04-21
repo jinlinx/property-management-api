@@ -1,4 +1,4 @@
-import { getClient, getClientCredsByEnv } from '@gzhangx/googleapi'
+import { google } from '@gzhangx/googleapi'
 import { IRefresCreds } from '@gzhangx/googleapi/lib/googleApi';
 import { Request, Response } from 'restify'
 const { get } = require('lodash');
@@ -14,7 +14,7 @@ export async function getSheetClient(req: Request) {
             error: message,
         })
     }
-    const cliInfo = getClientCredsByEnv('gzperm') as IRefresCreds;
+    const cliInfo = google.getClientCredsByEnv('gzperm') as IRefresCreds;
 
     const tokenRes = await doSqlGetInternal(auth, {
         table: 'ownerInfo',
@@ -28,7 +28,7 @@ export async function getSheetClient(req: Request) {
     console.log(tokenRes);
 
     cliInfo.refresh_token = tokenRes.rows[0].googleToken;
-    const client = await getClient(cliInfo);
+    const client = await google.getClient(cliInfo);
     return client;
 }
 
@@ -55,7 +55,7 @@ async function doGet(req: Request, res: Response) {
                 message,
             });
         }
-        const sheet = client.getSheeOps(id);
+        const sheet = client.getSheetOps(id);
         let rsp = null;
         if (op === 'read') {
             rsp = await sheet.read(range);

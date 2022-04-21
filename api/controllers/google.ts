@@ -1,11 +1,11 @@
-import { getTokenFromCode, getClientCredsByEnv } from '@gzhangx/googleapi'
+import { google } from '@gzhangx/googleapi'
 import { Request, Response } from 'restify'
 
 import { createOrUpdateInternal } from './sql';
 import {getUserAuth, IUserAuth } from '../util/pauth'
 
 function getCreds() {
-    const creds = getClientCredsByEnv('gzperm');
+    const creds = google.getClientCredsByEnv('gzperm');
     return creds;
 }
 export async function getToken(req: Request, res: Response): Promise<void> {
@@ -23,7 +23,7 @@ export async function getToken(req: Request, res: Response): Promise<void> {
     }
     const creds = getCreds();
     console.log(`creating code for ${code} redir=${redirectUrl}`);
-    const tk = await getTokenFromCode(creds, code, redirectUrl).then(async tk => {
+    const tk = await google.getTokenFromCode(creds, code, redirectUrl).then(async tk => {
         console.log(`saving google token`);
 
         await createOrUpdateInternal({
