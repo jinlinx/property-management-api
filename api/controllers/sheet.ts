@@ -69,9 +69,9 @@ async function doGet(req: Request, res: Response) {
         return res.json(rsp);
     } catch (err: any) {
         const rspErr = get(err, 'response.text') || get(err, 'response.data.error');
-        console.log(req.params)
-        console.log(rspErr || err);        
-        res.send(500, {
+        console.log('sheet.doGet error, params, rspErr, errors', req.params, rspErr, err.errors);
+        console.log('sheet.doGet rspErr',rspErr, err);
+        res.send(422, {
             id: req.params.id,
             message: err.message,
             errors: err.errors,
