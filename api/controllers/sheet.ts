@@ -73,7 +73,7 @@ async function doGet(req: Request, res: Response) {
     } catch (err: any) {
         const rspErr = get(err, 'response.text') || get(err, 'response.data.error');
         console.log('sheet.doGet error, params, rspErr, errors', req.params, rspErr, err.errors);
-        console.log('sheet.doGet rspErr', rspErr, cleanError(err));
+        console.log('sheet.doGet error', cleanError(err));
         res.send(422, {
             id: req.params.id,
             message: err.message,
