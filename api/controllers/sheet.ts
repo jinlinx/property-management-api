@@ -1,7 +1,7 @@
 import { google } from '@gzhangx/googleapi'
 import { IRefresCreds } from '@gzhangx/googleapi/lib/googleApi';
 import { Request, Response } from 'restify'
-const { get, omit } = require('lodash');
+const { get, omit,pick } = require('lodash');
 import { getUserAuth, IUserAuth } from '../util/pauth'
 
 import { doSqlGetInternal } from './sql';
@@ -33,7 +33,8 @@ export async function getSheetClient(req: Request) {
 }
 
 function cleanError(err: any) {
-    return omit(err, ['request', 'response.request']);
+    const config = pick(err, 'config.headers', 'config.url', 'config.method');
+    return Object.assign({}, omit(err, ['request', 'response.request', 'config']), config);
 }
 async function doGet(req: Request, res: Response) {
     try {
