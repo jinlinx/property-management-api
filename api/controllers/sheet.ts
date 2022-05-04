@@ -1,7 +1,7 @@
 import { google } from '@gzhangx/googleapi'
 import { IRefresCreds } from '@gzhangx/googleapi/lib/googleApi';
 import { Request, Response } from 'restify'
-const { get } = require('lodash');
+const { get, omit } = require('lodash');
 import { getUserAuth, IUserAuth } from '../util/pauth'
 
 import { doSqlGetInternal } from './sql';
@@ -32,7 +32,9 @@ export async function getSheetClient(req: Request) {
     return client;
 }
 
-
+function cleanError(err: any) {
+    return omit(err, ['request', 'response.request']);
+}
 async function doGet(req: Request, res: Response) {
     try {
         const auth = getUserAuth(req);
@@ -70,7 +72,7 @@ async function doGet(req: Request, res: Response) {
     } catch (err: any) {
         const rspErr = get(err, 'response.text') || get(err, 'response.data.error');
         console.log('sheet.doGet error, params, rspErr, errors', req.params, rspErr, err.errors);
-        console.log('sheet.doGet rspErr',rspErr, err);
+        console.log('sheet.doGet rspErr', rspErr, cleanError(err));
         res.send(422, {
             id: req.params.id,
             message: err.message,
