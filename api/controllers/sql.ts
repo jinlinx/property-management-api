@@ -354,7 +354,7 @@ export async function createOrUpdateInternal(body: ICreateUpdateParms, auth: IUs
          if (f.isOwnerSecurityField) {
            const vi = parseInt(val as string);
            if (vi !== auth.code && !auth.pmInfo.ownerPCodes.includes(vi)) {
-             const error = `Code ${vi} (${val} from fiel ${f.field}) is not authorized`;
+             const error = `Code ${vi} (${val} from fiel ${f.field} isId=${f.isId}) is not authorized`;
              throw {
                message: error,
                error,
