@@ -1,9 +1,10 @@
-const paypal = require('./paypal');
-const venmo = require('./venmo');
-const cashapp = require('./cashapp');
-const db = require('../api/lib/db');
+//const paypal = require('./paypal');
+//const venmo = require('./venmo');
+//const cashapp = require('./cashapp');
+//const db = require('../api/lib/db');
+const boax = require('./boa');
 
-const sub = require('./lib/submit');
+//const sub = require('./lib/submit');
 //return sub.sendReadyToImportPaymentEmail(); //comment out for ts
 //return cashapp.doCashApp().then(r => { console.log(r) });
 //return venmo.doVenmo({
@@ -22,6 +23,8 @@ return submit.submit(trans).then(async () => {
     db.conn.end()
 })
 */
+
+return boax.getBoaXe();
 
 async function doAll() {
     try {

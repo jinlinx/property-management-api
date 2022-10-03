@@ -7,7 +7,7 @@ async function genProcess(creds, doJob, opts = {
     log: x => console.log(x),
 }) {    
     const timeout = opts.timeout || 1000 * 60 * 5;
-    const pupp = await createPuppeteer();
+    const pupp = await createPuppeteer();    
     const log = opts.log;
     if (processingStatus.status) {
         log('Processing inprogress, aborting');

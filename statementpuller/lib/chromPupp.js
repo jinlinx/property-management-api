@@ -8,9 +8,10 @@ async function createPuppeteer(props) {
 
     const firstPage = await browser.newPage();
     const create = page => {
+        page.setDefaultTimeout(60000);
         page.on('console', msg => console.log('PAGE LOG:', msg.text()));
         const setText = async (selector, text, doType = true) => {
-            const ctl = await page.$(selector);
+            const ctl = await page.$(selector);            
             await ctl.click();
             let last = '';
             if (doType && text.length > 0) {
@@ -31,7 +32,7 @@ async function createPuppeteer(props) {
             firstPage,
             page,
             $: p=>page.$(p),
-            goto: url=>page.goto(url),
+            goto: (url,opt)=>page.goto(url, opt),
             close: () => browser.close(),
             findByCSS: path => page.$(path),
             findBy,
