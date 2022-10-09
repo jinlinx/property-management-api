@@ -9,6 +9,9 @@ async function createPuppeteer(props) {
     const firstPage = await browser.newPage();
     const create = page => {
         page.setDefaultTimeout(60000);
+        page.setUserAgent(
+            "Mozilla/5.0 (Macintosh-gg; Intel Mac OS X 10_14_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/93.0.4182.0 Safari/537.36"
+        );
         page.on('console', msg => console.log('PAGE LOG:', msg.text()));
         const setText = async (selector, text, doType = true) => {
             const ctl = await page.$(selector);            
