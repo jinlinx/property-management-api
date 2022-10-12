@@ -1,5 +1,9 @@
 const moment = require('moment');
 const Promise = require('bluebird');
+const path = require('path');
+const fs = require('fs');
+const csvParse = require('csv-parse/sync');
+const axios = require('axios');
 const { sleep, waitElement,
 } = require('../lib/util');
 
@@ -9,7 +13,7 @@ const {
     cleanSpan,
 } = require('./genProc');
 const { sign } = require('crypto');
-async function process(creds, opts) {
+async function processInner(creds, opts) {    
     return await genProcess(creds, doJob, opts);
 }
 
@@ -18,6 +22,7 @@ async function doJob(pupp, creds, opts) {
     const saveScreenshoot = () => pupp.screenshot('outputData/test.png');    
     //await pupp.loadCookies('jxboa');
     //await waitForDownload(pupp);
+    await setDownloadPath(pupp.page);
     await sleep(1000);
     const url = 'https://www.bankofamerica.com/';
     await pupp.goto(url, { waitUntil: 'domcontentloaded'});
@@ -96,7 +101,10 @@ async function doJob(pupp, creds, opts) {
         const downloadBtn = await waitAndFindOneCss(sel);
         await Promise.delay(1000);
         console.log(`clicking ${desc}`);
-        await downloadBtn.click();
+        //await downloadBtn.click();
+        await pupp.page.evaluate(sel => {
+            document.querySelector(sel).click();
+        }, sel);
         await Promise.delay(1000);
     }
 
@@ -165,29 +173,77 @@ async function doJob(pupp, creds, opts) {
         if (txt.match(/Microsoft /)) prms.selected = val;
     }, 'select file type');
     await Promise.delay(6000);
+
+    await pupp.page.setRequestInterception(true);
+    pupp.page.on('request', async interceptedRequest => {
+        //console.log('got request', interceptedRequest.url());
+        interceptedRequest.continue()
+        if (interceptedRequest.url().match(/download-transactions.go/)) {
+            const cookies = await pupp.page.cookies();
+            console.log('headers', interceptedRequest.headers())
+            //console.log('cookies', cookies);
+            console.log('cookies', interceptedRequest.method());
+            const headers = { ...interceptedRequest.headers() }
+            headers.cookie = cookies.map(ck => ck.name + '=' + ck.value).join(';');
+            const rsp = await axios.get(interceptedRequest.url() , {
+                headers,
+            });
+            console.log('rsp',rsp.data, rsp.data.length)
+        }
+        //interceptedRequest.abort();     //stop intercepting requests
+        //resolve(interceptedRequest);
+    });
+    pupp.page.on('response', async response => {        
+        //await response.continue();
+        if (response.url().match(/download-transactions.go/)) {
+            console.log('got response', response.url());
+            try
+            {
+                const buf = await response.buffer();
+                console.log('got response buffer');
+                console.log(await response.text())
+            } catch (err) {
+                console.log('cant load rsp txt',err.message);
+            }
+        }
+        
+        //interceptedRequest.abort();     //stop intercepting requests
+        //resolve(interceptedRequest);
+    });
     await findAndClickButton('.submit-download', 'Download file');
     //await pupp.saveCookies('jxboa1');
     //console.log('new cookie saved');
 
     console.log('done wait 600s');
-    await waitForDownload(pupp, 'd:\\temp\\temp');
+    //await waitForDownload(pupp);
     await Promise.delay(6000000);
 
     await pupp.page.waitForSelector('[id=signIn111]');    
 }
 
 
-async function waitForDownload(pupp, downloadPath) {
+function getDownloadPath() {
+    const downloadPath = process.env.DOWNLOAD_PATH || '/temp';
+    console.log(`download path is ${downloadPath}`);
+    return downloadPath;
+}
+
+async function setDownloadPath(page) {
+    const downloadPath = getDownloadPath();
+    await page._client.send('Page.setDownloadBehavior', {
+        behavior: 'allow',
+        downloadPath: downloadPath
+    });
+}
+
+async function waitForDownload(pupp) {
+    const downloadPath = getDownloadPath();    
     const browser = pupp.browser;
     const dmPage = await browser.newPage();
     await dmPage.goto("chrome://downloads/");
 
     await dmPage.bringToFront();
     
-    await dmPage._client.send('Page.setDownloadBehavior', {
-        behavior: 'allow',
-        downloadPath: downloadPath
-    });
     //dmPage.wai
 
     console.log('eval handling');
@@ -207,11 +263,14 @@ async function waitForDownload(pupp, downloadPath) {
 
 
     if (!cur) console.log('trace failed');
-    else {
-        const downloadTxt = await pupp.getElementText(cur);
-        console.log('download texst', downloadTxt);
-    }
-    console.log('done');
+    console.log('download texst', cur);
+    
+
+    const csvStr = fs.readFileSync(path.join(downloadPath, cur.html));
+
+    console.log('csvStr is ', csvStr);
+    const csvRes = csvParse.parse(csvStr);
+    console.log('done', csvRes);
 
     await Promise.delay(6000000);
     await dmPage.waitForFunction(() => {
@@ -232,5 +291,5 @@ async function waitForDownload(pupp, downloadPath) {
 }
 
 module.exports = {
-    process,
+    process: processInner,
 }

@@ -21,7 +21,7 @@ module.exports = {
             return driverConfig.pi;
         }
         return {
-            headless: false,
+            headless: true,
             ...commonConfig,
             //slowMo: 250 // slow down by 250ms
         }
