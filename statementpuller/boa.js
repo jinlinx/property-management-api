@@ -10,7 +10,7 @@ async function getBoaXe(creds, opts = {
     const trans = await processor.process(creds, opts);
     //fs.writeFileSync('outputData/paypal.json', JSON.stringify(trans));
     //return await submit.submit(trans, opts);
-    //return trans
+    return trans
 }
 
 module.exports = {

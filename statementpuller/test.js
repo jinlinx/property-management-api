@@ -3,6 +3,7 @@
 //const cashapp = require('./cashapp');
 //const db = require('../api/lib/db');
 const boax = require('./boa');
+const fs = require('fs');
 
 //const sub = require('./lib/submit');
 //return sub.sendReadyToImportPaymentEmail(); //comment out for ts
@@ -24,7 +25,10 @@ return submit.submit(trans).then(async () => {
 })
 */
 
-return boax.getBoaXe();
+boax.getBoaXe().then(r => {
+    console.log(r);
+    fs.writeFileSync('out.json', JSON.stringify(r, null, 2));
+})
 
 async function doAll() {
     try {
@@ -53,4 +57,4 @@ async function doAll() {
     }
 }
 
-doAll();
+//doAll();

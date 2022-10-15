@@ -175,9 +175,12 @@ async function doJob(pupp, creds, opts) {
     await Promise.delay(6000);
 
     await pupp.page.setRequestInterception(true);
+    const fileResults = {
+        wait: null,
+        resolve: null,
+    }
     pupp.page.on('request', async interceptedRequest => {
-        //console.log('got request', interceptedRequest.url());
-        interceptedRequest.continue()
+        //console.log('got request', interceptedRequest.url());        
         if (interceptedRequest.url().match(/download-transactions.go/)) {
             const cookies = await pupp.page.cookies();
             console.log('headers', interceptedRequest.headers())
@@ -188,37 +191,47 @@ async function doJob(pupp, creds, opts) {
             const rsp = await axios.get(interceptedRequest.url() , {
                 headers,
             });
-            console.log('rsp',rsp.data, rsp.data.length)
+            console.log('rsp', rsp.data, rsp.data.length)
+            fileResults.csvStr = rsp.data;
+            fileResults.resolve(rsp.data);
+            return interceptedRequest.abort();
         }
+        interceptedRequest.continue();
         //interceptedRequest.abort();     //stop intercepting requests
         //resolve(interceptedRequest);
     });
-    pupp.page.on('response', async response => {        
-        //await response.continue();
-        if (response.url().match(/download-transactions.go/)) {
-            console.log('got response', response.url());
-            try
-            {
-                const buf = await response.buffer();
-                console.log('got response buffer');
-                console.log(await response.text())
-            } catch (err) {
-                console.log('cant load rsp txt',err.message);
+    
+    fileResults.wait = new Promise(resolve => {
+        fileResults.resolve = resolve;
+    })
+    await findAndClickButton('.submit-download', 'Download file');
+    const csvStr = await fileResults.wait;
+    //await pupp.saveCookies('jxboa1');
+    //console.log('new cookie saved');    
+
+    console.log('csvStr is ', csvStr);
+    const csvRes = csvParse.parse(csvStr).slice(0).map(r => ({
+        date: moment(r[0]).format('YYYY-MM-DD'),
+        reference: r[1],
+        payee: r[2],
+        address: r[3],
+        amount: parseFloat(r[4]),
+    })).map(r => {
+        if (r.payee === 'PAYMENT - THANK YOU') {
+            return {
+                ...r,
+                amount: 0,
+                payment: r.amount,
             }
         }
-        
-        //interceptedRequest.abort();     //stop intercepting requests
-        //resolve(interceptedRequest);
+        return r;
     });
-    await findAndClickButton('.submit-download', 'Download file');
-    //await pupp.saveCookies('jxboa1');
-    //console.log('new cookie saved');
-
-    console.log('done wait 600s');
+    console.log('done', csvRes);    
     //await waitForDownload(pupp);
-    await Promise.delay(6000000);
+    //await Promise.delay(6000000);
 
-    await pupp.page.waitForSelector('[id=signIn111]');    
+    //await pupp.page.waitForSelector('[id=signIn111]');    
+    return csvRes;
 }
 
 
@@ -236,59 +249,26 @@ async function setDownloadPath(page) {
     });
 }
 
-async function waitForDownload(pupp) {
-    const downloadPath = getDownloadPath();    
-    const browser = pupp.browser;
-    const dmPage = await browser.newPage();
-    await dmPage.goto("chrome://downloads/");
+//async function waitForDownload(csvStr) {
+    //const downloadPath = getDownloadPath();    
+    //const browser = pupp.browser;
+    //const dmPage = await browser.newPage();
+    //await dmPage.goto("chrome://downloads/");
 
-    await dmPage.bringToFront();
-    
-    //dmPage.wai
-
-    console.log('eval handling');
+    //await dmPage.bringToFront();
     //const downloadMgr = await dmPage.$('downloads-manager');
-    //document.querySelector('downloads-manager').shadowRoot.querySelector('#mainContainer #downloadsList downloads-item')
     //document.querySelector('downloads-manager').shadowRoot.querySelector('#mainContainer #downloadsList downloads-item').shadowRoot.querySelector('#content #details #title-area a')
     //console.log('download mangger', downloadMgr, downloadMgr?.shadowRoot);
     //const cur = await dmPage.evaluateHandle(`document.querySelector('downloads-manager').shadowRoot.querySelector('#mainContainer #downloadsList downloads-item').shadowRoot.querySelector('#content #details #title-area a')`);
-    const cur = await dmPage.evaluate(() => {
-        const ret = document.querySelector('downloads-manager').shadowRoot.querySelector('#mainContainer #downloadsList downloads-item').shadowRoot.querySelector('#content #details #title-area a');
-        console.log('got ret', ret.innerHTML);
-        return {
-            html: ret.innerHTML,
-            href: ret.href,
-        };
-    });
-
-
-    if (!cur) console.log('trace failed');
-    console.log('download texst', cur);
-    
-
-    const csvStr = fs.readFileSync(path.join(downloadPath, cur.html));
-
-    console.log('csvStr is ', csvStr);
-    const csvRes = csvParse.parse(csvStr);
-    console.log('done', csvRes);
-
-    await Promise.delay(6000000);
-    await dmPage.waitForFunction(() => {
-        try {
-            //const donePath = document.querySelector("downloads-manager")!.shadowRoot!
-            //    .querySelector(
-            //        "#frb0",
-            //    )!.shadowRoot!.querySelector("#pauseOrResume")!;
-            //if ((donePath as HTMLButtonElement).innerText != "Pause") {
-            //    return true;
-            //}
-        } catch {
-            //
-        }
-        return true;
-    }, { timeout: 0 });
-    console.log("Download finished");
-}
+    //const cur = await dmPage.evaluate(() => {
+    //    const ret = document.querySelector('downloads-manager').shadowRoot.querySelector('#mainContainer #downloadsList downloads-item').shadowRoot.querySelector('#content #details #title-area a');
+    //    console.log('got ret', ret.innerHTML);
+    //    return {
+    //        html: ret.innerHTML,
+    //        href: ret.href,
+    //    };
+    //});
+//}
 
 module.exports = {
     process: processInner,
