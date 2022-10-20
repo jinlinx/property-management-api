@@ -88,23 +88,22 @@ export function compareAndMatchData<T>(opts: ICompareOpts<T>): IDataMatchTo<T>[]
                 notMatchedNewData.map(nd => {
                     notmatchedDbData.forEach(db => {
                         const score = opts.computeDiff(db.data, nd.data);                        
-                        //console.log('got score', score, db.matchScore)
                         if (db.matchScore < score) {                            
                             db.matchedTo = nd;
                             nd.matchedTo = db;
                             db.matchScore = score;
                             nd.matchScore = score;
-                            console.log('got score', score, nd, db)
                         }
                     })
                 });
                 notMatchedNewData = notMatchedNewData.filter(n => {                    
                     if (n.matchedTo?.matchedTo === n) {
-                        console.log('dbgrm n.matchedTo?matchedTo equal ', notmatchedDbData.length, n.matchedTo)
                         notmatchedDbData = notmatchedDbData.filter(x => x !== n.matchedTo);
                         n.done = true;
                         return false;
                     } else {
+                        n.matchScore = -1;
+                        n.matchedTo = null;
                         return true;
                     }
                 });
@@ -112,6 +111,10 @@ export function compareAndMatchData<T>(opts: ICompareOpts<T>): IDataMatchTo<T>[]
                     notMatchedNewData.forEach(nd => nd.done = true);
                     break;
                 }
+                notmatchedDbData.forEach(db => {
+                    db.matchScore = -1;
+                    db.matchedTo = null;
+                })
                 if (!notMatchedNewData.length) break;
             }
         }

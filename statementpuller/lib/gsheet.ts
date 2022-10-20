@@ -13,7 +13,6 @@ export async function getSheetOps(id: string) {
     } else {
         client = await google.getClientByEnv('gzperm');
     }
-    console.log('got cli , return sheet ops')
     return client.getSheetOps(id);    
 }
 
@@ -28,15 +27,12 @@ interface IProcessOpts {
 }
 
 async function loadSheetData(opts: IProcessOpts) {
-    console.log('here in test, calling get sheet pos');
-    const sheet = await getSheetOps(opts.sheetId);
-    console.log('here got ops');
+    const sheet = await getSheetOps(opts.sheetId);    
     const info = await sheet.sheetInfo();    
     const rowCount = info.find(i => i.title === opts.tabName)?.rowCount;
     if (!rowCount) return [];
     const dataRaw = await sheet.read(`${opts.tabName}!A1:${opts.lastCol}${rowCount}`);
     const data = opts.processData(dataRaw.values);
-    console.log('here got data', data);
     return data;
 }
 
