@@ -1,2 +1,3 @@
 call node_modules\.bin\tsc
-call node build\statementpuller\lib\gsheet.js
+set DBSHEET_ID=13Mu-zB_WicsI3JXcFCLzvYTE-brVqVXnbDzgoIseF34
+call node build\statementpuller\test.js

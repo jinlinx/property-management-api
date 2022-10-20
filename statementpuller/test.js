@@ -25,10 +25,29 @@ return submit.submit(trans).then(async () => {
 })
 */
 
-boax.getBoaXe().then(r => {
-    console.log(r);
-    fs.writeFileSync('out.json', JSON.stringify(r, null, 2));
-})
+test(true,true);
+
+async function test(hasNewData, hasDbData) {
+    if (!hasNewData) {
+        boax.getBoaXe().then(r => {
+            console.log(r);
+            fs.writeFileSync('temp/newData.json', JSON.stringify(r, null, 2));
+        })
+    }
+    const newData = JSON.parse(fs.readFileSync('temp/newData.json'));
+
+        const sheetData = await boax.loadSheetData();
+        fs.writeFileSync('temp/dbData.json', JSON.stringify(sheetData, null, 2));
+
+    const dbData = JSON.parse(fs.readFileSync('temp/dbData.json'));
+    const res = boax.doBoaDataCmp(dbData, newData).filter(m => !m.matchedTo).map(m => m.data).filter(m=>m.date !== 'Invalid date');
+    await boax.appendSheet('MaintainessRecord!A:G', res.map(m => {
+        return [m.date, 'card', -m.amount, '','card', m.payee, m.reference || '']
+    }))
+    console.log(res);
+}
+
+
 
 async function doAll() {
     try {

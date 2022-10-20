@@ -26,7 +26,7 @@ interface IProcessOpts {
     processData: (data: any[])=>any[];
 }
 
-async function loadSheetData(opts: IProcessOpts) {
+export async function loadSheetData(opts: IProcessOpts) {
     const sheet = await getSheetOps(opts.sheetId);    
     const info = await sheet.sheetInfo();    
     const rowCount = info.find(i => i.title === opts.tabName)?.rowCount;
@@ -122,4 +122,9 @@ async function doTestInitialSaveData() {
 
 }
 */
+
+export async function appendSheetData(sheetId: string, range:string, data: any) {
+    const sheet = await getSheetOps(sheetId);
+    await sheet.append(range, data);
+}
 
