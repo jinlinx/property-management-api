@@ -46,7 +46,7 @@ async function doJob(pupp, creds, opts) {
             }            
         }
     });
-
+    await Promise.delay(2000);
     await pupp.setTextById('onlineId1', creds.userName);
     console.log('set onlind id, trying passcode1')
     await pupp.setTextById('passcode1', creds.password);
@@ -58,7 +58,7 @@ async function doJob(pupp, creds, opts) {
     const signIn = await pupp.page.$('[id=signIn]');
     //await signIn.evaluate(b => b.click());
     //await pupp.page.waitForSelector('[id=signIn111]');
-    await Promise.delay(3000);
+    await Promise.delay(1000);
     await signIn.click();
 
     const accountsSelector = "[class='AccountItems list-view-tour'] li div span.AccountName a[name$='details']";
