@@ -22,7 +22,7 @@ async function doJob(pupp, creds, opts) {
     const saveScreenshoot = () => pupp.screenshot('outputData/test.png');    
     //await pupp.loadCookies('jxboa');
     //await waitForDownload(pupp);
-    await setDownloadPath(pupp.page);
+    await setDownloadPath(pupp.page, log);
     await sleep(1000);
     const url = 'https://www.bankofamerica.com/';
     await pupp.goto(url, { waitUntil: 'domcontentloaded'});
@@ -48,9 +48,9 @@ async function doJob(pupp, creds, opts) {
     });
     await Promise.delay(2000);
     await pupp.setTextById('onlineId1', creds.userName);
-    console.log('set onlind id, trying passcode1')
+    log('set onlind id, trying passcode1')
     await pupp.setTextById('passcode1', creds.password);
-    console.log('set ', creds.userName, creds.password);
+    log('set ', creds.userName, creds.password);
     //const signIn = await pupp.findById('signIn');
     //await signIn.click();
 
@@ -79,9 +79,9 @@ async function doJob(pupp, creds, opts) {
     const list = await pupp.findAllByCss(accountsSelector);
     for (let i = 0; i < list.length; i++) {
         const txt = await pupp.getElementText(list[i]);
-        console.log(`at ${i} ${txt}`);
+        log(`at ${i} ${txt}`);
         if (txt.match(/Customized Cash/)) {
-            console.log('matched');
+            log('matched');
             found = list[i];
             break;
         }
@@ -97,10 +97,10 @@ async function doJob(pupp, creds, opts) {
     
 
     async function findAndClickButton(sel, desc) {
-        console.log(`Trying to find ${desc}`);
+        log(`Trying to find ${desc}`);
         const downloadBtn = await waitAndFindOneCss(sel);
         await Promise.delay(1000);
-        console.log(`clicking ${desc}`);
+        log(`clicking ${desc}`);
         //await downloadBtn.click();
         await pupp.page.evaluate(sel => {
             document.querySelector(sel).click();
@@ -114,11 +114,11 @@ async function doJob(pupp, creds, opts) {
     await findAndClickButton('a.export-trans-view','Download Dialog');    
 
     async function findDropdownAndSelect(sel, act, desc) {
-        console.log(`tring to find dropdown ${desc}`);
+        log(`tring to find dropdown ${desc}`);
         const dropdown = await waitAndFindOneCss(sel);
-        console.log('got download', !!dropdown)
+        log('got download', !!dropdown)
         const options = await dropdown.$$('option');
-        console.log('got options', options?.length);
+        log('got options', options?.length);
         const prms = {
             dropdown,
             position: -1,
@@ -126,14 +126,14 @@ async function doJob(pupp, creds, opts) {
         for (let i = 0; i < options.length; i++) {
             const txt = await pupp.getElementText(options[i]);
             const val = await (await options[i].getProperty("value")).jsonValue();
-            console.log(`at ${i} ${txt} ${val}`);
+            log(`at ${i} ${txt} ${val}`);
             prms.position = i;
             prms.txt = txt;
             prms.val = val;
             if (await act(prms)) break;            
         }        
         if (prms.selected) {
-            console.log('selecting ', prms.selected);
+            log('selecting ', prms.selected);
             await dropdown.select(prms.selected);
             await Promise.delay(1000);
         }
@@ -144,10 +144,10 @@ async function doJob(pupp, creds, opts) {
         const { txt, val, position,  } = prms;        
         const tm = moment(txt);
         if (tm.isValid()) {
-            console.log(`txt=${txt} val=${tm.format('YYYY-MM-DD')}`);
+            log(`txt=${txt} val=${tm.format('YYYY-MM-DD')}`);
             if (!prms.selected) prms.selected = val;
         }
-        console.log(`at ${position} ${txt} ${val}`);        
+        log(`at ${position} ${txt} ${val}`);        
     }, 'Selection tran date');
     /*
     const tranDropdown = await waitAndFindOneCss(tranSelSel);
@@ -226,7 +226,7 @@ async function doJob(pupp, creds, opts) {
         }
         return r;
     });
-    console.log('done', csvRes);    
+    log('done', csvRes);    
     //await waitForDownload(pupp);
     //await Promise.delay(6000000);
 
@@ -235,14 +235,14 @@ async function doJob(pupp, creds, opts) {
 }
 
 
-function getDownloadPath() {
+function getDownloadPath(log) {
     const downloadPath = process.env.DOWNLOAD_PATH || '/temp';
-    console.log(`download path is ${downloadPath}`);
+    log(`download path is ${downloadPath}`);
     return downloadPath;
 }
 
-async function setDownloadPath(page) {
-    const downloadPath = getDownloadPath();
+async function setDownloadPath(page, log) {
+    const downloadPath = getDownloadPath(log);
     await page._client.send('Page.setDownloadBehavior', {
         behavior: 'allow',
         downloadPath: downloadPath

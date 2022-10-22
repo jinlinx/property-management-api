@@ -25,7 +25,7 @@ return submit.submit(trans).then(async () => {
 })
 */
 
-test(true,true);
+test(false,true);
 
 async function test(hasNewData, hasDbData) {
     if (!hasNewData) {
@@ -34,6 +34,7 @@ async function test(hasNewData, hasDbData) {
             fs.writeFileSync('temp/newData.json', JSON.stringify(r, null, 2));
         })
     }
+    return;
     const newData = JSON.parse(fs.readFileSync('temp/newData.json'));
 
         const sheetData = await boax.loadSheetData();
