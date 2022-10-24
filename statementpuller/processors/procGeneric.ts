@@ -1,13 +1,23 @@
 const creds = require('../../creds.json');
 const fs = require('fs');
 //const https = require('https');
-import * as processor from './boa';
+//import * as processor from './boa';
 import * as gsSheet from '../lib/gsheet';
 import moment from 'moment';
 import { ILog } from '../lib/utils';
 import * as dataMatcher from '../lib/dataMatcher';
-export async function getBoaDataAndCompareUpdateSheet(creds: processor.ICreds, log: ILog) {
-    const newData = await processor.processInner(creds, log);
+
+export interface ICreds {
+    userName: string;
+    password: string;
+    sheetID: string;
+    tabName: string; //maintenaceRecords etc
+    matchAccountName: string; //cash account
+}
+
+export type doProcessorJob = (creds: ICreds, log: ILog) => Promise<IHouseData[]>;
+export async function getBoaDataAndCompareUpdateSheet(creds: ICreds, log: ILog, pc: doProcessorJob) {
+    const newData = await pc(creds, log);
     log('Load sheet data')    
     const dbData = await loadSheetData(creds);    
     log('Loaded sheet data')
@@ -62,7 +72,7 @@ export function doBoaDataCmp(dbData: IHouseData[], newData: IHouseData[]) {
     return dataMatcher.compareAndMatchData(cdata);
 }
 
-export async function loadSheetData(prms: processor.ICreds) {
+export async function loadSheetData(prms: ICreds) {
     const dbData = await gsSheet.loadSheetData({
         sheetId: prms.sheetID,
         lastCol: 'H',

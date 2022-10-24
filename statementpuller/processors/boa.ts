@@ -8,7 +8,7 @@ const { sleep, waitElement,
 } = require('../lib/util');
 
 import { ILog } from '../lib/utils';
-
+import { ICreds } from './procGeneric';
 const {
     genProcess,
     cleanHtml,
@@ -16,13 +16,7 @@ const {
 } = require('./genProc');
 const { sign } = require('crypto');
 
-export interface ICreds {
-    userName: string;
-    password: string;
-    sheetID: string;
-    tabName: string; //maintenaceRecords etc
-    matchAccountName: string; //cash account
-}
+
 
 
 export interface PuppIOpts {
