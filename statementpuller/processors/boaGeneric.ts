@@ -1,8 +1,8 @@
-const creds = require('../creds.json');
+const creds = require('../../creds.json');
 const fs = require('fs');
 //const https = require('https');
-import * as processor from './processors/boa';
-import * as gsSheet from './lib/gsheet';
+import * as processor from './boa';
+import * as gsSheet from '../lib/gsheet';
 import moment from 'moment';
 export async function getBoaDataAndCompareUpdateSheet(creds: processor.ICreds, log: processor.ILog) {
     const newData = await processor.processInner(creds, log);

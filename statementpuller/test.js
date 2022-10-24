@@ -2,7 +2,7 @@
 //const venmo = require('./venmo');
 //const cashapp = require('./cashapp');
 //const db = require('../api/lib/db');
-const boax = require('./boa');
+const boax = require('./processors/boaGeneric');
 const fs = require('fs');
 
 //const sub = require('./lib/submit');
