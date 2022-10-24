@@ -42,6 +42,7 @@ export interface IHouseData {
     amount: number | null;
     house?: string;
     reference?: string;
+    payee?: string; //only in bank
 }
 
 function getDataComper(dbData: IHouseData[], newData: IHouseData[]) {

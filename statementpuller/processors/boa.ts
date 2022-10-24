@@ -17,8 +17,9 @@ const { sign } = require('crypto');
 export interface ICreds {
     userName: string;
     password: string;
-    sheeId: string;
-    matchAccountName: string;
+    sheetID: string;
+    tabName: string; //maintenaceRecords etc
+    matchAccountName: string; //cash account
 }
 
 export type ILog = (l: string) => void;
@@ -34,12 +35,12 @@ export interface IBoaDownloadFileRet {
     amount: number;
 }
 
-async function processInner(creds: ICreds, opts: PuppIOpts) {    
-    return await genProcess(creds, doJob, opts);
+export async function processInner(creds: ICreds, log: ILog) {    
+    return await genProcess(creds, doJob, { log });
 }
 
 async function doJob(pupp: any, creds: ICreds, opts: PuppIOpts): Promise<IBoaDownloadFileRet[]>{
-    const { log } = opts;
+    const log = opts.log;
     const saveScreenshoot = () => pupp.screenshot('outputData/test.png');    
     //await pupp.loadCookies('jxboa');
     //await waitForDownload(pupp);
@@ -310,7 +311,3 @@ async function setDownloadPath(page: any, log: ILog) {
     //    };
     //});
 //}
-
-module.exports = {
-    process: processInner,
-}

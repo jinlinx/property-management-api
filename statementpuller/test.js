@@ -24,28 +24,15 @@ return submit.submit(trans).then(async () => {
     db.conn.end()
 })
 */
-
+const creds = require('../creds.json');
 test(false,true);
 
-async function test(hasNewData, hasDbData) {
-    if (!hasNewData) {
-        boax.getBoaXe().then(r => {
-            console.log(r);
-            fs.writeFileSync('temp/newData.json', JSON.stringify(r, null, 2));
-        })
+async function test() {
+    try {
+        await boax.getBoaDataAndCompareUpdateSheet(creds.boaXie, s => console.log(s));
+    } catch (err) {
+        console.log(err);
     }
-    return;
-    const newData = JSON.parse(fs.readFileSync('temp/newData.json'));
-
-        const sheetData = await boax.loadSheetData();
-        fs.writeFileSync('temp/dbData.json', JSON.stringify(sheetData, null, 2));
-
-    const dbData = JSON.parse(fs.readFileSync('temp/dbData.json'));
-    const res = boax.doBoaDataCmp(dbData, newData).filter(m => !m.matchedTo).map(m => m.data).filter(m=>m.date !== 'Invalid date');
-    await boax.appendSheet('MaintainessRecord!A:G', res.map(m => {
-        return [m.date, 'card', -m.amount, '','card', m.payee, m.reference || '']
-    }))
-    console.log(res);
 }
 
 

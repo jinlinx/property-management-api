@@ -1,26 +1,29 @@
 const creds = require('../creds.json');
 const fs = require('fs');
-const { readOneLine } = require('./lib/util');
 //const https = require('https');
-const processor = require('./processors/boa');
+import * as processor from './processors/boa';
 import * as gsSheet from './lib/gsheet';
 import moment from 'moment';
-export async function getBoaXe(creds: any, opts = {
-    log: (x:any) => console.log(x),
-    getCode: () => readOneLine('Pleae input code'),
-}) {
-    const trans = await processor.process(creds, opts);
-    //fs.writeFileSync('outputData/paypal.json', JSON.stringify(trans));
-    //return await submit.submit(trans, opts);
-    return trans
+export async function getBoaDataAndCompareUpdateSheet(creds: processor.ICreds, log: processor.ILog) {
+    const newData = await processor.processInner(creds, log);
+    log('Load sheet data')    
+    const dbData = await loadSheetData(creds);    
+    log('Loaded sheet data')
+    const res = doBoaDataCmp(dbData, newData).filter(m => !m.matchedTo).map(m => m.data).filter(m => m.date !== 'Invalid date');
+    const appendData = res.map(m => {
+        return [m.date, 'card', -(m.amount || 0), '', 'card', m.payee, m.reference || '']
+    });
+    log(`Appending ${JSON.stringify(appendData)}`);
+    await appendSheet(`${creds.tabName}!A:G`, appendData)
+    return res;
 }
 
 
-export async function loadSheetData() {
+export async function loadSheetData(prms: processor.ICreds) {
     const dbData = await gsSheet.loadSheetData({
-        sheetId: process.env.DBSHEET_ID || 'NOID',
+        sheetId: prms.sheetID,
         lastCol: 'H',
-        tabName: 'MaintainessRecord',
+        tabName: prms.tabName,
         processData: dataOrig => {
             const data = dataOrig.slice(1).map(d => {
                 let amount = null;
@@ -59,10 +62,10 @@ export const doBoaDataCmp = gsSheet.doBoaDataCmp;
 export async function appendSheet(range: string, data: any) {
     return gsSheet.appendSheetData(process.env.DBSHEET_ID || 'NOID', range, data);
 }
-module.exports = {
-    getBoaXe: (opts:any) => getBoaXe(creds.boaXie, opts),
-    loadSheetData,
-    doBoaDataCmp,
-    appendSheet,
-}
+//module.exports = {
+    //getBoaXe: (opts:any) => getBoaXe(creds.boaXie, opts),
+    //loadSheetData,
+    //doBoaDataCmp,
+    //appendSheet,
+//}
 
