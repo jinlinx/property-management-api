@@ -30,6 +30,7 @@ async function genProcess(creds, doJob, opts = {
         } finally {
             log('Done', 'done');
             processingStatus.status = '';
+            await pupp.browser.close();
             await pupp.close();
         }
     });
