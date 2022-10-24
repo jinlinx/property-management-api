@@ -7,21 +7,13 @@ const axios = require('axios');
 const { sleep, waitElement,
 } = require('../lib/util');
 
-import { ILog } from '../lib/utils';
-import { ICreds } from './procGeneric';
-const {
-    genProcess,
-    cleanHtml,
-    cleanSpan,
-} = require('./genProc');
+import {  IPuppOpts, ILog } from './genProc';
 const { sign } = require('crypto');
 
 
 
 
-export interface PuppIOpts {
-    log: ILog;
-}
+
 
 export interface IBoaDownloadFileRet {
     date: string;
@@ -31,12 +23,9 @@ export interface IBoaDownloadFileRet {
     amount: number;
 }
 
-export async function processInner(creds: ICreds, log: ILog) {    
-    return await genProcess(creds, doJob, { log });
-}
-
-async function doJob(pupp: any, creds: ICreds, opts: PuppIOpts): Promise<IBoaDownloadFileRet[]>{
+export async function doJob(pupp: any, opts: IPuppOpts): Promise<IBoaDownloadFileRet[]>{
     const log = opts.log;
+    const creds = opts.creds;
     const saveScreenshoot = () => pupp.screenshot('outputData/test.png');    
     //await pupp.loadCookies('jxboa');
     //await waitForDownload(pupp);

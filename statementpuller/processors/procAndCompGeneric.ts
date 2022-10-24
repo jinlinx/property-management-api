@@ -1,23 +1,26 @@
-const creds = require('../../creds.json');
-const fs = require('fs');
-//const https = require('https');
-//import * as processor from './boa';
+
 import * as gsSheet from '../lib/gsheet';
 import moment from 'moment';
-import { ILog } from '../lib/utils';
 import * as dataMatcher from '../lib/dataMatcher';
+import {
+    ICreds,
+    ILog,
+    genProcess,
+    IPuppExecOpts,
+} from './genProc';
 
-export interface ICreds {
-    userName: string;
-    password: string;
-    sheetID: string;
-    tabName: string; //maintenaceRecords etc
-    matchAccountName: string; //cash account
+
+
+export interface IDateAmount {
+    date: string;
+    reference: string;    
+    amount: number;
 }
 
-export type doProcessorJob = (creds: ICreds, log: ILog) => Promise<IHouseData[]>;
-export async function getBoaDataAndCompareUpdateSheet(creds: ICreds, log: ILog, pc: doProcessorJob) {
-    const newData = await pc(creds, log);
+export async function getGenDataAndCompareUpdateSheet(opts: IPuppExecOpts) {
+    const log = opts.log;
+    const creds = opts.creds;
+    const newData = await genProcess(opts) as IHouseData[];    
     log('Load sheet data')    
     const dbData = await loadSheetData(creds);    
     log('Loaded sheet data')
