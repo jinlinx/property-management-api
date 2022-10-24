@@ -5,6 +5,7 @@ import * as processor from './boa';
 import * as gsSheet from '../lib/gsheet';
 import moment from 'moment';
 import { ILog } from '../lib/utils';
+import * as dataMatcher from '../lib/dataMatcher';
 export async function getBoaDataAndCompareUpdateSheet(creds: processor.ICreds, log: ILog) {
     const newData = await processor.processInner(creds, log);
     log('Load sheet data')    
@@ -12,13 +13,54 @@ export async function getBoaDataAndCompareUpdateSheet(creds: processor.ICreds, l
     log('Loaded sheet data')
     const res = doBoaDataCmp(dbData, newData).filter(m => !m.matchedTo).map(m => m.data).filter(m => m.date !== 'Invalid date');
     const appendData = res.map(m => {
-        return [m.date, 'card', -(m.amount || 0), '', 'card', m.payee, m.reference || '']
+        return [m.date, 'Card', -(m.amount || 0), '', 'Supplies', m.payee, m.reference || '']
     });
     log(`Appending ${JSON.stringify(appendData)}`);
-    await appendSheet(`${creds.tabName}!A:G`, appendData)
+    await appendSheet(creds.sheetID, `${creds.tabName}!A:G`, appendData)
     return res;
 }
 
+
+export interface IHouseData {
+    date: string;
+    amount: number | null;
+    house?: string;
+    reference?: string;
+    payee?: string; //only in bank
+}
+
+function getDataComper(dbData: IHouseData[], newData: IHouseData[]) {
+    const cmp: dataMatcher.ICompareOpts<IHouseData> = {
+        dbData,
+        newData,
+        computeDiff: (db, n) => {
+            return db.reference === n.reference ? 1 : 0;
+        },
+        getPrimaryKey: (data, who) => {
+            if (who === 'db') {
+                //"date": "2020-08-30",
+                //"desc": "epot",
+                //"amount": 15.96,
+                //"house": "xxxx",
+                //"cat": "Supplies"
+                return `${data.date}-${data.amount}-${data.house || ''}`;
+            } else { //if (who === 'new')
+                //"date": "Invalid date",
+                //"reference": "Reference Number",
+                //"payee": "Payee",
+                //"address": "Address",
+                //amount
+                return `${data.date}-${-(data.amount || 0)}-`;
+            }
+        },
+    };
+    return cmp;
+}
+
+export function doBoaDataCmp(dbData: IHouseData[], newData: IHouseData[]) {
+    const cdata = getDataComper(dbData, newData);
+    return dataMatcher.compareAndMatchData(cdata);
+}
 
 export async function loadSheetData(prms: processor.ICreds) {
     const dbData = await gsSheet.loadSheetData({
@@ -56,12 +98,11 @@ export async function loadSheetData(prms: processor.ICreds) {
             return data;
         },
     });
-    return dbData as gsSheet.IHouseData[];
+    return dbData as IHouseData[];
 }
 
-export const doBoaDataCmp = gsSheet.doBoaDataCmp;
-export async function appendSheet(range: string, data: any) {
-    return gsSheet.appendSheetData(process.env.DBSHEET_ID || 'NOID', range, data);
+export async function appendSheet(sheetId: string, range: string, data: any) {
+    return gsSheet.appendSheetData(sheetId, range, data);
 }
 //module.exports = {
     //getBoaXe: (opts:any) => getBoaXe(creds.boaXie, opts),

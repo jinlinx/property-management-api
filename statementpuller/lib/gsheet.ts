@@ -17,8 +17,6 @@ export async function getSheetOps(id: string) {
 }
 
 
-import * as dataMatcher from './dataMatcher';
-
 interface IProcessOpts {
     sheetId: string;
     tabName: string;
@@ -37,46 +35,6 @@ export async function loadSheetData(opts: IProcessOpts) {
 }
 
 
-export interface IHouseData {
-    date: string;
-    amount: number | null;
-    house?: string;
-    reference?: string;
-    payee?: string; //only in bank
-}
-
-function getDataComper(dbData: IHouseData[], newData: IHouseData[]) {
-    const cmp: dataMatcher.ICompareOpts<IHouseData> = {
-        dbData,
-        newData,
-        computeDiff: (db, n) => {
-            return db.reference === n.reference? 1:0;
-        },
-        getPrimaryKey: (data, who) =>{
-            if (who === 'db') {
-                //"date": "2020-08-30",
-                //"desc": "epot",
-                //"amount": 15.96,
-                //"house": "xxxx",
-                //"cat": "Supplies"
-                return `${data.date}-${data.amount}-${data.house || ''}`;
-            } else { //if (who === 'new')
-                //"date": "Invalid date",
-                //"reference": "Reference Number",
-                //"payee": "Payee",
-                //"address": "Address",
-                //amount
-                return `${data.date}-${-(data.amount || 0)}-`;
-            }    
-        },
-    };
-    return cmp;
-}
-
-export function doBoaDataCmp(dbData: IHouseData[], newData: IHouseData[]) {
-    const cdata = getDataComper(dbData, newData);    
-    return dataMatcher.compareAndMatchData(cdata);
-}
 
 //doBoaDataCmp();
 /*
