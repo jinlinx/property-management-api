@@ -7,6 +7,8 @@ const axios = require('axios');
 const { sleep, waitElement,
 } = require('../lib/util');
 
+import { ILog } from '../lib/utils';
+
 const {
     genProcess,
     cleanHtml,
@@ -22,7 +24,7 @@ export interface ICreds {
     matchAccountName: string; //cash account
 }
 
-export type ILog = (l: string) => void;
+
 export interface PuppIOpts {
     log: ILog;
 }

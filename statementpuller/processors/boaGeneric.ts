@@ -4,7 +4,8 @@ const fs = require('fs');
 import * as processor from './boa';
 import * as gsSheet from '../lib/gsheet';
 import moment from 'moment';
-export async function getBoaDataAndCompareUpdateSheet(creds: processor.ICreds, log: processor.ILog) {
+import { ILog } from '../lib/utils';
+export async function getBoaDataAndCompareUpdateSheet(creds: processor.ICreds, log: ILog) {
     const newData = await processor.processInner(creds, log);
     log('Load sheet data')    
     const dbData = await loadSheetData(creds);    

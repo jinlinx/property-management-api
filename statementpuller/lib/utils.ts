@@ -1,0 +1,1 @@
+export type ILog = (l: string) => void;

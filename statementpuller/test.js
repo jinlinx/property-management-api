@@ -2,7 +2,7 @@
 //const venmo = require('./venmo');
 //const cashapp = require('./cashapp');
 //const db = require('../api/lib/db');
-const boax = require('./processors/boaGeneric');
+const boax = require('./boax');
 const fs = require('fs');
 
 //const sub = require('./lib/submit');
@@ -24,12 +24,14 @@ return submit.submit(trans).then(async () => {
     db.conn.end()
 })
 */
-const creds = require('../creds.json');
+
 test(false,true);
 
 async function test() {
     try {
-        await boax.getBoaDataAndCompareUpdateSheet(creds.boaXie, s => console.log(s));
+        await boax.processBoaX(s => {
+            console.log(`==>${s}`);
+        })
     } catch (err) {
         console.log(err);
     }
