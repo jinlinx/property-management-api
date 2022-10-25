@@ -80,7 +80,10 @@ export async function createPuppeteer(props: any): Promise<IPuppWrapper> {
             try {
                 cookies = JSON.parse(fs.readFileSync(cookieDir(name)));                
             } catch { }
-            console.log('cookies loaded')
+            if (!cookies) {
+                console.log('no cookies found');
+            }else 
+                console.log('cookies loaded', !!cookies)
             if (cookies) {
                 page.setCookie(...cookies);
                 console.log('cookies set');

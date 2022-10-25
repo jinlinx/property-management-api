@@ -30,9 +30,7 @@ test(false,true);
 
 async function test() {
     try {
-        return await boax.processBoaX(s => {
-            console.log(`==>${s}`);
-        })
+        
         await chasex.processChaseX(s => {
             console.log(`==>${s}`);
         }, {
@@ -44,7 +42,9 @@ async function test() {
             headless: false,
         });
         return;
-        
+        return await boax.processBoaX(s => {
+            console.log(`==>${s}`);
+        })
     } catch (err) {
         console.log(err);
     }
