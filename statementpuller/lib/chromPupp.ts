@@ -30,9 +30,16 @@ export async function createPuppeteer(props: any): Promise<IPuppWrapper> {
 
     const page = await browser.newPage();
     
+    const client = await page.target().createCDPSession();
+    await client.send('Network.clearBrowserCookies');
+    await client.send('Network.clearBrowserCache');
+    
     page.setDefaultTimeout(60000);
+    //page.setUserAgent(
+    //    "Mozilla/5.0 (Macintosh-gg; Intel Mac OS X 10_14_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/93.0.4182.0 Safari/537.36"
+    //);
     page.setUserAgent(
-        "Mozilla/5.0 (Macintosh-gg; Intel Mac OS X 10_14_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/93.0.4182.0 Safari/537.36"
+        "Mozilla/5.0 (Macintosh; Intel Mac OS X 13_0) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/106.0.0.0 Safari/537.36"
     );
     page.on('console', msg => console.log('PAGE LOG:', msg.text()));
     const setText = async (selector: string, text: string, doType = true) => {

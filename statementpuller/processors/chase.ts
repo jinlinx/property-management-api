@@ -91,7 +91,7 @@ export async function doJob(pupp: IPuppWrapper, opts: IPuppOpts): Promise<IChase
     }
 
     await sleep(2000);
-    CheckLogin();
+    //CheckLogin();
     const inAccountCss = '[id=accountCurrentBalanceLinkWithReconFlyoutValue]';
     await waitElement({
         message: 'waiting for login or code',
