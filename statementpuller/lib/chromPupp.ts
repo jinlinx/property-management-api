@@ -1,7 +1,7 @@
 import puppeteer from 'puppeteer';
 const fs = require('fs');
 const env = require('./env');
-const get = require('lodash/get');
+import { get, sortBy} from 'lodash';
 
 type IPuppSingleRet = Promise<puppeteer.ElementHandle<Element> | null>;
 type IPuppMultiRet = Promise<puppeteer.ElementHandle<Element>[]>;
@@ -82,8 +82,11 @@ export async function createPuppeteer(props: any): Promise<IPuppWrapper> {
             } catch { }
         },
         saveCookies: async (name: string) => {
-            const cookies = await page.cookies();
-            await fs.writeFileSync(cookieDir(name), JSON.stringify(cookies, null, 2));
+            //const cookies = await page.cookies();
+            const client = await page.target().createCDPSession();
+            const cookies = await client.send('Network.getAllCookies');
+            const cookieSorted = sortBy(cookies, ['name']);
+            await fs.writeFileSync(cookieDir(name), JSON.stringify(cookieSorted, null, 2));
         }
     };
         
