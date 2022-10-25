@@ -1,4 +1,4 @@
-const { createPuppeteer } = require('../lib/chromPupp');
+import { createPuppeteer } from '../lib/chromPupp';
 export type ILog = (...args: any[]) => void;
 
 
