@@ -74,11 +74,24 @@ export async function doJob(pupp: IPuppWrapper, opts: IPuppOpts): Promise<IChase
         }, sel);
         await sleep(1000);
     }
-
+    
     log('waiting for login selector')    
     await findAndClickButtonInFrame('[id=signin-button]', 'click sign in button');
     log('got  login selector')    
 
+    async function CheckLogin() {        
+        while (await pupp.findByCSS(loginBoxCss)) {
+            log('Found login again, retry');
+            await pupp.page.type('[id=userId-text-input-field]', creds.userName, { delay: 200 });
+            await pupp.page.type('[id=password-text-input-field]', creds.password, { delay: 200 });
+            await sleep(500);
+            await findAndClickButton('[id=signin-button]', 'click sign in button');
+            await sleep(3000);
+        }
+    }
+
+    await sleep(2000);
+    CheckLogin();
     const inAccountCss = '[id=accountCurrentBalanceLinkWithReconFlyoutValue]';
     await waitElement({
         message: 'waiting for login or code',

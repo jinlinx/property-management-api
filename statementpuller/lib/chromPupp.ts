@@ -76,16 +76,23 @@ export async function createPuppeteer(props: any): Promise<IPuppWrapper> {
         },
         screenshot: (path: string) => page.screenshot({ path }),
         loadCookies: async (name: string) => {
+            let cookies = null;
             try {
-                const cookies = JSON.parse(fs.readFileSync(cookieDir(name)));
-                page.setCookie(...cookies);
+                cookies = JSON.parse(fs.readFileSync(cookieDir(name)));                
             } catch { }
+            console.log('cookies loaded')
+            if (cookies) {
+                page.setCookie(...cookies);
+                console.log('cookies set');
+            }
         },
         saveCookies: async (name: string) => {
             //const cookies = await page.cookies();
             const client = await page.target().createCDPSession();
             const cookies = await client.send('Network.getAllCookies');
+            console.log('orig cookies', cookies);
             const cookieSorted = sortBy(cookies, ['name']);
+            console.log('sorted cookies', cookies);
             await fs.writeFileSync(cookieDir(name), JSON.stringify(cookieSorted, null, 2));
         }
     };
