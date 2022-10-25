@@ -5,7 +5,7 @@ const { sleep, waitElement,
 } = require('../lib/util');
 
 import {  IPuppOpts, ILog } from './genProc';
-
+import {  IPuppWrapper } from '../lib/chromPupp';
 
 
 
@@ -19,7 +19,7 @@ export interface IChaseDownloadFileRet {
     amount: number;
 }
 
-export async function doJob(pupp: any, opts: IPuppOpts): Promise<IChaseDownloadFileRet[]>{
+export async function doJob(pupp: IPuppWrapper, opts: IPuppOpts): Promise<IChaseDownloadFileRet[]>{
     const log = opts.log;
     const creds = opts.creds;  
     await pupp.loadCookies('jxchase');
@@ -102,7 +102,7 @@ export async function doJob(pupp: any, opts: IPuppOpts): Promise<IChaseDownloadF
     //await signIn.evaluate(b => b.click());
     //await pupp.page.waitForSelector('[id=signIn111]');
     await sleep(1000);
-    await signIn.click();
+    await signIn?.click();
 
     const accountsSelector = "[class='AccountItems list-view-tour'] li div span.AccountName a[name$='details']";
     await waitElement({
@@ -132,7 +132,7 @@ export async function doJob(pupp: any, opts: IPuppOpts): Promise<IChaseDownloadF
     }
     
     await sleep(1000);
-    await found.click();
+    await found?.click();
 
     
 
@@ -153,6 +153,7 @@ export async function doJob(pupp: any, opts: IPuppOpts): Promise<IChaseDownloadF
     async function findDropdownAndSelect(sel: string, act: (prm: ISelectPrms)=>Promise<boolean>, desc: string) {
         log(`tring to find dropdown ${desc}`);
         const dropdown = await waitAndFindOneCss(sel);
+        if (!dropdown) throw 'cant find dropdown ' + desc;
         //log('got download', !!dropdown)
         const options = await dropdown.$$('option');
         //log('got options', options?.length);
@@ -163,15 +164,17 @@ export async function doJob(pupp: any, opts: IPuppOpts): Promise<IChaseDownloadF
             val: '',
             selected: '',
         };
-        for (let i = 0; i < options.length; i++) {
-            const txt = await pupp.getElementText(options[i]);
-            const val = await (await options[i].getProperty("value")).jsonValue();
-            log(`at ${i} ${txt} ${val}`);
-            prms.position = i;
-            prms.txt = txt;
-            prms.val = val;
-            if (await act(prms)) break;            
-        }        
+        if (options) {
+            for (let i = 0; i < options.length; i++) {
+                const txt = await pupp.getElementText(options[i]);
+                const val = await (await options[i].getProperty("value")).jsonValue() as string;
+                log(`at ${i} ${txt} ${val}`);
+                prms.position = i;
+                prms.txt = txt;
+                prms.val = val;
+                if (await act(prms)) break;
+            }
+        }
         if (prms.selected) {
             //log('selecting ', prms.selected);
             await dropdown.select(prms.selected);

@@ -1,4 +1,4 @@
-import { createPuppeteer } from '../lib/chromPupp';
+import { createPuppeteer, IPuppWrapper } from '../lib/chromPupp';
 export type ILog = (...args: any[]) => void;
 
 
@@ -20,7 +20,7 @@ export interface IPuppOpts {
     timeout?: number;
 }
 
-export type IGenDoJob = (pupp: any, opts: IPuppOpts) => Promise<any>
+export type IGenDoJob = (pupp: IPuppWrapper, opts: IPuppOpts) => Promise<any>
 
 export interface IActualPuppConfig {
     defaultViewport: {
