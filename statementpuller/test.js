@@ -3,7 +3,7 @@
 //const cashapp = require('./cashapp');
 //const db = require('../api/lib/db');
 const boax = require('./boax');
-const boax = require('./chasex');
+const chasex = require('./chasex');
 const fs = require('fs');
 
 //const sub = require('./lib/submit');
@@ -30,7 +30,10 @@ test(false,true);
 
 async function test() {
     try {
-        await boax.processChaseX(s => {
+        return await boax.processBoaX(s => {
+            console.log(`==>${s}`);
+        })
+        await chasex.processChaseX(s => {
             console.log(`==>${s}`);
         }, {
             defaultViewport: {
@@ -41,9 +44,7 @@ async function test() {
             headless: false,
         });
         return;
-        await boax.processBoaX(s => {
-            console.log(`==>${s}`);
-        })
+        
     } catch (err) {
         console.log(err);
     }

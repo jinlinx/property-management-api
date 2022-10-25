@@ -1,15 +1,12 @@
 import moment from 'moment';
 import * as bluebird from 'bluebird';
-const path = require('path');
-const fs = require('fs');
 const csvParse = require('csv-parse/sync');
 const axios = require('axios');
 const { sleep, waitElement,
 } = require('../lib/util');
 
 import {  IPuppOpts, ILog } from './genProc';
-const { sign } = require('crypto');
-
+import { IPuppWrapper } from '../lib/chromPupp';
 
 
 
@@ -23,7 +20,7 @@ export interface IBoaDownloadFileRet {
     amount: number;
 }
 
-export async function doJob(pupp: any, opts: IPuppOpts): Promise<IBoaDownloadFileRet[]>{
+export async function doJob(pupp: IPuppWrapper, opts: IPuppOpts): Promise<IBoaDownloadFileRet[]>{
     const log = opts.log;
     const creds = opts.creds;
     const saveScreenshoot = () => pupp.screenshot('outputData/test.png');    
@@ -66,7 +63,7 @@ export async function doJob(pupp: any, opts: IPuppOpts): Promise<IBoaDownloadFil
     //await signIn.evaluate(b => b.click());
     //await pupp.page.waitForSelector('[id=signIn111]');
     await bluebird.Promise.delay(1000);
-    await signIn.click();
+    await signIn?.click();
 
     const accountsSelector = "[class='AccountItems list-view-tour'] li div span.AccountName a[name$='details']";
     await waitElement({
@@ -96,7 +93,7 @@ export async function doJob(pupp: any, opts: IPuppOpts): Promise<IBoaDownloadFil
     }
     
     await bluebird.Promise.delay(1000);
-    await found.click();
+    await found?.click();
 
     const waitAndFindOneCss = async (sel:string) => {
         await pupp.page.waitForSelector(sel);
@@ -134,6 +131,7 @@ export async function doJob(pupp: any, opts: IPuppOpts): Promise<IBoaDownloadFil
         log(`tring to find dropdown ${desc}`);
         const dropdown = await waitAndFindOneCss(sel);
         //log('got download', !!dropdown)
+        if (!dropdown) throw 'dropdown not found ' + desc;
         const options = await dropdown.$$('option');
         //log('got options', options?.length);
         const prms: ISelectPrms = {
@@ -145,7 +143,7 @@ export async function doJob(pupp: any, opts: IPuppOpts): Promise<IBoaDownloadFil
         };
         for (let i = 0; i < options.length; i++) {
             const txt = await pupp.getElementText(options[i]);
-            const val = await (await options[i].getProperty("value")).jsonValue();
+            const val = await (await options[i].getProperty("value")).jsonValue() as string;
             log(`at ${i} ${txt} ${val}`);
             prms.position = i;
             prms.txt = txt;
@@ -253,11 +251,12 @@ export async function doJob(pupp: any, opts: IPuppOpts): Promise<IBoaDownloadFil
         }
         return r;
     }) as IBoaDownloadFileRet[];
-    //log('done', csvRes);    
+    //log('done', csvRes);
     //await waitForDownload(pupp);
     //await Promise.delay(6000000);
 
-    //await pupp.page.waitForSelector('[id=signIn111]');    
+    //await pupp.page.waitForSelector('[id=signIn111]');
+    pupp.saveCookies('boa')
     return csvRes;
 }
 

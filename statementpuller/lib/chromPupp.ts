@@ -89,10 +89,11 @@ export async function createPuppeteer(props: any): Promise<IPuppWrapper> {
         saveCookies: async (name: string) => {
             //const cookies = await page.cookies();
             const client = await page.target().createCDPSession();
-            const cookies = await client.send('Network.getAllCookies');
-            console.log('orig cookies', cookies);
-            const cookieSorted = sortBy(cookies, ['name']);
-            console.log('sorted cookies', cookies);
+            const cookiesWrapped = await client.send('Network.getAllCookies');
+            //await fs.writeFileSync(cookieDir('unsorted_'+name), JSON.stringify(cookies, null, 2));
+            //console.log('orig cookies', cookies);
+            const cookieSorted = sortBy(cookiesWrapped.cookies, ['name']);
+            //console.log('sorted cookies', cookies);
             await fs.writeFileSync(cookieDir(name), JSON.stringify(cookieSorted, null, 2));
         }
     };
