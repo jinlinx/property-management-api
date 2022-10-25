@@ -22,13 +22,22 @@ export interface IPuppOpts {
 
 export type IGenDoJob = (pupp: any, opts: IPuppOpts) => Promise<any>
 
+export interface IActualPuppConfig {
+    defaultViewport: {
+        width: number;
+        height: number;
+        isMobile: boolean;
+    },
+    headless: boolean;
+}
 export interface IPuppExecOpts extends IPuppOpts {
     doJob: IGenDoJob;
+    puppConfig?: IActualPuppConfig;
 }
 
 export async function genProcess(opts: IPuppExecOpts) {    
     const timeout = opts.timeout || 1000 * 60 * 5;
-    const pupp = await createPuppeteer();    
+    const pupp = await createPuppeteer(opts.puppConfig);    
     const log = opts.log || ((...x) => console.log(...x));
     const doJob = opts.doJob;
     if (processingStatus.status) {
