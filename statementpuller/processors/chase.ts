@@ -191,7 +191,7 @@ export async function doJob(pupp: IPuppWrapper, opts: IPuppOpts): Promise<IChase
         }
     }
 
-    loopDebug(pupp, opts, rows);
+    await loopDebug(pupp, opts, rows);
     log('all done');
     
     await sleep(300000);
