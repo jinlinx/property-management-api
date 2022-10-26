@@ -183,7 +183,7 @@ export async function doJob(pupp: IPuppWrapper, opts: IPuppOpts): Promise<IChase
                     ele = td;
             }           
             if (ele != null) {
-                const inn = await pupp.getElementText(td);
+                const inn = await pupp.getElementTextContent(td);
                 console.log('inner is ', inn);
             }
         }

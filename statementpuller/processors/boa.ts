@@ -82,7 +82,7 @@ export async function doJob(pupp: IPuppWrapper, opts: IPuppOpts): Promise<IBoaDo
     
     const list = await pupp.findAllByCss(accountsSelector);
     for (let i = 0; i < list.length; i++) {
-        const txt = await pupp.getElementText(list[i]);
+        const txt = await pupp.getElementHtml(list[i]);
         log(`at ${i} ${txt}, matching ${creds.matchAccountName}`);
         const reg = new RegExp(creds.matchAccountName);
         if (txt.match(reg)) {
@@ -142,7 +142,7 @@ export async function doJob(pupp: IPuppWrapper, opts: IPuppOpts): Promise<IBoaDo
             selected: '',
         };
         for (let i = 0; i < options.length; i++) {
-            const txt = await pupp.getElementText(options[i]);
+            const txt = await pupp.getElementHtml(options[i]);
             const val = await (await options[i].getProperty("value")).jsonValue() as string;
             log(`at ${i} ${txt} ${val}`);
             prms.position = i;
@@ -173,7 +173,7 @@ export async function doJob(pupp: IPuppWrapper, opts: IPuppOpts): Promise<IBoaDo
     const options = await tranDropdown.$$('option');
     let secondVal = null;
     for (let i = 0; i < options.length; i++) {
-        const txt = await pupp.getElementText(options[i]);
+        const txt = await pupp.getElementHtml(options[i]);
         const val = await (await options[i].getProperty("value")).jsonValue();
         const tm = moment(txt);
         if (tm.isValid()) {

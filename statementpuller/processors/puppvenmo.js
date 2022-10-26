@@ -151,7 +151,7 @@ async function getStatements(pupp, log) {
     const recTryTxt = async (itm, css) => {
         for (let i = 0; i < 3; i++) {
             try {
-                return await pupp.getElementText(itm, css);
+                return await pupp.getElementHtml(itm, css);
             } catch (e) {
                 if (i === 2) throw e;
                 console.log(`Retrying ${i} for ${css}`);
@@ -168,7 +168,7 @@ async function getStatements(pupp, log) {
         //        console.log(await f.getAttribute('innerHTML')); 
         //    });        
         //}
-        const dateStr = await pupp.getElementText(itm, '.item-date > a > span');
+        const dateStr = await pupp.getElementHtml(itm, '.item-date > a > span');
         const date = moment(dateStr,'MM-DD-YYYY').format('YYYY-MM-DD')
         log(date);
         let titles = [];
@@ -178,15 +178,15 @@ async function getStatements(pupp, log) {
             //     const css = await readOneLine('enter css');
             //     console.log(css);
             //     try {
-            //         const title2 = await pupp.getElementText(itm, css);
+            //         const title2 = await pupp.getElementHtml(itm, css);
             //         console.log(title2);
-            //         const stitle = await pupp.getElementText(itm, '.item-title > span');
+            //         const stitle = await pupp.getElementHtml(itm, '.item-title > span');
             //         console.log(stitle);
             //     } catch (e) {
             //         console.log(e);
             //     }
             // }
-            //const ttt = await pupp.getElementText(itm, '.item-title');
+            //const ttt = await pupp.getElementHtml(itm, '.item-title');
             //console.log(`ttt= ${ttt}`);
             const title = await recTryTxt(itm, '.item-title > span');
             log(title);
@@ -195,7 +195,7 @@ async function getStatements(pupp, log) {
             log(' titleType1=>' + names[1] + ',' + cleanHtml(names[2]) + ', ' + names[3]);
         } catch(e) {
             log('debug title for span failed ' + e.message);
-            const title = await pupp.getElementText(itm, '.item-title');
+            const title = await pupp.getElementHtml(itm, '.item-title');
             titles[0] = cleanHtml(title);
             log(' titleType2=>' + titles[0]);
         }
@@ -204,11 +204,11 @@ async function getStatements(pupp, log) {
             subTitle = cleanSpan(subTitle);
             console.log('subtitle1=>' + subTitle);
         } catch {
-            const subtitle = await pupp.getElementText(itm, '.item-subtitle');
+            const subtitle = await pupp.getElementHtml(itm, '.item-subtitle');
             subTitle = cleanHtml(subtitle);            
             console.log('subtitle2=>' + subTitle);
         }
-        const amountStr = await pupp.getElementText(itm, '.item-delta-text');
+        const amountStr = await pupp.getElementHtml(itm, '.item-delta-text');
         const amount = cleanHtml(amountStr).replace(/,/g, '').replace(/[$]/g, '');
         const famount = parseFloat(amount);
         log('amt' + amount);

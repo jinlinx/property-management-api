@@ -18,7 +18,8 @@ export interface IPuppWrapper {
     setTextBy: (what: string, sel: string, text: string) => Promise<void>;
     setTextById: (id: string, text: string) => Promise<void>;
     setTextByName: (name: string, text: string) => Promise<void>;
-    getElementText: (e: any, css?: string) => Promise<any>;
+    getElementHtml: (e: any, css?: string) => Promise<any>;
+    getElementTextContent: (e: any, css?: string) => Promise<any>;
     screenshot: (path: string) => Promise<string | Buffer>;
     loadCookies: (name: string) => Promise<void>;
     saveCookies: (name: string) => Promise<void>;
@@ -74,11 +75,18 @@ export async function createPuppeteer(props: any): Promise<IPuppWrapper> {
         setTextBy,
         setTextById: (id: string, text: string) => setTextBy('id', id, text),
         setTextByName: (name: string, text: string) => setTextBy('name', name, text),
-        getElementText: async (e: puppeteer.ElementHandle<Element>, css?: string) => {
+        getElementHtml: async (e: puppeteer.ElementHandle<Element>, css?: string) => {
             //const ddd = await page.evaluate(el => el.innerHTML, e);
             //console.log(ddd);
             const ele = css ? await e.$(css) : e;
             const attr = await page.evaluate(el => el.innerHTML, ele);
+            return attr;
+        },
+        getElementTextContent: async (e: puppeteer.ElementHandle<Element>, css?: string) => {
+            //const ddd = await page.evaluate(el => el.innerHTML, e);
+            //console.log(ddd);
+            const ele = css ? await e.$(css) : e;
+            const attr = await page.evaluate(el => el.textContent, ele);
             return attr;
         },
         screenshot: (path: string) => page.screenshot({ path }),
