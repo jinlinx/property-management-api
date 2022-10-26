@@ -91,7 +91,8 @@ export async function doJob(pupp: IPuppWrapper, opts: IPuppOpts): Promise<IChase
     }
 
     await sleep(2000);
-    //CheckLogin();
+    let codeUsed = false;
+    //await CheckLogin();
     const inAccountCss = '[id=accountCurrentBalanceLinkWithReconFlyoutValue]';
     await waitElement({
         message: 'waiting for login or code',
@@ -119,6 +120,7 @@ export async function doJob(pupp: IPuppWrapper, opts: IPuppOpts): Promise<IChase
             await waitAndFindOneCss(`[id=${codePwdCssId}]`);
             log('set text by id');
             await pupp.setTextById(codePwdCssId, opts.creds.password);
+            codeUsed = true;
             
         }
     });
@@ -130,7 +132,16 @@ export async function doJob(pupp: IPuppWrapper, opts: IPuppOpts): Promise<IChase
     log('waiting for account');
     await pupp.page.waitForSelector(inAccountCss);
     log('got account');
-    await pupp.saveCookies('jxchase_acct')
+    if (codeUsed) {
+        await sleep(3000);
+        log('saved account');
+        await pupp.saveCookies('jxchase');
+        await sleep(3000);
+        await pupp.saveCookies('jxchase_acct');
+        log('saved acct account');
+    } else {
+        log('Non code path');
+    }
     await sleep(300000);
     const res: IChaseDownloadFileRet[] = [];
     return res;
