@@ -1,13 +1,14 @@
 import moment from 'moment';
-const csvParse = require('csv-parse/sync');
-const axios = require('axios');
+//const csvParse = require('csv-parse/sync');
+//const axios = require('axios');
 const { sleep, waitElement,
 } = require('../lib/util');
 
+import vm from 'vm';
 import {  IPuppOpts, ILog } from './genProc';
 import {  IPuppWrapper } from '../lib/chromPupp';
 import { ElementHandle } from 'puppeteer';
-
+import fs from 'fs';
 
 
 
@@ -190,6 +191,7 @@ export async function doJob(pupp: IPuppWrapper, opts: IPuppOpts): Promise<IChase
         }
     }
 
+    loopDebug(pupp, opts, rows);
     log('all done');
     
     await sleep(300000);
@@ -198,6 +200,28 @@ export async function doJob(pupp: IPuppWrapper, opts: IPuppOpts): Promise<IChase
 
 }
 
+async function loopDebug(pupp: IPuppWrapper, opts: IPuppOpts, elements: ElementHandle<Element>[]) {    
+    const context = vm.createContext({});    
+    context.pupp = pupp;
+    context.opts = opts;
+    context.elements = elements;
+    const TEMP_FILE_NAME = './temp/test.js';
+    while (true) {
+        await sleep(2000);
+        try {
+            if (fs.existsSync(TEMP_FILE_NAME)) {
+                const runStr = fs.readFileSync('./temp/test.js').toString();
+                if (runStr) {
+                    opts.log('running');
+                    vm.runInContext(runStr, context);
+                    opts.log('done running');
+                }
+            }
+        } catch (err) {
+            console.log('error happened', err);
+        }
+    }
+}
 
 function getDownloadPath(log: ILog) {
     const downloadPath = process.env.DOWNLOAD_PATH || '/temp';
