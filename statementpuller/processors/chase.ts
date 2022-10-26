@@ -142,6 +142,18 @@ export async function doJob(pupp: IPuppWrapper, opts: IPuppOpts): Promise<IChase
     } else {
         log('Non code path');
     }
+
+    await sleep(2000);
+    await findAndClickButton('[id=singleSummaryAccountName] h2 mds-link', 'expanding');
+
+    const dataRowSel = '[id=activityTableslideInActivity] tbody tr';
+    const rows = await pupp.page.$$(dataRowSel);
+
+    for (let r of rows) {
+        const inn = await pupp.getElementText(r);
+        console.log('inner is ',inn);
+    }
+    
     await sleep(300000);
     const res: IChaseDownloadFileRet[] = [];
     return res;
