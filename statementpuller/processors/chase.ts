@@ -6,6 +6,7 @@ const { sleep, waitElement,
 
 import {  IPuppOpts, ILog } from './genProc';
 import {  IPuppWrapper } from '../lib/chromPupp';
+import { ElementHandle } from 'puppeteer';
 
 
 
@@ -145,14 +146,50 @@ export async function doJob(pupp: IPuppWrapper, opts: IPuppOpts): Promise<IChase
 
     await sleep(2000);
     await findAndClickButton('[id=singleSummaryAccountName] h2 mds-link', 'expanding');
-
+    log('done clicking expanding');
     const dataRowSel = '[id=activityTableslideInActivity] tbody tr';
+    await sleep(1000);
+    log('waitting for dataRows ' + dataRowSel);
+    await pupp.page.waitForSelector(dataRowSel);
     const rows = await pupp.page.$$(dataRowSel);
 
     for (let r of rows) {
-        const inn = await pupp.getElementText(r);
-        console.log('inner is ',inn);
+        const tds = await r.$$('td');
+        log('new Row------------------------------');
+        for (let tdi = 0; tdi < tds.length; tdi++) {
+            const td = tds[tdi];
+            let ele: ElementHandle<Element> | null = null;
+            /*
+            <td class="date BODY grouped-date" data-th="Date" tabindex="-1"> 0
+                <span class="column-info">Oct 5, 2022</span>
+            </td>
+            <td class="description has-expand BODY" data-th="Description" tabindex="-1">  
+                <span class="show-xs hide-sm BODY column-info">LOWES xxx </span> 
+                    <div class="small-seedetail-link">
+                        <span class="hide-xs show-sm BODY">LOWES*  </span>
+                    </div>
+                    <div class="transaction-detail-section"></div>
+            </td>
+            <td class="category BODY" data-th="Category">
+               <span class="BODY category-dropdown">
+               <div class="inline-content"><mds-link class="drop-link mds-link--bcb" id="categoryLink_202210051829042220928#20220928" text="Home" accessible-text=", opens menu" data-categoryid="HOME" end-icon="ico_chevron_down" data-transactionindex="40" data-transactionid="202210051829042220928#20220928" is-button="false" href="javascript:void(0)" underline="false" accessible-text-prefix="" tab-focusable="true" inverse="false" leading-pipe="false" trailing-pipe="false" inactive="false" truncation="none"></mds-link></div></span>     </td><td class="sm-aligned-right amount BODY" data-th="Amount" tabindex="-1">    <span class="column-info">$10.44</span>     </td> <td class="util aligned right print-hide BODY etd-xs-link" data-th="Action"> <mds-button class="etd-action-icon mds-button--bcb" icon-accessible-description="See details about this transaction" accessible-text="See details about this transaction" icon-position="icon_only" icon-type="ico_chevron_right" id="transactionDetailIcon-slideInActivity-40" variant="tertiary" width-type="content" small="false" inactive="false" tab-focusable="true" type="button" inverse="false"></mds-button></td>
+            */
+            switch (tdi) {
+                case 0:
+                case 1:
+                    //ele = await td.$('span');
+                    //break;
+                default:
+                    ele = td;
+            }           
+            if (ele != null) {
+                const inn = await pupp.getElementText(td);
+                console.log('inner is ', inn);
+            }
+        }
     }
+
+    log('all done');
     
     await sleep(300000);
     const res: IChaseDownloadFileRet[] = [];
