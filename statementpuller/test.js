@@ -28,23 +28,22 @@ return submit.submit(trans).then(async () => {
 
 test(false,true);
 
+const stdPrms = [s => {
+    console.log(`==>${s}`);
+}, {
+    defaultViewport: {
+        width: 1224,
+        height: 768,
+        isMobile: false,
+    },
+    headless: false,
+}, 1000 * 60 * 120];
 async function test() {
     try {
         
-        await chasex.processChaseX(s => {
-            console.log(`==>${s}`);
-        }, {
-            defaultViewport: {
-                width: 1224,
-                height: 768,
-                isMobile: false,
-            },
-            headless: false,
-        }, 1000*60*10);
+        await chasex.processChaseX(...stdPrms);
         return;
-        return await boax.processBoaX(s => {
-            console.log(`==>${s}`);
-        })
+        return await boax.processBoaX(...stdPrms)
     } catch (err) {
         console.log(err);
     }
