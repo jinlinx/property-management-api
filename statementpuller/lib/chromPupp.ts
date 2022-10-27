@@ -23,6 +23,7 @@ export interface IPuppWrapper {
     screenshot: (path: string) => Promise<string | Buffer>;
     loadCookies: (name: string) => Promise<void>;
     saveCookies: (name: string) => Promise<void>;
+    getAttribute: (ele: puppeteer.ElementHandle<Element>, clsName: string)=> Promise<any>;
 }
 
 export async function createPuppeteer(props: any): Promise<IPuppWrapper> {
@@ -60,6 +61,9 @@ export async function createPuppeteer(props: any): Promise<IPuppWrapper> {
     };
     const findBy = (what: string, sel: string) => page.$(`[${what}=${sel}]`);
     const setTextBy = (what: string, sel: string, text: string) => setText(`[${what}=${sel}]`, text);
+    const getAttribute = async (ele: puppeteer.ElementHandle<Element>, clsName:string) => {
+        await page.evaluate(el => el.getAttribute(clsName), ele)
+    }
     return {
         browser,
         page,
@@ -90,6 +94,7 @@ export async function createPuppeteer(props: any): Promise<IPuppWrapper> {
             return attr;
         },
         screenshot: (path: string) => page.screenshot({ path }),
+        getAttribute,
         loadCookies: async (name: string) => {
             let cookies = null;
             try {

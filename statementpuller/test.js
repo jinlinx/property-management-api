@@ -40,7 +40,7 @@ async function test() {
                 isMobile: false,
             },
             headless: false,
-        });
+        }, 1000*60*10);
         return;
         return await boax.processBoaX(s => {
             console.log(`==>${s}`);
