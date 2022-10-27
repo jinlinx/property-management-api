@@ -26,8 +26,6 @@ return submit.submit(trans).then(async () => {
 })
 */
 
-test(false,true);
-
 const stdPrms = [s => {
     console.log(`==>${s}`);
 }, {
@@ -37,8 +35,10 @@ const stdPrms = [s => {
         isMobile: false,
     },
     headless: false,
-}, 1000 * 60 * 120];
+    }, 1000 * 60 * 120];
+
 async function test() {
+    console.log('prms',...stdPrms);
     try {
         
         await chasex.processChaseX(...stdPrms);
@@ -48,6 +48,8 @@ async function test() {
         console.log(err);
     }
 }
+
+test();
 
 
 

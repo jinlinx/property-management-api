@@ -50,8 +50,8 @@ export async function doJob(pupp: IPuppWrapper, opts: IPuppOpts): Promise<IChase
     await frame.waitForSelector(loginBoxCss);
     log('found login user name field');
     await sleep(3000);
-    await frame.type('[id=userId-text-input-field]', creds.userName, { delay: 200 });
-    await frame.type('[id=password-text-input-field]', creds.password, { delay: 200 });
+    await frame.type('[id=userId-text-input-field]', creds.userName, { delay: 100 });
+    await frame.type('[id=password-text-input-field]', creds.password, { delay: 100 });
     //await pupp.setTextById('userId-text-input-field', creds.userName);
     //await pupp.setTextById('password-text-input-field', creds.password);
 

@@ -63,7 +63,7 @@ export async function createPuppeteer(props: any): Promise<IPuppWrapper> {
     const findBy = (what: string, sel: string) => page.$(`[${what}=${sel}]`);
     const setTextBy = (what: string, sel: string, text: string) => setText(`[${what}=${sel}]`, text);
     const getAttribute = async (ele: puppeteer.ElementHandle<Element>, clsName:string) => {
-        await page.evaluate((el,clsName) => el.getAttribute(clsName), ele, clsName)
+        return await page.evaluate((el,clsName) => el.getAttribute(clsName), ele, clsName)
     }
     const getProperty = async (ele: puppeteer.ElementHandle<Element>, name: string) => {
         return page.evaluate((el, sel) => el[sel], ele, name);
