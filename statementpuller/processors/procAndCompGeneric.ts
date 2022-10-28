@@ -9,6 +9,8 @@ import {
     IPuppExecOpts,
 } from './genProc';
 
+import {  IGenDownloadFileRet } from './gens'
+
 
 
 export interface IDateAmount {
@@ -25,8 +27,8 @@ export async function getGenDataAndCompareUpdateSheet(opts: IPuppExecOpts) {
     const dbData = await loadSheetData(creds);    
     log('Loaded sheet data')
     const res = doBoaDataCmp(dbData, newData).filter(m => !m.matchedTo).map(m => m.data).filter(m => m.date !== 'Invalid date');
-    const appendData = res.map(m => {
-        return [m.date, 'Card', -(m.amount || 0), '', 'Supplies', m.payee, m.reference || '']
+    const appendData = (res as IGenDownloadFileRet[]).map(m => {
+        return [m.date, m.processor || 'Card', (m.amount || 0), (m as any)['address'] || '', m.category || 'Supplies', m.payee, m.reference || '']
     });
     log(`Appending ${JSON.stringify(appendData)}`);
     await appendSheet(creds.sheetID, `${creds.tabName}!A:G`, appendData)
@@ -63,7 +65,7 @@ function getDataComper(dbData: IHouseData[], newData: IHouseData[]) {
                 //"payee": "Payee",
                 //"address": "Address",
                 //amount
-                return `${data.date}-${-(data.amount || 0)}-`;
+                return `${data.date}-${(data.amount || 0)}-`;
             }
         },
     };

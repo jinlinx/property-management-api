@@ -146,7 +146,9 @@ export async function doJob(pupp: IPuppWrapper, opts: IPuppOpts): Promise<IGenDo
     for (let r of rows) {
         const tds = await r.$$('td');
         //log('new Row------------------------------');
-        const data = {} as IGenDownloadFileRet;
+        const data = {
+            processor: 'AutoImport Chase Card',
+        } as IGenDownloadFileRet;
         for (let tdi = 0; tdi < tds.length; tdi++) {
             const td = tds[tdi];
             /*
@@ -189,15 +191,16 @@ export async function doJob(pupp: IPuppWrapper, opts: IPuppOpts): Promise<IGenDo
             } else if (clsName.match(/description/)) {
                 const sp = await td.$('span')
                 const desc = (await pupp.getElementTextContent(sp));
-                const outer = await pupp.getProperty(td, 'outerHTML');
-                data.payee = desc?.trim();
+                //const outer = await pupp.getProperty(td, 'outerHTML');
+                data.payee = desc?.trim();                
                 //opts.log('===== desc ' + data.desc);
-            }
-            allRows.push(data);
-        }
+            }            
+        }        
+        if (data.payee === 'AUTOMATIC PAYMENT - THANK') continue;
+        allRows.push(data);
     }
 
-    await loopDebug(pupp, opts, rows);
+    //await loopDebug(pupp, opts, rows);
     log('all done');
     return allRows;
 

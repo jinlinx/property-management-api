@@ -1,10 +1,13 @@
+///
+/// To generate new chase token, go to chase.tx and uncomment await loopDebug(pupp, opts, rows);, 
+//                               run await chasex.processChaseX(...stdPrms);
+
 //const paypal = require('./paypal');
 //const venmo = require('./venmo');
 //const cashapp = require('./cashapp');
 //const db = require('../api/lib/db');
 const boax = require('./boax');
 const chasex = require('./chasex');
-const fs = require('fs');
 
 //const sub = require('./lib/submit');
 //return sub.sendReadyToImportPaymentEmail(); //comment out for ts

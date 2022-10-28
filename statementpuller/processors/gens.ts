@@ -15,6 +15,7 @@ export interface IGenDownloadFileRet {
     payee: string;
     amount: number;
     category: string;
+    processor: string;
 }
 
 

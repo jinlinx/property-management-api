@@ -240,8 +240,10 @@ export async function doJob(pupp: IPuppWrapper, opts: IPuppOpts): Promise<IBoaDo
         reference: r[1],
         payee: r[2],
         address: r[3],
-        amount: parseFloat(r[4]),
-    })).map((r: IBoaDownloadFileRet) => {
+        category: 'Supplies',
+        amount: -parseFloat(r[4]),
+        processor: 'AutoImport BOA Card',
+    } as IBoaDownloadFileRet)).map((r: IBoaDownloadFileRet) => {
         if (r.payee === 'PAYMENT - THANK YOU') {
             return {
                 ...r,
