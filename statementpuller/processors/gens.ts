@@ -2,6 +2,7 @@ import moment from 'moment';
 //const csvParse = require('csv-parse/sync');
 //const axios = require('axios');
 const { sleep, waitElement, } = require('../lib/util');
+import axios from 'axios';
 
 import vm from 'vm';
 import { IPuppOpts, ILog } from './genProc';
@@ -24,6 +25,7 @@ export async function loopDebug(pupp: IPuppWrapper, opts: IPuppOpts, elements: E
     context.pupp = pupp;
     context.opts = opts;
     context.moment = moment;
+    context.axios = axios;
     context.elements = elements;
     const TEMP_FILE_NAME = './temp/test.js';
     let lastFileDate = 0;

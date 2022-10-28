@@ -50,10 +50,12 @@ export async function doJob(pupp: IPuppWrapper, opts: IPuppOpts): Promise<IBoaDo
             }            
         }
     });
-    await sleep(3000);
-    await pupp.setTextById('onlineId1', creds.userName);
+    await sleep(4000);
+    //await pupp.setTextById('onlineId1', creds.userName);
+    await pupp.page.type('[id=onlineId1]', creds.userName, { delay: 100 });
     log('set onlind id, trying passcode1')
-    await pupp.setTextById('passcode1', creds.password);
+    //await pupp.setTextById('passcode1', creds.password);
+    await pupp.page.type('[id=passcode1]', creds.password, { delay: 100 });
     //log('set ', creds.userName, creds.password);
     //const signIn = await pupp.findById('signIn');
     //await signIn.click();
