@@ -139,8 +139,16 @@ export async function doJob(pupp: IPuppWrapper, opts: IPuppOpts): Promise<IGenDo
     const dataRowSel = '[id=activityTableslideInActivity] tbody tr';
     await sleep(1000);
     log('waitting for dataRows ' + dataRowSel);
-    await pupp.page.waitForSelector(dataRowSel);
-    const rows = await pupp.page.$$(dataRowSel);
+    let hasRows = true;
+    try {
+        await pupp.page.waitForSelector(dataRowSel, {
+            timeout: 5000,
+        });
+    } catch {
+        hasRows = false;
+        log('no current transactions');
+    }
+    const rows = hasRows? await pupp.page.$$(dataRowSel) : [];
 
     const allRows: IGenDownloadFileRet[] = [];
     for (let r of rows) {
@@ -200,7 +208,9 @@ export async function doJob(pupp: IPuppWrapper, opts: IPuppOpts): Promise<IGenDo
         allRows.push(data);
     }
 
-    //await loopDebug(pupp, opts, rows);
+    if (opts.debug) {
+        await loopDebug(pupp, opts, rows);
+    }
     log('all done');
     return allRows;
 

@@ -38,7 +38,7 @@ const stdPrms = [s => {
         isMobile: false,
     },
     headless: false,
-    }, 1000 * 60 * 120];
+    }, 1000 * 60 * 120, true];
 
 async function test() {
     console.log('prms',...stdPrms);

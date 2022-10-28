@@ -18,6 +18,7 @@ export interface IPuppOpts {
     log: ILog;
     creds: ICreds;
     timeout?: number;
+    debug?: boolean;
 }
 
 export type IGenDoJob = (pupp: IPuppWrapper, opts: IPuppOpts) => Promise<any>
@@ -32,7 +33,7 @@ export interface IActualPuppConfig {
 }
 export interface IPuppExecOpts extends IPuppOpts {
     doJob: IGenDoJob;
-    puppConfig?: IActualPuppConfig;
+    puppConfig?: IActualPuppConfig;    
 }
 
 export async function genProcess(opts: IPuppExecOpts) {    
