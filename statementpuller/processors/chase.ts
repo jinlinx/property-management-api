@@ -9,7 +9,7 @@ import {  IPuppOpts, ILog } from './genProc';
 import {  IPuppWrapper } from '../lib/chromPupp';
 import { ElementHandle } from 'puppeteer';
 import fs from 'fs';
-
+import { IGemDownloadFileRet } from './gens';
 
 
 export interface IChaseDownloadFileRet {
@@ -157,6 +157,7 @@ export async function doJob(pupp: IPuppWrapper, opts: IPuppOpts): Promise<IChase
     for (let r of rows) {
         const tds = await r.$$('td');
         log('new Row------------------------------');
+        const data: IGemDownloadFileRet = {} as IGemDownloadFileRet;
         for (let tdi = 0; tdi < tds.length; tdi++) {
             const td = tds[tdi];
             let ele: ElementHandle<Element> | null = null;
@@ -175,18 +176,34 @@ export async function doJob(pupp: IPuppWrapper, opts: IPuppOpts): Promise<IChase
                <span class="BODY category-dropdown">
                <div class="inline-content"><mds-link class="drop-link mds-link--bcb" id="categoryLink_202210051829042220928#20220928" text="Home" accessible-text=", opens menu" data-categoryid="HOME" end-icon="ico_chevron_down" data-transactionindex="40" data-transactionid="202210051829042220928#20220928" is-button="false" href="javascript:void(0)" underline="false" accessible-text-prefix="" tab-focusable="true" inverse="false" leading-pipe="false" trailing-pipe="false" inactive="false" truncation="none"></mds-link></div></span>     </td><td class="sm-aligned-right amount BODY" data-th="Amount" tabindex="-1">    <span class="column-info">$10.44</span>     </td> <td class="util aligned right print-hide BODY etd-xs-link" data-th="Action"> <mds-button class="etd-action-icon mds-button--bcb" icon-accessible-description="See details about this transaction" accessible-text="See details about this transaction" icon-position="icon_only" icon-type="ico_chevron_right" id="transactionDetailIcon-slideInActivity-40" variant="tertiary" width-type="content" small="false" inactive="false" tab-focusable="true" type="button" inverse="false"></mds-button></td>
             */
-            switch (tdi) {
-                case 0:
-                case 1:
-                    //ele = await td.$('span');
-                    //break;
-                default:
-                    ele = td;
-            }           
-            if (ele != null) {
-                const text = await pupp.getElementTextContent(td);
-                const html = await pupp.getElementHtml(td);
-                console.log('inner is ' + text+'\nhtml='+html);
+            const clsName = await pupp.getAttribute(td, 'class');
+            //class="drop-link mds-link--bcb" id="categoryLink_202210241741135220928#20220928"
+            //text = "Food &amp; drink" accessible - text=", opens menu" data - categoryid="FOOD" end - icon="ico_chevron_down" data - transactionindex="1" data - transactionid="202210241741135220928#20220928" is - button="false" href = "javascript:void(0)" underline = "false" accessible - text - prefix="" tab - focusable="true" inverse = "false" leading - pipe="false" trailing
+            //opts.log('mds outerHTML====' + await pupp.getProperty(mds, 'outerHTML'));
+            //opts.log('===== class ' + i + " " + clsName);
+            if (clsName.match(/date/)) {
+                const date = (await pupp.getElementTextContent(td)).trim()
+                data.date = moment(date).format('YYYY-MM-DD');
+                //opts.log('===== date ' + data.date);
+                //opts.log('===== date ' + moment(data.date).format('YYYY-MM-DD'));
+            } else if (clsName.match(/category/)) {
+                const mds = (await td.$('mds-link'));
+                if (mds) {
+                    data.category = await pupp.getAttribute(mds, 'text');
+                    data.reference = await pupp.getAttribute(mds, 'data-transactionid');
+                    //opts.log('===== category ' + data.category);
+                    //opts.log('===== data-transactionid ' + await pupp.getAttribute(mds, 'data-transactionid'));
+                }
+            } else if (clsName.match(/amount/)) {
+                const amount = (await pupp.getElementTextContent(td)).trim();
+                data.amount = parseFloat(amount.replace(/[$,]/g, ''));
+                //opts.log('===== amount ' + data.amount);
+            } else if (clsName.match(/description/)) {
+                const sp = await td.$('span')
+                const desc = (await pupp.getElementTextContent(sp));
+                const outer = await pupp.getProperty(td, 'outerHTML');
+                data.payee = desc?.trim();
+                //opts.log('===== desc ' + data.desc);
             }
         }
     }
@@ -204,12 +221,18 @@ async function loopDebug(pupp: IPuppWrapper, opts: IPuppOpts, elements: ElementH
     const context = vm.createContext({});    
     context.pupp = pupp;
     context.opts = opts;
+    context.moment = moment;    
     context.elements = elements;
     const TEMP_FILE_NAME = './temp/test.js';
+    let lastFileDate = 0;
     while (true) {
         await sleep(2000);
         try {
             if (fs.existsSync(TEMP_FILE_NAME)) {
+                const fstate = fs.statSync(TEMP_FILE_NAME);
+                const ftime = fstate.mtime.getTime();
+                if (ftime == lastFileDate) continue;
+                lastFileDate = ftime;
                 const runStr = fs.readFileSync('./temp/test.js').toString();
                 if (runStr) {
                     opts.log('running');

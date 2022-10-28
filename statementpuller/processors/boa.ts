@@ -8,16 +8,16 @@ const { sleep, waitElement,
 import {  IPuppOpts, ILog } from './genProc';
 import { IPuppWrapper } from '../lib/chromPupp';
 
+import { IGemDownloadFileRet  } from './gens';
 
 
 
-
-export interface IBoaDownloadFileRet {
-    date: string;
-    reference: string;
-    payee: string;
+export interface IBoaDownloadFileRet extends IGemDownloadFileRet {
+    //date: string;
+    //reference: string;
+    //payee: string;
     address: string;
-    amount: number;
+    //amount: number;
 }
 
 export async function doJob(pupp: IPuppWrapper, opts: IPuppOpts): Promise<IBoaDownloadFileRet[]>{
