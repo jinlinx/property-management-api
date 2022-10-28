@@ -1,26 +1,14 @@
 import moment from 'moment';
 //const csvParse = require('csv-parse/sync');
 //const axios = require('axios');
-const { sleep, waitElement,
-} = require('../lib/util');
+import { sleep, waitElement } from '../lib/util';
 
-import vm from 'vm';
 import {  IPuppOpts, ILog } from './genProc';
 import {  IPuppWrapper } from '../lib/chromPupp';
-import { ElementHandle } from 'puppeteer';
-import fs from 'fs';
-import { IGemDownloadFileRet } from './gens';
+import { IGenDownloadFileRet, loopDebug } from './gens';
 
 
-export interface IChaseDownloadFileRet {
-    date: string;
-    reference: string;
-    payee: string;
-    address: string;
-    amount: number;
-}
-
-export async function doJob(pupp: IPuppWrapper, opts: IPuppOpts): Promise<IChaseDownloadFileRet[]>{
+export async function doJob(pupp: IPuppWrapper, opts: IPuppOpts): Promise<IGenDownloadFileRet[]>{
     const log = opts.log;
     const creds = opts.creds;  
     await pupp.loadCookies('jxchase');
@@ -154,13 +142,13 @@ export async function doJob(pupp: IPuppWrapper, opts: IPuppOpts): Promise<IChase
     await pupp.page.waitForSelector(dataRowSel);
     const rows = await pupp.page.$$(dataRowSel);
 
+    const allRows: IGenDownloadFileRet[] = [];
     for (let r of rows) {
         const tds = await r.$$('td');
-        log('new Row------------------------------');
-        const data: IGemDownloadFileRet = {} as IGemDownloadFileRet;
+        //log('new Row------------------------------');
+        const data = {} as IGenDownloadFileRet;
         for (let tdi = 0; tdi < tds.length; tdi++) {
             const td = tds[tdi];
-            let ele: ElementHandle<Element> | null = null;
             /*
             <td class="date BODY grouped-date" data-th="Date" tabindex="-1"> 0
                 <span class="column-info">Oct 5, 2022</span>
@@ -205,45 +193,14 @@ export async function doJob(pupp: IPuppWrapper, opts: IPuppOpts): Promise<IChase
                 data.payee = desc?.trim();
                 //opts.log('===== desc ' + data.desc);
             }
+            allRows.push(data);
         }
     }
 
     await loopDebug(pupp, opts, rows);
     log('all done');
-    
-    await sleep(300000);
-    const res: IChaseDownloadFileRet[] = [];
-    return res;
+    return allRows;
 
-}
-
-async function loopDebug(pupp: IPuppWrapper, opts: IPuppOpts, elements: ElementHandle<Element>[]) {    
-    const context = vm.createContext({});    
-    context.pupp = pupp;
-    context.opts = opts;
-    context.moment = moment;    
-    context.elements = elements;
-    const TEMP_FILE_NAME = './temp/test.js';
-    let lastFileDate = 0;
-    while (true) {
-        await sleep(2000);
-        try {
-            if (fs.existsSync(TEMP_FILE_NAME)) {
-                const fstate = fs.statSync(TEMP_FILE_NAME);
-                const ftime = fstate.mtime.getTime();
-                if (ftime == lastFileDate) continue;
-                lastFileDate = ftime;
-                const runStr = fs.readFileSync('./temp/test.js').toString();
-                if (runStr) {
-                    opts.log('running');
-                    vm.runInContext(runStr, context);
-                    opts.log('done running');
-                }
-            }
-        } catch (err) {
-            console.log('error happened', err);
-        }
-    }
 }
 
 function getDownloadPath(log: ILog) {

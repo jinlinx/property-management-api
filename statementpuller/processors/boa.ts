@@ -8,11 +8,11 @@ const { sleep, waitElement,
 import {  IPuppOpts, ILog } from './genProc';
 import { IPuppWrapper } from '../lib/chromPupp';
 
-import { IGemDownloadFileRet  } from './gens';
+import { IGenDownloadFileRet  } from './gens';
 
 
 
-export interface IBoaDownloadFileRet extends IGemDownloadFileRet {
+export interface IBoaDownloadFileRet extends IGenDownloadFileRet {
     //date: string;
     //reference: string;
     //payee: string;
