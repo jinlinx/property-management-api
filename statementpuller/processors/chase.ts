@@ -5,7 +5,10 @@ import { sleep, waitElement } from '../lib/util';
 
 import {  IPuppOpts, ILog } from './genProc';
 import {  IPuppWrapper } from '../lib/chromPupp';
-import { IGenDownloadFileRet, loopDebug } from './gens';
+import {
+    IGenDownloadFileRet, loopDebug,
+    prepareFileClickInterception,
+} from './gens';
 
 
 export async function doJob(pupp: IPuppWrapper, opts: IPuppOpts): Promise<IGenDownloadFileRet[]>{
@@ -228,6 +231,31 @@ async function setDownloadPath(page: any, log: ILog) {
         behavior: 'allow',
         downloadPath: downloadPath
     });
+}
+
+async function downloadFile(pupp: IPuppWrapper, opts: IPuppOpts) {
+    const accountOptionsDropdown = await pupp.page.$('div.account-options div a');
+    await pupp.page.evaluate((ele) => ele.click(), accountOptionsDropdown);
+
+    const accountOptions = await pupp.page.$$('div.account-options div div ul li');
+
+    const curDateMoment = moment();
+    const lastMonStr = curDateMoment.format('MMM') + ' \\d{1,2}, ' + curDateMoment.format('YYYY');
+    opts.log('has ----- ' + accountOptions.length + ' ' + lastMonStr)
+    for (let aoi in accountOptions) {
+        const curOpt = accountOptions[aoi];
+        const curA = await curOpt.$('a');
+        const aText = await pupp.getElementTextContent(curA);
+        opts.log(aText);
+        if (aText.match(new RegExp(lastMonStr))) {
+            opts.log('found date ' + aText)
+            await pupp.page.evaluate((ele) => ele.click(), curA);
+            //sleep(1000);
+            const mdsd = await pupp.page.$('mds-button.download');
+            await mdsd?.click();
+            break;
+        }
+    }
 }
 
 //async function waitForDownload(csvStr) {

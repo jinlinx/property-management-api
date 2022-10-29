@@ -57,7 +57,12 @@ export async function genProcess(opts: IPuppExecOpts) {
             resolve(await doJob(pupp, opts));
             clearTimeout(tout);
         } catch (err: any) {
-            log(err.message, err);
+            log(err.message);
+            const errRsp = err.response;
+            if (errRsp) {
+                if (errRsp.data) log('genProcess errRsp.data', errRsp.data);
+                if (errRsp.text) log('genProcess errRsp', errRsp.text);
+            }
             reject(err);
         } finally {
             log('Done', 'done');
