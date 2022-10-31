@@ -42,9 +42,9 @@ const stdPrms = [(...s) => {
 
 if (process.env.PI) {
     console.log('using pi config');
-    stdPrms[0].headless = true;
-    stdPrms[0].executablePath = '/usr/bin/chromium-browser';
-    stdPrms[0].args= ['--no-sandbox', '--disable-setuid-sandbox'];
+    stdPrms[1].headless = true;
+    stdPrms[1].executablePath = '/usr/bin/chromium-browser';
+    stdPrms[1].args= ['--no-sandbox', '--disable-setuid-sandbox'];
 }
 async function test() {
     console.log('prms',...stdPrms);
