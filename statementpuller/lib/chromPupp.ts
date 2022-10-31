@@ -45,7 +45,7 @@ export async function createPuppeteer(props: any): Promise<IPuppWrapper> {
     page.setUserAgent(
         "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/106.0.0.0 Safari/537.36"
     );
-    page.on('console', msg => console.log('PAGE LOG:', msg.text()));
+    //page.on('console', msg => console.log('PAGE LOG:', msg.text()));
     
     const setText = async (selector: string, text: string, doType = true) => {
         const ctl = await page.$(selector);
