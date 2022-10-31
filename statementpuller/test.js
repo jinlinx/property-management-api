@@ -34,12 +34,18 @@ const stdPrms = [(...s) => {
 }, {
     defaultViewport: {
         width: 1224,
-        height: 768,
+        height: 1000,
         isMobile: false,
     },
     headless: false,
     }, 1000 * 60 * 120, true];
 
+if (process.env.PI) {
+    console.log('using pi config');
+    stdPrms[0].headless = true;
+    stdPrms[0].executablePath = '/usr/bin/chromium-browser';
+    stdPrms[0].args= ['--no-sandbox', '--disable-setuid-sandbox'];
+}
 async function test() {
     console.log('prms',...stdPrms);
     try {
