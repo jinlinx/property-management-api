@@ -10,6 +10,8 @@ import {
     prepareFileClickInterception,
 } from './gens';
 
+import { useGenDataToCompareUpdateSheet} from './procAndCompGeneric'
+
 
 export async function doJob(pupp: IPuppWrapper, opts: IPuppOpts): Promise<IGenDownloadFileRet[]>{
     const log = opts.log;
@@ -212,7 +214,7 @@ export async function doJob(pupp: IPuppWrapper, opts: IPuppOpts): Promise<IGenDo
     }
 
     if (opts.debug) {
-        await loopDebug(pupp, opts, { elments: rows, downloadFile });
+        await loopDebug(pupp, opts, { elments: rows, downloadFile, useGenDataToCompareUpdateSheet });
     }
     log('all done');
     return allRows;
@@ -293,7 +295,9 @@ async function downloadFile(pupp: IPuppWrapper, opts: IPuppOpts, monthOffset = 0
     const backToAccountsBtn = await pupp.page.$(backToAccounts);
     await backToAccountsBtn?.click();
     opts.log('downloadFile: context done ' + lastMonStr);
-    await pupp.page.setRequestInterception(false); 
+    //pupp.requestInterceptors = [];
+    //await pupp.page.setRequestInterception(false); 
+    return result.data;
 }
 
 //async function waitForDownload(csvStr) {

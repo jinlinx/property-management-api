@@ -19,19 +19,29 @@ export interface IDateAmount {
     amount: number;
 }
 
-export async function getGenDataAndCompareUpdateSheet(opts: IPuppExecOpts) {
+export async function getGenDataAndCompareUpdateSheet(opts: IPuppExecOpts) {    
+    const newData = await genProcess(opts) as IHouseData[];    
+    const res = useGenDataToCompareUpdateSheet(opts, newData, true);
+    return res;
+}
+
+export async function useGenDataToCompareUpdateSheet(opts: IPuppExecOpts, newData: IHouseData[], doAppend: boolean) {
     const log = opts.log;
     const creds = opts.creds;
-    const newData = await genProcess(opts) as IHouseData[];    
-    log('Load sheet data')    
-    const dbData = await loadSheetData(creds);    
+    //const newData = await genProcess(opts) as IHouseData[];
+    log('Load sheet data')
+    const dbData = await loadSheetData(creds);
     log('Loaded sheet data')
     const res = doBoaDataCmp(dbData, newData).filter(m => !m.matchedTo).map(m => m.data).filter(m => m.date !== 'Invalid date');
     const appendData = (res as IGenDownloadFileRet[]).map(m => {
         return [m.date, m.processor || 'Card', (m.amount || 0), (m as any)['address'] || '', m.category || 'Supplies', m.payee, m.reference || '']
     });
     log(`Appending ${JSON.stringify(appendData)}`);
-    await appendSheet(creds.sheetID, `${creds.tabName}!A:G`, appendData)
+    if (doAppend) {
+        await appendSheet(creds.sheetID, `${creds.tabName}!A:G`, appendData)
+    } else {
+        log('debugging no append');
+    }
     return res;
 }
 

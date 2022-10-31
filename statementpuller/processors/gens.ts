@@ -75,7 +75,7 @@ export async function prepareFileClickInterception(pupp: IPuppWrapper, urlToMatc
     
     const intHandler = async (interceptedRequest: any) => {
         if (interceptedRequest.isInterceptResolutionHandled()) return;
-        opts.log('got request', interceptedRequest.url());
+        //opts.log('got request', interceptedRequest.url());
         if (interceptedRequest.url().match(new RegExp(urlToMatch))) {
             const method = interceptedRequest.method();
             if (method !== 'GET' && method !== 'POST') {
@@ -127,13 +127,13 @@ export async function prepareFileClickInterception(pupp: IPuppWrapper, urlToMatc
                 return null;
             })
             if (rsp) {
-                opts.log('rsp len'+ rsp.data?.length)
+                opts.log('rsp len '+ rsp.data?.length)
                 fileResults.csvStr = rsp.data;
                 fileResults.resolve(rsp.data);
             }
             //return interceptedRequest.abort();
         }
-        opts.log('got request AND continue');
+        //opts.log('got request AND continue');
         try {
             interceptedRequest.continue();
         } catch (err: any) {
@@ -144,6 +144,8 @@ export async function prepareFileClickInterception(pupp: IPuppWrapper, urlToMatc
     };
     if (!pupp.requestInterceptors.length)
         pupp.requestInterceptors.push(intHandler);
+    else
+        pupp.requestInterceptors[0] = intHandler;
 
     fileResults.wait = new Promise<string>((resolve, reject) => {
         fileResults.resolve = resolve as ((d: any) => string);
