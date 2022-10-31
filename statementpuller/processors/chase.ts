@@ -212,7 +212,7 @@ export async function doJob(pupp: IPuppWrapper, opts: IPuppOpts): Promise<IGenDo
     }
 
     if (opts.debug) {
-        await loopDebug(pupp, opts, rows);
+        await loopDebug(pupp, opts, { elments: rows, downloadFile });
     }
     log('all done');
     return allRows;
@@ -233,29 +233,67 @@ async function setDownloadPath(page: any, log: ILog) {
     });
 }
 
-async function downloadFile(pupp: IPuppWrapper, opts: IPuppOpts) {
+async function downloadFile(pupp: IPuppWrapper, opts: IPuppOpts, monthOffset = 0) {
+    const result = {
+        found: false,
+        data: '',
+    }
     const accountOptionsDropdown = await pupp.page.$('div.account-options div a');
     await pupp.page.evaluate((ele) => ele.click(), accountOptionsDropdown);
 
     const accountOptions = await pupp.page.$$('div.account-options div div ul li');
 
-    const curDateMoment = moment();
+    const curDateMoment = moment().add(monthOffset, 'month');
     const lastMonStr = curDateMoment.format('MMM') + ' \\d{1,2}, ' + curDateMoment.format('YYYY');
-    opts.log('has ----- ' + accountOptions.length + ' ' + lastMonStr)
+    opts.log('downloadFile: has -----  ' + lastMonStr)
+    
     for (let aoi in accountOptions) {
         const curOpt = accountOptions[aoi];
         const curA = await curOpt.$('a');
         const aText = await pupp.getElementTextContent(curA);
         opts.log(aText);
         if (aText.match(new RegExp(lastMonStr))) {
-            opts.log('found date ' + aText)
+            opts.log('downloadFile: found date ' + aText)
             await pupp.page.evaluate((ele) => ele.click(), curA);
             //sleep(1000);
             const mdsd = await pupp.page.$('mds-button.download');
+            //await prepareFileClickInterception(pupp, 'download', { log: opts.log })
+            await sleep(1000);
+            opts.log('downloadFile: clicking-------')
+            result.found = true;
             await mdsd?.click();
             break;
         }
     }
+
+    if (!result.found) result;
+    opts.log('downloadFile: waiting download button');
+    await sleep(2000);
+    //return;
+    const downBtn = await pupp.page.$('[id=download]');
+    opts.log('downloadFile: downbtn');
+    await sleep(1000);
+    opts.log('downloadFile: context111 before call');
+
+    //return;
+    const awaiter = await prepareFileClickInterception(pupp, 'v2/account/activity/card/download', opts)
+    opts.log('downloadFile: context111 clicking!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!', awaiter)
+    await downBtn?.click();
+    try {
+        opts.log('downloadFile: awaiting result ');
+        const rr = await awaiter.wait;
+
+        opts.log('downloadFile: done awaiting---------------------------------', rr);
+        result.data = rr as any as string;
+    } catch (err) {
+        opts.log('downloadFile: error wait click', err);
+    }
+    const backToAccounts = '[id=backToAccounts]';
+    await pupp.page.waitForSelector(backToAccounts)
+    const backToAccountsBtn = await pupp.page.$(backToAccounts);
+    await backToAccountsBtn?.click();
+    opts.log('downloadFile: context done ' + lastMonStr);
+    await pupp.page.setRequestInterception(false); 
 }
 
 //async function waitForDownload(csvStr) {

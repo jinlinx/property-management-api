@@ -21,6 +21,7 @@ export interface IPuppWrapper {
     getElementHtml: (e: any, css?: string) => Promise<any>;
     getElementTextContent: (e: any, css?: string) => Promise<any>;
     screenshot: (path: string) => Promise<string | Buffer>;
+    requestInterceptors: ((request:any)=>Promise<void>)[];
     loadCookies: (name: string) => Promise<void>;
     saveCookies: (name: string) => Promise<void>;
     getAttribute: (ele: puppeteer.ElementHandle<Element>, clsName: string) => Promise<any>;
@@ -45,6 +46,7 @@ export async function createPuppeteer(props: any): Promise<IPuppWrapper> {
         "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/106.0.0.0 Safari/537.36"
     );
     page.on('console', msg => console.log('PAGE LOG:', msg.text()));
+    
     const setText = async (selector: string, text: string, doType = true) => {
         const ctl = await page.$(selector);
         await ctl?.click();
@@ -68,7 +70,7 @@ export async function createPuppeteer(props: any): Promise<IPuppWrapper> {
     const getProperty = async (ele: puppeteer.ElementHandle<Element>, name: string) => {
         return page.evaluate((el, sel) => el[sel], ele, name);
     };
-    return {
+    const retWrapper: IPuppWrapper =  {
         browser,
         page,
         $: (p: string) => page.$(p),
@@ -100,6 +102,7 @@ export async function createPuppeteer(props: any): Promise<IPuppWrapper> {
         screenshot: (path: string) => page.screenshot({ path }),
         getAttribute,
         getProperty,
+        requestInterceptors: [],
         loadCookies: async (name: string) => {
             let cookies = null;
             try {
@@ -125,5 +128,12 @@ export async function createPuppeteer(props: any): Promise<IPuppWrapper> {
             await fs.writeFileSync(cookieDir(name), JSON.stringify(cookieSorted, null, 2));
         }
     };
+
+    page.on('request', async (interceptedRequest: any) => {
+        for (let intc of retWrapper.requestInterceptors) {
+            await intc(interceptedRequest);
+        }
+    });
+    return retWrapper;
         
 }
