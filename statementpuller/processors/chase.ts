@@ -55,7 +55,14 @@ export async function doJob(pupp: IPuppWrapper, opts: IPuppOpts): Promise<IGenDo
         await sleep(1000);
         log(`clicking ${desc}`);
         //await downloadBtn.click();
-        await btn?.click();
+        try {
+            await btn?.click();
+        } catch (err) {            
+            if (btn) {
+                opts.log('error click, try eval');
+                await pupp.page.evaluate(el => el.click(), btn);
+            } else throw err;
+        }
         await sleep(1000);
     }
     async function findAndClickButton(sel: string, desc: string) {
