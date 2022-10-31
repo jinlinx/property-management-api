@@ -60,7 +60,7 @@ export async function doJob(pupp: IPuppWrapper, opts: IPuppOpts): Promise<IGenDo
         } catch (err) {            
             if (btn) {
                 opts.log('error click, try eval');
-                await pupp.page.evaluate(el => el.click(), btn);
+                await frame?.evaluate(el => el.click(), btn);
             } else throw err;
         }
         await sleep(1000);
