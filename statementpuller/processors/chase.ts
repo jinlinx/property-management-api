@@ -342,3 +342,36 @@ async function downloadFile(pupp: IPuppWrapper, opts: IPuppOpts, monthOffset = 0
     //    };
     //});
 //}
+
+
+/*
+
+
+//use download to populate chase data
+return await downloadFile(pupp, opts,0).then(async res => {
+    opts.log('done from script');
+    //opts.log('script data ---> ', res);
+    const sliced = res.split('\n').slice(1);
+    //opts.log('slied', sliced);
+    const mapped = sliced.map(r=>{
+        if (!r) return;
+        const ary = r.split(',');
+        return {
+            date: moment(ary[0]).format('YYYY-MM-DD'),
+            payee: ary[2],
+            category: ary[3],
+            type: ary[4],
+            amount: -parseFloat(ary[5]),
+        }
+    }).filter(m=>m)
+    //opts.log('done', mapped)
+    opts.log('here',mapped.map(m=>`${m.date} type=${m.type} cat=${m.category} ${m.amount}`));
+
+    opts.log('useGenDataToCompareUpdateSheet');
+    await useGenDataToCompareUpdateSheet(opts, mapped, true);
+    opts.log('useGenDataToCompareUpdateSheet done');
+}).catch(err => {
+    opts.log(err.message);
+})
+
+ */
