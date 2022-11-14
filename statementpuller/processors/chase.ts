@@ -11,6 +11,7 @@ import {
 } from './gens';
 
 import { useGenDataToCompareUpdateSheet} from './procAndCompGeneric'
+import {Frame} from "puppeteer";
 
 
 export async function doJob(pupp: IPuppWrapper, opts: IPuppOpts): Promise<IGenDownloadFileRet[]>{
@@ -27,9 +28,23 @@ export async function doJob(pupp: IPuppWrapper, opts: IPuppOpts): Promise<IGenDo
     log(`got frames`);
     const frames = pupp.page.frames();
     console.log('frame count', frames.length);
-    const frameHandle = await pupp.page.$('iframe[id=logonbox]');
-    const frame = await frameHandle?.contentFrame();
-    if (!frame) throw 'failed to acquire frame';    
+    await sleep(10000);
+    let frame:Frame | null | undefined = null;
+    for (let retry = 0; retry < 10; retry++) {
+        try {
+            const frameHandle = await pupp.page.$('iframe[id=actual-login-iframe]');
+            console.log('debug debug frameHandle', !!frameHandle);
+            frame = await frameHandle?.contentFrame();
+            if (!frame) throw 'failed to acquire frame';
+            break;
+        } catch (err: any) {
+            console.log('err getting frame', err.message);
+            console.log('err getting frame', err);
+            await sleep(1000);
+            await sleep(10000000);
+        }
+    }
+    if (!frame) throw 'failed to acquire frame';
     console.log('debug debug page', !!pupp.page);
 
     const waitAndFindOneCss = async (sel: string) => {
