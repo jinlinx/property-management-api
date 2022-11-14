@@ -10,7 +10,7 @@ module.exports = {
             { field: 'houseID', desc: 'House ID', foreignKey: { table: 'houseInfo', field: 'houseID' } },
             { field: 'expenseCategoryId', desc: 'category', foreignKey: { table: 'expenseCategories', field: 'expenseCategoryID' } },
             { field: 'hours', type: 'decimal' },
-            { field: 'workerID', desc: 'Id', type: 'uuid', required: true, foreignKey: { table: 'workerInfo', field: 'workerID' } },
+            { field: 'workerID', desc: 'Worker Id', type: 'uuid', required: true, foreignKey: { table: 'workerInfo', field: 'workerID' } },
             { field: 'comment', desc: 'comment', size: 4096 },
             { field: 'vdPosControl', desc: 'PosControl' },
         ],
