@@ -95,7 +95,7 @@ export const routes = {
         method: 'post',
         func: sheet.doGet,
     },
-    '/misc/sheet/readMaintenanceRecord': {
+    '/misc/sheet/readMaintenanceRecord:/sheetId': {
         method: 'get',
         func: sheet.readMaintenanceRecord,
     },

@@ -91,9 +91,7 @@ async function doGet(req: Request, res: Response) {
 }
 
 async function readMaintenanceRecord(req: Request, res: Response) {
-    try {
-        
-
+    try {        
         const client = await getSheetClient(req);
         if (!client) {
             const message = `clinet  not found`;
@@ -104,9 +102,10 @@ async function readMaintenanceRecord(req: Request, res: Response) {
         }
         const sheetId = process.env.maintenanceRecordGSheetId || 'NOmaintenanceRecordGSheetId';
 
+        const sheetName = req.params.sheetId || 'MaintainessRecord';
         console.log(`SheetId ${sheetId}`);
         const sheet = client.getSheetOps(sheetId);
-        const rsp = await sheet.read('MaintainessRecord');
+        const rsp = await sheet.read(sheetName);
         console.log('rsp',rsp)
         return res.json(rsp);
     } catch (err: any) {
