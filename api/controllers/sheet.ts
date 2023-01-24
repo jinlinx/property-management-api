@@ -6,6 +6,7 @@ import * as fs from 'fs';
 
 import { doSqlGetInternal } from './sql';
 export async function getSheetClient(req: Request) {
+    /*
     const auth = getUserAuth(req);
     if (!auth) {
         const message = 'not authorized';
@@ -14,6 +15,7 @@ export async function getSheetClient(req: Request) {
             error: message,
         })
     }
+    */
     const fname = process.env['google_gzperm_svc_account_file'] || 'nofile';
     const key = JSON.parse(fs.readFileSync(fname).toString()) as gsAccount.IServiceAccountCreds;
     const client = gsAccount.getClient(key);
@@ -74,6 +76,37 @@ async function doGet(req: Request, res: Response) {
         } else {
             res.send(400, { message: `Not supported operation ${op}` });
         }
+        return res.json(rsp);
+    } catch (err: any) {
+        const rspErr = get(err, 'response.text') || get(err, 'response.data.error');
+        console.log('sheet.doGet error, params, rspErr, errors', req.params, rspErr, err.errors);
+        console.log('sheet.doGet error', cleanError(err));
+        res.send(422, {
+            id: req.params.id,
+            message: err.message,
+            errors: err.errors,
+            rspErr,
+        });
+    }
+}
+
+async function readMaintenanceRecord(req: Request, res: Response) {
+    try {
+        
+
+        const client = await getSheetClient(req);
+        if (!client) {
+            const message = `clinet  not found`;
+            console.log(message);
+            return res.send(500, {
+                message,
+            });
+        }
+        const sheetId = process.env.maintenanceRecordGSheetId || 'NOmaintenanceRecordGSheetId';
+
+        const sheet = client.getSheetOps(sheetId);
+        const rsp = await sheet.read('MaintainessRecord');
+        
         return res.json(rsp);
     } catch (err: any) {
         const rspErr = get(err, 'response.text') || get(err, 'response.data.error');

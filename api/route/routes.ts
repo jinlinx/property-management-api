@@ -95,6 +95,10 @@ export const routes = {
         method: 'post',
         func: sheet.doGet,
     },
+    '/misc/sheet/readMaintenanceRecord': {
+        method: 'get',
+        func: sheet.readMaintenanceRecord,
+    },
     '/auth/login': {
         method: 'post',
         func: steps.login,
