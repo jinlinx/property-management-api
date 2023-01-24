@@ -104,9 +104,10 @@ async function readMaintenanceRecord(req: Request, res: Response) {
         }
         const sheetId = process.env.maintenanceRecordGSheetId || 'NOmaintenanceRecordGSheetId';
 
+        console.log(`SheetId ${sheetId}`);
         const sheet = client.getSheetOps(sheetId);
         const rsp = await sheet.read('MaintainessRecord');
-        
+        console.log('rsp',rsp)
         return res.json(rsp);
     } catch (err: any) {
         const rspErr = get(err, 'response.text') || get(err, 'response.data.error');
@@ -123,4 +124,5 @@ async function readMaintenanceRecord(req: Request, res: Response) {
 
 module.exports = {
     doGet,
+    readMaintenanceRecord,
 }
