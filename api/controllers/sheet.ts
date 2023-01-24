@@ -1,7 +1,8 @@
-import { google } from '@gzhangx/googleapi'
+import { gsAccount } from '@gzhangx/googleapi'
 import { Request, Response } from 'restify'
 const { get, omit,pick } = require('lodash');
 import { getUserAuth, IUserAuth } from '../util/pauth'
+import * as fs from 'fs';
 
 import { doSqlGetInternal } from './sql';
 export async function getSheetClient(req: Request) {
@@ -13,8 +14,12 @@ export async function getSheetClient(req: Request) {
             error: message,
         })
     }
-    const cliInfo = google.getClientCredsByEnv('gzperm');
-
+    const fname = process.env['google_gzperm_svc_account_file'] || 'nofile';
+    const key = JSON.parse(fs.readFileSync(fname).toString()) as gsAccount.IServiceAccountCreds;
+    const client = gsAccount.getClient(key);
+    console.log('WARNING unsecured, todo add back security');
+    return client;
+/*
     const tokenRes = await doSqlGetInternal(auth, {
         table: 'ownerInfo',
         fields: ['googleToken'],
@@ -29,6 +34,7 @@ export async function getSheetClient(req: Request) {
     cliInfo.refresh_token = tokenRes.rows[0].googleToken;
     const client = await google.getClient(cliInfo);
     return client;
+    */
 }
 
 function cleanError(err: any) {
