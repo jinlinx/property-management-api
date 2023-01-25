@@ -121,7 +121,15 @@ async function readMaintenanceRecord(req: Request, res: Response) {
     }
 }
 
+async function getSheetNames(req: Request, res: Response) {
+    const fname = process.env['googleSheetUserFile'] || 'nofile';
+    const users = JSON.parse(fs.readFileSync(fname).toString());
+
+    return res.json(users);   
+}
+
 module.exports = {
     doGet,
     readMaintenanceRecord,
+    getSheetNames,
 }
