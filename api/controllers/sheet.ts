@@ -100,9 +100,9 @@ async function readMaintenanceRecord(req: Request, res: Response) {
                 message,
             });
         }
-        const sheetId = process.env.maintenanceRecordGSheetId || 'NOmaintenanceRecordGSheetId';
+        const sheetId = req.query.sheetId || 'NOmaintenanceRecordGSheetId';
 
-        const sheetName = req.query.sheetId || 'MaintainessRecord';
+        const sheetName = req.query.sheetName || 'MaintainessRecord';
         console.log(`SheetId ${sheetId} name =${sheetName}`);
         const sheet = client.getSheetOps(sheetId);
         const rsp = await sheet.read(sheetName);
