@@ -24,7 +24,7 @@ conn.on('ready', async function() {
     conn.end();
 
 }).connect({
-  host: '192.168.1.41',
+  host: '192.168.0.41',
   port: 22,
   username: 'pi',
   privateKey: require('fs').readFileSync('../id_rsa')

@@ -17,7 +17,7 @@ mail.sendHotmail({
 */
 import { sortBy } from 'lodash';
 const assert = require('assert');
-const gs = require('../statementpuller/lib/gsheet');
+const gs = require('../statementpuller/processors/procAndCompGeneric');
 describe('statement import matches', function () {
 
     function getDbData() {
@@ -83,7 +83,7 @@ describe('statement import matches', function () {
         const dbData = getDbData();
         const newData = getNewData();
         newData[0].date = "old date1";
-        newData[0].amount = -2.2;
+        newData[0].amount = 2.2;
         dbData.forEach(d=>d.house = null);
         const matched = gs.doBoaDataCmp(
             dbData,
@@ -185,7 +185,12 @@ describe('statement import matches', function () {
                 amount: -5, //2 pk match, only 1 db has it
                 reference: 'match'
             },
-        ];
+        ].map(n => {
+            return {
+                ...n,
+                amount: -n.amount,
+            }
+        });
         const matched = gs.doBoaDataCmp(
             dbData,
             newData);

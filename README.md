@@ -3,6 +3,8 @@
 SETUP: must setup
 env.JWT_PRIVATE_KEY and JWT_PUBLIC_KEY
 
+config in creds/pienv.txt
+
 
 
 sudo apt-get install mariadb-server

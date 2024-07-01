@@ -5,7 +5,13 @@ import { sleep, waitElement } from '../lib/util';
 
 import {  IPuppOpts, ILog } from './genProc';
 import {  IPuppWrapper } from '../lib/chromPupp';
-import { IGenDownloadFileRet, loopDebug } from './gens';
+import {
+    IGenDownloadFileRet, loopDebug,
+    prepareFileClickInterception,
+} from './gens';
+
+import { useGenDataToCompareUpdateSheet} from './procAndCompGeneric'
+import {Frame} from "puppeteer";
 
 
 export async function doJob(pupp: IPuppWrapper, opts: IPuppOpts): Promise<IGenDownloadFileRet[]>{
@@ -22,9 +28,23 @@ export async function doJob(pupp: IPuppWrapper, opts: IPuppOpts): Promise<IGenDo
     log(`got frames`);
     const frames = pupp.page.frames();
     console.log('frame count', frames.length);
-    const frameHandle = await pupp.page.$('iframe[id=logonbox]');
-    const frame = await frameHandle?.contentFrame();
-    if (!frame) throw 'failed to acquire frame';    
+    await sleep(10000);
+    let frame:Frame | null | undefined = null;
+    for (let retry = 0; retry < 10; retry++) {
+        try {
+            const frameHandle = await pupp.page.$('iframe[id=actual-login-iframe]');
+            console.log('debug debug frameHandle', !!frameHandle);
+            frame = await frameHandle?.contentFrame();
+            if (!frame) throw 'failed to acquire frame';
+            break;
+        } catch (err: any) {
+            console.log('err getting frame', err.message);
+            console.log('err getting frame', err);
+            await sleep(1000);
+            await sleep(10000000);
+        }
+    }
+    if (!frame) throw 'failed to acquire frame';
     console.log('debug debug page', !!pupp.page);
 
     const waitAndFindOneCss = async (sel: string) => {
@@ -50,7 +70,14 @@ export async function doJob(pupp: IPuppWrapper, opts: IPuppOpts): Promise<IGenDo
         await sleep(1000);
         log(`clicking ${desc}`);
         //await downloadBtn.click();
-        await btn?.click();
+        try {
+            await btn?.click();
+        } catch (err) {            
+            if (btn) {
+                opts.log('error click, try eval');
+                await frame?.evaluate(el => el.click(), btn);
+            } else throw err;
+        }
         await sleep(1000);
     }
     async function findAndClickButton(sel: string, desc: string) {
@@ -209,7 +236,7 @@ export async function doJob(pupp: IPuppWrapper, opts: IPuppOpts): Promise<IGenDo
     }
 
     if (opts.debug) {
-        await loopDebug(pupp, opts, rows);
+        await loopDebug(pupp, opts, { elments: rows, downloadFile, useGenDataToCompareUpdateSheet });
     }
     log('all done');
     return allRows;
@@ -228,6 +255,71 @@ async function setDownloadPath(page: any, log: ILog) {
         behavior: 'allow',
         downloadPath: downloadPath
     });
+}
+
+async function downloadFile(pupp: IPuppWrapper, opts: IPuppOpts, monthOffset = 0) {
+    const result = {
+        found: false,
+        data: '',
+    }
+    const accountOptionsDropdown = await pupp.page.$('div.account-options div a');
+    await pupp.page.evaluate((ele) => ele.click(), accountOptionsDropdown);
+
+    const accountOptions = await pupp.page.$$('div.account-options div div ul li');
+
+    const curDateMoment = moment().add(monthOffset, 'month');
+    const lastMonStr = curDateMoment.format('MMM') + ' \\d{1,2}, ' + curDateMoment.format('YYYY');
+    opts.log('downloadFile: has -----  ' + lastMonStr)
+    
+    for (let aoi in accountOptions) {
+        const curOpt = accountOptions[aoi];
+        const curA = await curOpt.$('a');
+        const aText = await pupp.getElementTextContent(curA);
+        opts.log(aText);
+        if (aText.match(new RegExp(lastMonStr))) {
+            opts.log('downloadFile: found date ' + aText)
+            await pupp.page.evaluate((ele) => ele.click(), curA);
+            //sleep(1000);
+            const mdsd = await pupp.page.$('mds-button.download');
+            //await prepareFileClickInterception(pupp, 'download', { log: opts.log })
+            await sleep(1000);
+            opts.log('downloadFile: clicking-------')
+            result.found = true;
+            await mdsd?.click();
+            break;
+        }
+    }
+
+    if (!result.found) result;
+    opts.log('downloadFile: waiting download button');
+    await sleep(2000);
+    //return;
+    const downBtn = await pupp.page.$('[id=download]');
+    opts.log('downloadFile: downbtn');
+    await sleep(1000);
+    opts.log('downloadFile: context111 before call');
+
+    //return;
+    const awaiter = await prepareFileClickInterception(pupp, 'v2/account/activity/card/download', opts)
+    opts.log('downloadFile: context111 clicking!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!', awaiter)
+    await downBtn?.click();
+    try {
+        opts.log('downloadFile: awaiting result ');
+        const rr = await awaiter.wait;
+
+        opts.log('downloadFile: done awaiting---------------------------------', rr);
+        result.data = rr as any as string;
+    } catch (err) {
+        opts.log('downloadFile: error wait click', err);
+    }
+    const backToAccounts = '[id=backToAccounts]';
+    await pupp.page.waitForSelector(backToAccounts)
+    const backToAccountsBtn = await pupp.page.$(backToAccounts);
+    await backToAccountsBtn?.click();
+    opts.log('downloadFile: context done ' + lastMonStr);
+    //pupp.requestInterceptors = [];
+    //await pupp.page.setRequestInterception(false); 
+    return result.data;
 }
 
 //async function waitForDownload(csvStr) {
@@ -250,3 +342,36 @@ async function setDownloadPath(page: any, log: ILog) {
     //    };
     //});
 //}
+
+
+/*
+
+
+//use download to populate chase data
+return await downloadFile(pupp, opts,0).then(async res => {
+    opts.log('done from script');
+    //opts.log('script data ---> ', res);
+    const sliced = res.split('\n').slice(1);
+    //opts.log('slied', sliced);
+    const mapped = sliced.map(r=>{
+        if (!r) return;
+        const ary = r.split(',');
+        return {
+            date: moment(ary[0]).format('YYYY-MM-DD'),
+            payee: ary[2],
+            category: ary[3],
+            type: ary[4],
+            amount: -parseFloat(ary[5]),
+        }
+    }).filter(m=>m)
+    //opts.log('done', mapped)
+    opts.log('here',mapped.map(m=>`${m.date} type=${m.type} cat=${m.category} ${m.amount}`));
+
+    opts.log('useGenDataToCompareUpdateSheet');
+    await useGenDataToCompareUpdateSheet(opts, mapped, true);
+    opts.log('useGenDataToCompareUpdateSheet done');
+}).catch(err => {
+    opts.log(err.message);
+})
+
+ */

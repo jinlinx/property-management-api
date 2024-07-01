@@ -29,17 +29,23 @@ return submit.submit(trans).then(async () => {
 })
 */
 
-const stdPrms = [s => {
-    console.log(`==>${s}`);
+const stdPrms = [(...s) => {
+    console.log(...s);
 }, {
     defaultViewport: {
         width: 1224,
-        height: 768,
+        height: 1000,
         isMobile: false,
     },
     headless: false,
     }, 1000 * 60 * 120, true];
 
+if (process.env.PI) {
+    console.log('using pi config');
+    stdPrms[1].headless = true;
+    stdPrms[1].executablePath = '/usr/bin/chromium-browser';
+    stdPrms[1].args= ['--no-sandbox', '--disable-setuid-sandbox'];
+}
 async function test() {
     console.log('prms',...stdPrms);
     try {
@@ -48,7 +54,11 @@ async function test() {
         return;
         return await boax.processBoaX(...stdPrms)
     } catch (err) {
-        console.log(err);
+        if (err.response) {
+            console.log('erro at end, msg response data', err.response.data);    
+            console.log('erro at end, msg response text', err.response.text);    
+        }
+        console.log('erro at end, msg-',err.message);
     }
 }
 

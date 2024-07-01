@@ -1,10 +1,12 @@
-import { google } from '@gzhangx/googleapi'
+import { gsAccount } from '@gzhangx/googleapi'
 import { Request, Response } from 'restify'
 const { get, omit,pick } = require('lodash');
 import { getUserAuth, IUserAuth } from '../util/pauth'
+import * as fs from 'fs';
 
 import { doSqlGetInternal } from './sql';
 export async function getSheetClient(req: Request) {
+    /*
     const auth = getUserAuth(req);
     if (!auth) {
         const message = 'not authorized';
@@ -13,8 +15,13 @@ export async function getSheetClient(req: Request) {
             error: message,
         })
     }
-    const cliInfo = google.getClientCredsByEnv('gzperm');
-
+    */
+    const fname = process.env['google_gzperm_svc_account_file'] || 'nofile';
+    const key = JSON.parse(fs.readFileSync(fname).toString()) as gsAccount.IServiceAccountCreds;
+    const client = gsAccount.getClient(key);
+    console.log('WARNING unsecured, todo add back security');
+    return client;
+/*
     const tokenRes = await doSqlGetInternal(auth, {
         table: 'ownerInfo',
         fields: ['googleToken'],
@@ -29,6 +36,7 @@ export async function getSheetClient(req: Request) {
     cliInfo.refresh_token = tokenRes.rows[0].googleToken;
     const client = await google.getClient(cliInfo);
     return client;
+    */
 }
 
 function cleanError(err: any) {
@@ -82,6 +90,46 @@ async function doGet(req: Request, res: Response) {
     }
 }
 
+async function readMaintenanceRecord(req: Request, res: Response) {
+    try {        
+        const client = await getSheetClient(req);
+        if (!client) {
+            const message = `clinet  not found`;
+            console.log(message);
+            return res.send(500, {
+                message,
+            });
+        }
+        const sheetId = req.query.sheetId || 'NOmaintenanceRecordGSheetId';
+
+        const sheetName = req.query.sheetName || 'MaintainessRecord';
+        console.log(`SheetId ${sheetId} name =${sheetName}`);
+        const sheet = client.getSheetOps(sheetId);
+        const rsp = await sheet.read(sheetName);
+        console.log('rsp',rsp)
+        return res.json(rsp);
+    } catch (err: any) {
+        const rspErr = get(err, 'response.text') || get(err, 'response.data.error');
+        console.log('sheet.doGet error, params, rspErr, errors', req.params, rspErr, err.errors);
+        console.log('sheet.doGet error', cleanError(err));
+        res.send(422, {
+            id: req.params.id,
+            message: err.message,
+            errors: err.errors,
+            rspErr,
+        });
+    }
+}
+
+async function getSheetNames(req: Request, res: Response) {
+    const fname = process.env['googleSheetUserFile'] || 'nofile';
+    const users = JSON.parse(fs.readFileSync(fname).toString());
+
+    return res.json(users);   
+}
+
 module.exports = {
     doGet,
+    readMaintenanceRecord,
+    getSheetNames,
 }
