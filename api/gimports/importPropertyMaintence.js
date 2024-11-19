@@ -1,5 +1,6 @@
 const get = require('lodash/get');
-const sheet = require('../lib/getSheet').createSheet();
+//const sheet = require('../lib/getSheet').createSheet();
+const sheet = require('../lib/googleApiReq').getClient('test')
 const sheetId = require('../../credentials.json').propertyManagementGSID;
 const Promise = require('bluebird');
 const db = require('../lib/db');
@@ -34,7 +35,8 @@ async function importPropertyMaintenance() {
             const val = acc.posToName.reduce((acc, name, i) => {
                     acc[name] = (r[i] || '').trim();
                     return acc;
-                }, {});
+            }, {});
+            val.origData = r;
             //if (val.date)
                 acc.res.push(val);
             return acc;
@@ -68,80 +70,90 @@ async function importPropertyMaintenance() {
         console.log(`xieOwernId=${xieOwnerId}`);
         console.log(xieOwnerId)
         return await Promise.map(result.res, async data => {
-            let categoryID = cats[toKey(data.category)];
-            if (!data.amount) {
-                return {
-                    count: 0,
-                    message: 'no amount'
+            try {
+                let categoryID = cats[toKey(data.category)];
+                if (!data.amount) {
+                    return {
+                        count: 0,
+                        message: 'no amount'
+                    }
                 }
-            }
-            if (!categoryID) {
-                console.log('Creating category ' + data.category);
-                categoryID = uuid.v1();
-                cats[toKey(data.category)] = categoryID;
-                await sqlFreeForm(`insert into expenseCategories(expenseCategoryID,expenseCategoryName) values
+                if (!categoryID) {
+                    console.log('Creating category ' + data.category);
+                    categoryID = uuid.v1();
+                    cats[toKey(data.category)] = categoryID;
+                    await sqlFreeForm(`insert into expenseCategories(expenseCategoryID,expenseCategoryName) values
                 ('${categoryID}','${data.category}')`);
-            }
+                }
 
-            let houseID = '';
-            //if (data.house) {
-            houseID = await addHouse(houses, data.house || '',xieOwnerId);
-            //}
+                let houseID = '';
+                //if (data.house) {
+                houseID = await addHouse(houses, data.house || '', xieOwnerId);
+                //}
 
-            let workerID = '';
-            if (data.worker) {
-                const fl = data.worker.split(' ').map(n => n.trim());
-                const tag = `${fl[0]} ${fl[1] || ''}`.trim();
-                workerID = workers[toKey(tag)];
-                if (!workerID) {
-                    workerID = uuid.v1();
-                    console.log(`creating worker ${tag}`);
-                    await sqlFreeForm(`insert into workerInfo(workerID,firstName, lastName) values
-                ('${workerID}','${fl[0]}','${fl[1]||''}')`);
-                    workers[toKey(tag)] = workerID;
-                } 
-            }
+                let workerID = '';
+                if (data.worker) {
+                    const fl = data.worker.split(' ').map(n => n.trim());
+                    const tag = `${fl[0]} ${fl[1] || ''}`.trim();
+                    workerID = workers[toKey(tag)];
+                    if (!workerID) {
+                        workerID = uuid.v1();
+                        console.log(`creating worker ${tag}`);
+                        await sqlFreeForm(`insert into workerInfo(workerID,firstName, lastName) values
+                ('${workerID}','${fl[0]}','${fl[1] || ''}')`);
+                        workers[toKey(tag)] = workerID;
+                    }
+                }
             
 
-            const mdate = moment(data.date, 'M/D/YYYY');
-            if (!mdate.isValid()) return 0;
-            const date = mdate.format('YYYY-MM-DD')
-            const month = mdate.clone().startOf('month').format('YYYY-MM');
-            const amount = fixAmt(data.amount.replace('$', '').replace(',', '').trim());
+                const mdate = moment(data.date, 'M/D/YYYY');
+                if (!mdate.isValid()) return 0;
+                const date = mdate.format('YYYY-MM-DD')
+                const month = mdate.clone().startOf('month').format('YYYY-MM');
+                const amount = fixAmt(data.amount.replace('$', '').replace(',', '').trim());
             
-            const checkData = [date, month, data.description,
-                houseID, workerID, categoryID,
-                amount || 0, data.comments]
-            const mrs = await sqlFreeForm(`select maintenanceID from maintenanceRecords 
+                const checkData = [date, month, data.description,
+                    houseID, workerID, categoryID,
+                    amount || 0, data.comments]
+                const mrs = await sqlFreeForm(`select maintenanceID from maintenanceRecords 
             where date=? and month=? and description=? and houseID=? and workerID=? and expenseCategoryId=?
              and amount=? and comment=?`, checkData);
-            if (!mrs[0]) {                
-                const id = uuid.v1();
-                console.log(`Inserting maintenane rec`);                
-                console.log([id, ...checkData]);
-                try {
-                    await sqlFreeForm(`insert into maintenanceRecords(
+                if (!mrs[0]) {
+                    const id = uuid.v1();
+                    console.log(`Inserting maintenane rec`);
+                    console.log([id, ...checkData]);
+                    try {
+                        await sqlFreeForm(`insert into maintenanceRecords(
                     maintenanceID, date, month,description, houseID, workerID, expenseCategoryId, 
                     amount, comment)
         values(?,?,?,?, ?,?,?, ?,?)`, [id, ...checkData]);
-                } catch (err) {
-                    const errDetail = `error inserting ${JSON.stringify(checkData)}`;
-                    console.log(errDetail);
-                    console.log(err);
-                    return {
-                        count: 0,
-                        err: `${err.message} ${errDetail} `,
+                    } catch (err) {
+                        const errDetail = `error inserting ${JSON.stringify(checkData)}`;
+                        console.log(errDetail);
+                        console.log(err);
+                        return {
+                            count: 0,
+                            err: `${err.message} ${errDetail} `,
+                        }
                     }
+                    return {
+                        count: 1
+                    };
                 }
-                return {
-                    count:1
-                };
-            } 
             
-            return {
-                count: 0,
-                message: "existing"
-            };
+                return {
+                    count: 0,
+                    message: "existing"
+                };
+            } catch (err) {
+                return {
+                    count: 0,
+                    error: 1,
+                    err,
+                    data: data.origData,
+                    message: `Error happened ${err.message}`
+                }
+            }
         }, { concurrency: 1 }).catch(err => {
             console.log(err);
         });

@@ -55,7 +55,7 @@ async function doJob(pupp, creds, opts) {
         await activity.$('.date'),
         await activity.$('.action-amount span'),
         ];
-        const cleaned = await Promise.map(origData, d => pupp.getElementText(d))
+        const cleaned = await Promise.map(origData, d => pupp.getElementHtml(d))
             .map(cleanHtml)
             .map(cleanDiv)
             .map(r=>r.trim());
@@ -101,7 +101,7 @@ async function orig() {
     const loggedInCheck = async () => {
         const name = await pupp.findByCSS('.name');
         if (name) {
-            const text = await pupp.getElementText(name);
+            const text = await pupp.getElementHtml(name);
             return text;
         }
     }

@@ -103,17 +103,17 @@ async function doJob(pupp, creds, opts) {
             }
         }
 */
-        const name = await pupp.getElementText(cont, '.counterparty-text');
+        const name = await pupp.getElementHtml(cont, '.counterparty-text');
         const amountSignData = await cont.$$('.transactionAmount span');
-        const sign = await pupp.getElementText(amountSignData[0]);
-        const amount = await pupp.getElementText(amountSignData[sign === '-' ? 2 : 1]);
+        const sign = await pupp.getElementHtml(amountSignData[0]);
+        const amount = await pupp.getElementHtml(amountSignData[sign === '-' ? 2 : 1]);
 
-        const MMMDD = await pupp.getElementText(cont, '.relative-time');
+        const MMMDD = await pupp.getElementHtml(cont, '.relative-time');
         let notes = '';
         try {
-            notes = await pupp.getElementText(cont, '.notes-text');
+            notes = await pupp.getElementHtml(cont, '.notes-text');
         } catch { }
-        const transactionType = await pupp.getElementText(cont, '.transactionType');
+        const transactionType = await pupp.getElementHtml(cont, '.transactionType');
         const parsedDate = moment(MMMDD, 'MMM D');
         if (parsedDate.isAfter(moment())) {
             parsedDate.add(-11, 'years');

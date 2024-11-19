@@ -19,12 +19,12 @@ conn.on('ready', async function() {
         });
     }));
 
-    let res = await exec('cd property-management-api;git pull;npm install;sudo systemctl restart propertyManagement.service;');
+    let res = await exec('cd property-management-api;cp /home/pi/creds/pienv.txt install;git pull;npm install;npm run build;sudo systemctl restart propertyManagement.service;');
     console.log(res);
     conn.end();
 
 }).connect({
-  host: '192.168.1.41',
+  host: '192.168.0.41',
   port: 22,
   username: 'pi',
   privateKey: require('fs').readFileSync('../id_rsa')

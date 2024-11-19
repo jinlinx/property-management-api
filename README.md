@@ -1,5 +1,12 @@
 # property-management-api
 
+SETUP: must setup
+env.JWT_PRIVATE_KEY and JWT_PUBLIC_KEY
+
+config in creds/pienv.txt
+
+
+
 sudo apt-get install mariadb-server
 mysql -u root
 create database PM;
@@ -33,3 +40,7 @@ edit 50-server.cnf bind-address            = ::
 10 0 * * * curl http://localhost:8081/misc/statement?who=venmo
 20 0 * * * curl http://localhost:8081/misc/statement?who=cashapp
 30 0 * * * curl http://localhost:8081/misc/statement?who=importMatchPayments
+
+
+openssl ecparam -genkey -name prime256v1 -out keys\ec-jwt-private-key.pem
+openssl ec -in keys\ec-jwt-private-key.pem -pubout keys\ec-jwt-public-key.pem

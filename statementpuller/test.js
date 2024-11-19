@@ -1,10 +1,16 @@
-const paypal = require('./paypal');
-const venmo = require('./venmo');
-const cashapp = require('./cashapp');
-const db = require('../api/lib/db');
+///
+/// To generate new chase token, go to chase.tx and uncomment await loopDebug(pupp, opts, rows);, 
+//                               run await chasex.processChaseX(...stdPrms);
 
-const sub = require('./lib/submit');
-return sub.sendReadyToImportPaymentEmail();
+//const paypal = require('./paypal');
+//const venmo = require('./venmo');
+//const cashapp = require('./cashapp');
+//const db = require('../api/lib/db');
+const boax = require('./boax');
+const chasex = require('./chasex');
+
+//const sub = require('./lib/submit');
+//return sub.sendReadyToImportPaymentEmail(); //comment out for ts
 //return cashapp.doCashApp().then(r => { console.log(r) });
 //return venmo.doVenmo({
 //    log: s => console.log(s),
@@ -22,6 +28,43 @@ return submit.submit(trans).then(async () => {
     db.conn.end()
 })
 */
+
+const stdPrms = [(...s) => {
+    console.log(...s);
+}, {
+    defaultViewport: {
+        width: 1224,
+        height: 1000,
+        isMobile: false,
+    },
+    headless: false,
+    }, 1000 * 60 * 120, true];
+
+if (process.env.PI) {
+    console.log('using pi config');
+    stdPrms[1].headless = true;
+    stdPrms[1].executablePath = '/usr/bin/chromium-browser';
+    stdPrms[1].args= ['--no-sandbox', '--disable-setuid-sandbox'];
+}
+async function test() {
+    console.log('prms',...stdPrms);
+    try {
+        
+        await chasex.processChaseX(...stdPrms);
+        return;
+        return await boax.processBoaX(...stdPrms)
+    } catch (err) {
+        if (err.response) {
+            console.log('erro at end, msg response data', err.response.data);    
+            console.log('erro at end, msg response text', err.response.text);    
+        }
+        console.log('erro at end, msg-',err.message);
+    }
+}
+
+test();
+
+
 
 async function doAll() {
     try {
@@ -50,4 +93,4 @@ async function doAll() {
     }
 }
 
-doAll();
+//doAll();

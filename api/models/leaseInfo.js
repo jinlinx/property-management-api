@@ -3,13 +3,16 @@ module.exports = {
     fields:
         [
             { field: 'leaseID', desc: 'Id', type: 'uuid', required: true, isId: true },
-            { field: 'deposit', desc: 'Deposit',  },
+            { field: 'deposit', desc: 'Deposit', type: 'decimal' },
+            { field: 'petDeposit', desc: 'Pet Deposit', type: 'decimal', def: 0 },
+            { field: 'otherDeposit', desc: 'Other Deposit',  type: 'decimal', def: 0 },
             { field: 'endDate', desc: 'End Date',  type: 'date'},
             { field: 'startDate', desc: 'Start Date',  type: 'date'},
-            { field: 'houseID', desc: 'House ID', foreignKey: {table: 'houseInfo', field:'houseID'}},
+            { field: 'houseID', desc: 'House ID', foreignKey: { table: 'houseInfo', field: 'houseID' } },
+            { field: 'tenantID', desc: 'Tenant ID', foreignKey: { table: 'tenantInfo', field: 'tenantID' } },
+            { field: 'ownerID', type: 'int', desc: 'Owner', foreignKey: { table: 'ownerInfo', field: 'ownerID' }, required: true, def:'0', isOwnerSecurityField: true,},
             { field: 'comment', desc: 'Comment' },
-            { field: 'monthlyRent', desc: 'Monthly Rent', require: true, type: 'decimal', },
-            { field: 'vdPosControl', desc: 'PosControl' },
+            { field: 'monthlyRent', desc: 'Monthly Rent', required: true, type: 'decimal', },            
         ],
         view:{
             name:'view_leaseInfo',
