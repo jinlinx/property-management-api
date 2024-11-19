@@ -1,13 +1,13 @@
-/*
+
 import { google } from '@gzhangx/googleapi'
 import { Request, Response } from 'restify'
 
 import { createOrUpdateInternal } from './sql';
 import {getUserAuth, IUserAuth } from '../util/pauth'
-import { IServiceAccountCreds } from '@gzhangx/googleapi/lib/google/googleApiServiceAccount';
+import { IGClientCreds } from '@gzhangx/googleapi/lib/googleApi';
 
 function getCreds() {
-    const creds: IServiceAccountCreds = {};
+    const creds: IGClientCreds = {} as IGClientCreds;
     return creds;
 }
 export async function getToken(req: Request, res: Response): Promise<void> {
@@ -52,4 +52,3 @@ export async function getGoogleClientId(req: Request, res: Response) {
         client_id: creds.client_id, 
     });
 }
-*/
