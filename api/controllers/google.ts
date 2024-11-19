@@ -49,6 +49,6 @@ export async function getToken(req: Request, res: Response): Promise<void> {
 export async function getGoogleClientId(req: Request, res: Response) {
     const creds = getCreds();
     return res.send({
-        client_id: creds.client_id, 
+        client_id: creds.token, 
     });
 }
