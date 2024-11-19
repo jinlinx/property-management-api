@@ -1,11 +1,12 @@
 {
     "compilerOptions": {
-        "target": "es5",
+        "target": "ES2022",
         "module": "commonjs",
         "rootDir": "./",
         "outDir": "./build",        
         "esModuleInterop": true,
         "sourceMap": true,
+        "pretty": false,
         "allowJs": true,
         "resolveJsonModule": true,
         "strict": true
