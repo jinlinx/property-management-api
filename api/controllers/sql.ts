@@ -69,7 +69,11 @@ interface ISqlRequestWhereItem {
 interface ISqlRequest {
   table: string;
   fields: (ISqlRequestFieldDef | string)[];
-  joins?: any;
+  joins?: {
+    [table: string]: {
+      [fieldName: string]: string;  //fieldName to fieldAlias
+    }
+  };
   order?: ISqlOrderDef[];
   whereArray?: ISqlRequestWhereItem[];
   groupByArray?: {
