@@ -14,7 +14,7 @@ mail.sendHotmail({
     text:'test body'
 })
 
-*/
+
 import { sortBy } from 'lodash';
 const assert = require('assert');
 const gs = require('../statementpuller/processors/procAndCompGeneric');
@@ -216,3 +216,4 @@ describe('statement import matches', function () {
         ]);        
     });
 });
+*/
