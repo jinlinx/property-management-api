@@ -1,5 +1,4 @@
 
-const restify1 = require('restify');
 const route = require('./api/route/route');
 const check = require('./dbCheck');
 

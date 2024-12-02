@@ -24,6 +24,7 @@ module.exports = {
         const rts = keys(routes) as string[];
         rts.forEach(url=>{
             const op = routes[url];
+            console.log(`debugremove adding ${url}`);
             server[op.method](`${consts.apiRoot}${url}`, op.func);
         });
 
