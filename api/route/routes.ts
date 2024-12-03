@@ -5,7 +5,7 @@ import * as sql from '../controllers/sql';
 const calc = require('../controllers/calc');
 import * as  email from '../controllers/email';
 //const statement = require('../controllers/statements');
-const sheet = require('../controllers/sheet');
+import * as sheet from '../controllers/sheet';
 
 import * as steps from '../controllers/step';
 import * as googleApi from '../controllers/google';
@@ -102,6 +102,10 @@ export const routes = {
     '/misc/sheet/getSheetNames': {
         method: 'get',
         func: sheet.getSheetNames,
+    },
+    '/misc/sheet/saveAuthInfo': {
+        method: 'post',
+        func: sheet.saveSheetAuthData,
     },
     '/auth/login': {
         method: 'post',

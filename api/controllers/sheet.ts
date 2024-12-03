@@ -3,61 +3,65 @@ import { Request, Response } from 'restify'
 const { get, omit,pick } = require('lodash');
 import { getUserAuth, IUserAuth } from '../util/pauth'
 import * as fs from 'fs';
+import * as sql from './sql';
 
 import { doSqlGetInternal } from './sql';
-export async function getSheetClient(req: Request) {
-    /*
+export async function getSheetClient(req: Request, sheetId: string) {
     const auth = getUserAuth(req);
     if (!auth) {
-        const message = 'not authorized';
-        throw ({
+        const message = 'not authorized';        
+        return {
             message,
-            error: message,
-        })
+        };
     }
-    */
-    const fname = process.env['google_gzperm_svc_account_file'] || 'nofile';
-    const key = JSON.parse(fs.readFileSync(fname).toString()) as gsAccount.IServiceAccountCreds;
-    const client = gsAccount.getClient(key);
-    console.log('WARNING unsecured, todo add back security');
-    return client;
-/*
-    const tokenRes = await doSqlGetInternal(auth, {
-        table: 'ownerInfo',
-        fields: ['googleToken'],
+    
+    //const fname = process.env['google_gzperm_svc_account_file'] || 'nofile';
+    //const key = JSON.parse(fs.readFileSync(fname).toString()) as gsAccount.IServiceAccountCreds;
+    //const client = gsAccount.getClient(key);    
+
+    //const { id } = req.params;   
+    const apiCreds = await doSqlGetInternal(auth, {
+        table: 'googleApiCreds',
+        fields: ['private_key_id', 'private_key', 'client_email'],
         whereArray: [{
-            field: 'ownerID',
+            field: 'sheetId',
             op: '=',
-            val: auth.code,
+            val: sheetId,
         }]
     });
-    console.log(tokenRes);
-
-    cliInfo.refresh_token = tokenRes.rows[0].googleToken;
-    const client = await google.getClient(cliInfo);
-    return client;
-    */
+    const cred = apiCreds.rows[0];
+    if (!cred) return {
+        message: `Can't find google Creds`,
+    }
+    const client = gsAccount.getClient({
+        client_email: cred.client_email,
+        private_key: cred.private_key,
+        private_key_id: cred.private_key_id,
+    });
+    return {
+        messae: '',
+        client,
+    };
 }
 
 function cleanError(err: any) {
     const config = pick(err, 'config.headers', 'config.url', 'config.method');
     return Object.assign({}, omit(err, ['request', 'response.request', 'config']), config);
 }
-async function doGet(req: Request, res: Response) {
-    try {
-        const auth = getUserAuth(req);
-        if (!auth) {
-            const message = 'not authorized';
+
+export async function doGet(req: Request, res: Response) {
+    try {        
+        const { op, id, range } = req.params;    
+                
+        const data = req.body;
+                
+        const { client, message } = await getSheetClient(req, id);
+        if (message) {
             return res.json({
                 message,
                 error: message,
-            })
+            });
         }
-        
-        const {  op, id, range } = req.params;        
-        const data = req.body;
-                
-        const client = await getSheetClient(req);
         if (!client) {
             const message = `clinet  not found`;
             console.log(message);
@@ -90,17 +94,17 @@ async function doGet(req: Request, res: Response) {
     }
 }
 
-async function readMaintenanceRecord(req: Request, res: Response) {
-    try {        
-        const client = await getSheetClient(req);
-        if (!client) {
+export async function readMaintenanceRecord(req: Request, res: Response) {
+    try {                
+        const sheetId = req.query.sheetId || 'NOmaintenanceRecordGSheetId';
+        const { client, message } = await getSheetClient(req, sheetId);
+        if (!client || message) {
             const message = `clinet  not found`;
             console.log(message);
             return res.send(500, {
                 message,
             });
         }
-        const sheetId = req.query.sheetId || 'NOmaintenanceRecordGSheetId';
 
         const sheetName = req.query.sheetName || 'MaintainessRecord';
         console.log(`SheetId ${sheetId} name =${sheetName}`);
@@ -121,15 +125,62 @@ async function readMaintenanceRecord(req: Request, res: Response) {
     }
 }
 
-async function getSheetNames(req: Request, res: Response) {
+export async function getSheetNames(req: Request, res: Response) {
     const fname = process.env['googleSheetUserFile'] || 'nofile';
     const users = JSON.parse(fs.readFileSync(fname).toString());
 
     return res.json(users);   
 }
 
-module.exports = {
-    doGet,
-    readMaintenanceRecord,
-    getSheetNames,
+/////////////////////////
+///
+/// post body has
+/// googleSheetId, private_key_id,private_key
+///
+/////////////////////////
+type GoogleAuthAndSheetInfo = {
+    sheetId: string;
+    private_key_id: string;
+    private_key: string;
+    client_email: string;
 }
+export async function saveSheetAuthData(req: Request, res: Response) {
+    const auth = getUserAuth(req);
+    if (!auth) {
+        const message = 'not authorized';
+        return res.json({
+            message,
+        });
+    }
+    const body:GoogleAuthAndSheetInfo = req.body;
+
+    await sql.createOrUpdateInternal({
+        table: 'ownerInfo',
+        doCreate: false,
+        doUpdate: true,
+        fields: {
+            'googleSheetId': req.body.googleSheetId
+        },
+    }, auth);
+    
+    await sql.createOrUpdateInternal({
+        table: 'googleApiCreds',
+        doCreate: true,
+        doUpdate: true,
+        fields: {
+            sheetId: body.sheetId,
+            private_key_id: body.private_key_id,
+            private_key: body.private_key,
+            client_email: body.client_email,
+            ownerID: auth.parentID,
+        },
+    }, auth);
+
+}
+
+//module.exports = {
+//    doGet,
+//    readMaintenanceRecord,
+//    getSheetNames,
+//    saveSheetAuthData
+//}

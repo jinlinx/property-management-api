@@ -29,10 +29,11 @@ export const data = files.reduce((acc, fname) => {
         }
         if (f.isOwnerSecurityField) {//OWNER_SEC_FIELD
           f.dontUpdate = true;
-        } else if (f.isOwnerSecurityParentField) {
-          f.dontUpdate = true;
-          f.specialCreateVal = (auth: IUserAuth) => auth.code;
         }
+        //else if (f.isOwnerSecurityParentField) {
+        //  f.dontUpdate = true;
+        //  f.specialCreateVal = (auth: IUserAuth) => auth.parentID;
+        //}
       })
       createFieldMap(act);
       acc[name] = act;  

@@ -31,11 +31,12 @@ export async function getToken(req: Request, res: Response): Promise<void> {
         console.log(`saving google token`);
 
         await createOrUpdateInternal({
-            create: false,
+            doCreate: false,
+            doUpdate: true,
             table: 'ownerInfo',
             fields: {
                 googleToken: tk,
-                ownerID: auth.code.toString(),
+                ownerID: auth.parentID.toString(),
             }
         }, auth);        
         console.log(`google.getToken ${tk}`);
