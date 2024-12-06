@@ -52,7 +52,7 @@ const goodGroupOps = Object.freeze({
 
 interface ISqlRequestFieldDef {
   field: string;
-  op: '>' | '>=' | '=' | '<' | '<=' | '!=' | '<>' | 'in' | 'sum' | 'count';
+  op: 'sum' | 'count';
   name: string;
 }
 interface ISqlOrderDef {
@@ -62,13 +62,15 @@ interface ISqlOrderDef {
 
 interface ISqlRequestWhereItem {
   field: string;
-  op: string;
+  op: '>' | '>=' | '=' | '<' | '<=' | '!=' | '<>' | 'in';
   val: string | number | (string|number)[];
 }
 
+export type ModelTableNames = 'ownerInfo' | 'houseInfo' | 'tenantInfo' | 'workerInfo' | 'workerComp' | 'maintenanceRecords' | 'googleApiCreds';
+
 interface ISqlRequest {
-  table: string;
-  fields: (ISqlRequestFieldDef | string)[];
+  table: ModelTableNames;
+  fields?: (ISqlRequestFieldDef | string)[];
   joins?: {
     [table: string]: {
       [fieldName: string]: string;  //fieldName to fieldAlias
@@ -318,7 +320,7 @@ const vmap2 = (v: (models.PossibleDbTypes|undefined), f: models.IDBFieldDef) => 
   return v;
 }
 
-export type ModelTableNames = 'ownerInfo' | 'houseInfo' | 'tenantInfo' | 'workerInfo' | 'workerComp' | 'maintenanceRecords' | 'googleApiCreds';
+
 interface ICreateUpdateParms {
   table: ModelTableNames;
   fields: { [key: string]: string };
@@ -438,10 +440,11 @@ export async function createOrUpdateInternal(body: ICreateUpdateParms, auth: IUs
     const valueUpdatePairs = `${values.map(v => setValMap(v)).join(',')},modified=NOW()`;
     if (doCreate) {
       sqlStr += ' on duplicte key update ' + valueUpdatePairs;
+      sqlArgs = sqlArgs.concat(values.map(v => v.value));
     } else {
       sqlStr = `update ${table} set ${valueUpdatePairs} where ${whereCond.join(' and ')}`;      
-    }
-    sqlArgs = values.map(v => v.value);
+      sqlArgs = values.map(v => v.value);
+    }    
   }
 
   console.log(sqlStr);

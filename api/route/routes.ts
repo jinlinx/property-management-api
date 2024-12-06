@@ -103,7 +103,7 @@ export const routes = {
         method: 'get',
         func: sheet.getSheetNames,
     },
-    '/misc/sheet/saveAuthInfo': {
+    '/misc/sheet/saveSheetAuthData': {
         method: 'post',
         func: sheet.saveSheetAuthData,
     },

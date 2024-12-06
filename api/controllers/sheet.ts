@@ -139,10 +139,12 @@ export async function getSheetNames(req: Request, res: Response) {
 ///
 /////////////////////////
 type GoogleAuthAndSheetInfo = {
-    sheetId: string;
+    googleSheetId: string;
     private_key_id: string;
     private_key: string;
     client_email: string;
+
+    ownerID: string;
 }
 export async function saveSheetAuthData(req: Request, res: Response) {
     const auth = getUserAuth(req);
@@ -152,14 +154,24 @@ export async function saveSheetAuthData(req: Request, res: Response) {
             message,
         });
     }
-    const body:GoogleAuthAndSheetInfo = req.body;
+    const body = req.body as {
+        ownerID: string;
+        authInfo: GoogleAuthAndSheetInfo;
+    }
+    const authInfo = body.authInfo;
+    if (!authInfo.googleSheetId || !authInfo.client_email || !authInfo.private_key || !authInfo.private_key_id) {
+        const message = 'missing data';
+        return res.json({
+            message,
+        });
+    }
 
     await sql.createOrUpdateInternal({
         table: 'ownerInfo',
         doCreate: false,
         doUpdate: true,
         fields: {
-            'googleSheetId': req.body.googleSheetId
+            'googleSheetId': authInfo.googleSheetId
         },
     }, auth);
     
@@ -168,15 +180,15 @@ export async function saveSheetAuthData(req: Request, res: Response) {
         doCreate: true,
         doUpdate: true,
         fields: {
-            sheetId: body.sheetId,
-            private_key_id: body.private_key_id,
-            private_key: body.private_key,
-            client_email: body.client_email,
-            ownerID: auth.parentID,
+            googleSheetId: authInfo.googleSheetId,
+            private_key_id: authInfo.private_key_id,
+            private_key: authInfo.private_key,
+            client_email: authInfo.client_email,
+            ownerID: body.ownerID,
         },
     }, auth);
-
 }
+
 
 //module.exports = {
 //    doGet,
