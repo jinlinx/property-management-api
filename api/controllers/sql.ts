@@ -351,7 +351,7 @@ export async function createOrUpdateInternal(body: ICreateUpdateParms, auth: IUs
        values (${model.fields.filter(f => !f.ident).map((f) => {
       let val = fields[f.field] as models.PossibleDbTypes;
       if (f.isId) {
-        idVal = uuid.v1();
+        idVal = val ?? uuid.v1();
         val = idVal;
       }
       if (f.specialCreateVal) {
@@ -362,6 +362,7 @@ export async function createOrUpdateInternal(body: ICreateUpdateParms, auth: IUs
          if (f.isOwnerSecurityField) {           
            if (val !== auth.parentID && !auth.pmInfo.ownerPCodes.includes(val as string)) {
              const error = `Code (${val} from fiel ${f.field} isId=${f.isId}) is not authorized`;
+             console.log(error);
              throw {
                message: error,
                error,
@@ -439,7 +440,7 @@ export async function createOrUpdateInternal(body: ICreateUpdateParms, auth: IUs
 
     const valueUpdatePairs = `${values.map(v => setValMap(v)).join(',')},modified=NOW()`;
     if (doCreate) {
-      sqlStr += ' on duplicte key update ' + valueUpdatePairs;
+      sqlStr += ' on duplicate key update ' + valueUpdatePairs;
       sqlArgs = sqlArgs.concat(values.map(v => v.value));
     } else {
       sqlStr = `update ${table} set ${valueUpdatePairs} where ${whereCond.join(' and ')}`;      

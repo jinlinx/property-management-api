@@ -171,7 +171,8 @@ export async function saveSheetAuthData(req: Request, res: Response) {
         doCreate: false,
         doUpdate: true,
         fields: {
-            'googleSheetId': authInfo.googleSheetId
+            'googleSheetId': authInfo.googleSheetId,
+            ownerID: body.ownerID,
         },
     }, auth);
     
@@ -182,7 +183,7 @@ export async function saveSheetAuthData(req: Request, res: Response) {
         fields: {
             googleSheetId: authInfo.googleSheetId,
             private_key_id: authInfo.private_key_id,
-            private_key: authInfo.private_key,
+            private_key: authInfo.private_key.replace(/\\n/g,'\n'),
             client_email: authInfo.client_email,
             ownerID: body.ownerID,
         },
