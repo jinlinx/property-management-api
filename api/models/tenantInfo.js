@@ -14,6 +14,6 @@ module.exports = {
             { field: 'momPhone', desc: 'Mom\'s phone number', },
             { field: 'dadName', desc: 'Dad Name', },
             { field: 'dadPhone', desc: 'Dad Phone', },
-            { field: 'ownerID', type: 'int', desc: 'Owner', foreignKey: { table: 'ownerInfo', field: 'ownerID' }, required: true, def:'0', isOwnerSecurityField: true,},
+            { field: 'ownerID', type: 'uuid', desc: 'Owner', foreignKey: { table: 'ownerInfo', field: 'ownerID' }, required: true, def:'0', isOwnerSecurityField: true,},
         ]
 };

@@ -61,13 +61,14 @@ async function check() {
         if ( !curMod ) {
             throwErr( `Table ${tabName} not in DB` );
         }
+        const pkStr = (f: IDBFieldDef) => (f.isId ? 'PRIMARY KEY' : '');
         try {
             await columnQry()
         } catch (exc: any) {
             console.log(`error query table ${tabName}, creating`)
             console.log( exc.message );
             const createSql=`create table ${tabName} (${curMod.fields.map( f => {
-                return `${f.field} ${typeToType( f, false )}`
+                return `${f.field} ${typeToType(f, false)} ${pkStr(f)}`
             } ).join( ',' )})`;
             console.log( createSql );
             await doQuery( createSql );
@@ -96,10 +97,10 @@ async function check() {
         await bluebird.Promise.map(mustExistDateCols, async col => {
             const dbField = dbIds[col.field];
             if (!dbField) {
-                const alterTblSql = `alter table ${tabName} add column ${col.field} ${typeToType(col, false)} ${col.def ? ' default ' + col.def : ''};`;
+                const alterTblSql = `alter table ${tabName} add column ${col.field} ${typeToType(col, false)} ${pkStr(col)} ${col.def ? ' default ' + col.def : ''};`;
                 try {
                     await doQuery(alterTblSql);
-                    console.log(`alter ${tabName} added ${col.field}`);
+                    console.log(`alter ${tabName} added ${col.field} ${pkStr(col)}`);
                 } catch (err) {                    
                     console.log(`alter table failed ${alterTblSql} ${(err as any)?.message}`);
                     throw err;
