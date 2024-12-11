@@ -1,6 +1,8 @@
 
-const email = require('../lib/nodemailer');
-function sendEmail(req, res) {
+import * as email from '../lib/nodemailer';
+import { Request, Response } from 'restify'
+
+export async function sendEmail(req: Request, res: Response) {
     if (!req.body) {
         return res.send({ err: "no body" });
     }
@@ -19,7 +21,3 @@ function sendEmail(req, res) {
         return res.send({ message: "ok" });
     });
 }
-
-module.exports = {
-    sendEmail,
-};

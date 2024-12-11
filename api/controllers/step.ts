@@ -8,27 +8,28 @@ interface ILoginParms {
 }
 
 interface IOwnerInfo {
-    ownerID: number;
+    ownerID: string;
+    parentID: string;
     ownerName: string;
     username: string;
     password: string;
 
 }
 
-function cleanId(id: number): number {
-    return parseInt(id as any);
+function cleanId(id: string): string {
+    return id.replace(/[^a-zA-Z0-9-_\.]/g, '');
 }
 export async function login(req: Request, res:Response) : Promise<void> {
     const {username, password} = (req.body || {}) as ILoginParms;
     const users = await doQuery(`select * from ownerInfo where username=?`, [username]) as IOwnerInfo[];
     if (users && users.length) {
         const user = users[0];
-        const id = user.ownerID;
+        const id = user.parentID;
         if (users[0].password === password) {
             const subUsers = await doQuery(`select * from ownerInfo where parentID=?`, [id]) as IOwnerInfo[];
             const ownerPCodes = uniq([id].concat(subUsers.map(u => u.ownerID))).map(cleanId);
             const token = createUserToken({
-                code: id,
+                parentID: id,
                 pmInfo: {
                     ownerPCodes,
                 },

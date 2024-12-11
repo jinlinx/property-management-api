@@ -52,7 +52,7 @@ const goodGroupOps = Object.freeze({
 
 interface ISqlRequestFieldDef {
   field: string;
-  op: '>' | '>=' | '=' | '<' | '<=' | '!=' | '<>' | 'in' | 'sum' | 'count';
+  op: 'sum' | 'count';
   name: string;
 }
 interface ISqlOrderDef {
@@ -62,14 +62,20 @@ interface ISqlOrderDef {
 
 interface ISqlRequestWhereItem {
   field: string;
-  op: string;
+  op: '>' | '>=' | '=' | '<' | '<=' | '!=' | '<>' | 'in';
   val: string | number | (string|number)[];
 }
 
+export type ModelTableNames = 'ownerInfo' | 'houseInfo' | 'tenantInfo' | 'workerInfo' | 'workerComp' | 'maintenanceRecords' | 'googleApiCreds';
+
 interface ISqlRequest {
-  table: string;
-  fields: (ISqlRequestFieldDef | string)[];
-  joins?: any;
+  table: ModelTableNames;
+  fields?: (ISqlRequestFieldDef | string)[];
+  joins?: {
+    [table: string]: {
+      [fieldName: string]: string;  //fieldName to fieldAlias
+    }
+  };
   order?: ISqlOrderDef[];
   whereArray?: ISqlRequestWhereItem[];
   groupByArray?: {
@@ -97,10 +103,10 @@ function getSecAuthWhereCond(fields: models.IDBFieldDef[], auth: IUserAuth) {
       const cond = ` ${f.field} in (${goodIds})`;
       acc.cond = cond;
       //cond = `(${cond} or ${OWNER_PARENT_SEC_FIELD} =${auth.code} )`;       
-    } else if (f.isOwnerSecurityParentField) {
-      //acc.parentCond = `${OWNER_PARENT_SEC_FIELD} =${auth.code} )`;       
-      acc.parentCond = `${f.field}=${cleanId(auth.code)}`;
-    }    
+    }
+    //else if (f.isOwnerSecurityParentField) {      
+    //  acc.parentCond = `${f.field}=${cleanId(auth.parentID)}`;
+    //}    
     return acc;
   }, {
     cond: '',
@@ -234,7 +240,7 @@ export async function doSqlGetInternal(auth: IUserAuth, sqlReq: ISqlRequest) {
       auth.pmInfo.ownerPCodes.forEach(c => whereRed.prms.push(c));
       if (fieldMap[OWNER_PARENT_SEC_FIELD]) {
         cond = `(${cond} or ${OWNER_PARENT_SEC_FIELD} =? )`;
-        whereRed.prms.push(auth.code);
+        whereRed.prms.push(auth.parentID);
       }
       whereRed.whr.push(cond);      
     }
@@ -314,13 +320,15 @@ const vmap2 = (v: (models.PossibleDbTypes|undefined), f: models.IDBFieldDef) => 
   return v;
 }
 
+
 interface ICreateUpdateParms {
-  table: string;
+  table: ModelTableNames;
   fields: { [key: string]: string };
-  create: boolean;
+  doCreate?: boolean;
+  doUpdate?: boolean;
 }
 export async function createOrUpdateInternal(body: ICreateUpdateParms, auth: IUserAuth) {
-  const { table, create } = body;
+  const { table, doCreate, doUpdate } = body;
   const fields = body.fields;
   const model = models.data[table];
   if (!model) {
@@ -337,13 +345,13 @@ export async function createOrUpdateInternal(body: ICreateUpdateParms, auth: IUs
   let idVal = '' as models.PossibleDbTypes;
   let sqlArgs = [] as models.PossibleDbTypes[];
     
-  if (create) {
+  if (doCreate) {
 
     sqlStr = `insert into ${table} (${model.fields.filter(f => !f.ident).map(f => f.field).join(',')},created,modified)
        values (${model.fields.filter(f => !f.ident).map((f) => {
       let val = fields[f.field] as models.PossibleDbTypes;
       if (f.isId) {
-        idVal = uuid.v1();
+        idVal = val ?? uuid.v1();
         val = idVal;
       }
       if (f.specialCreateVal) {
@@ -351,10 +359,10 @@ export async function createOrUpdateInternal(body: ICreateUpdateParms, auth: IUs
         return '?';
          }
          
-         if (f.isOwnerSecurityField) {
-           const vi = parseInt(val as string);
-           if (vi !== auth.code && !auth.pmInfo.ownerPCodes.includes(vi)) {
-             const error = `Code ${vi} (${val} from fiel ${f.field} isId=${f.isId}) is not authorized`;
+         if (f.isOwnerSecurityField) {           
+           if (val !== auth.parentID && !auth.pmInfo.ownerPCodes.includes(val as string)) {
+             const error = `Code (${val} from fiel ${f.field} isId=${f.isId}) is not authorized`;
+             console.log(error);
              throw {
                message: error,
                error,
@@ -380,7 +388,9 @@ export async function createOrUpdateInternal(body: ICreateUpdateParms, auth: IUs
       return '?';
       //return vmap(val);
     }).join(',')},NOW(),NOW())`;
-  } else {
+  }
+  
+  if (doUpdate){
     //update
     interface INameVal {
       name: string;
@@ -427,8 +437,15 @@ export async function createOrUpdateInternal(body: ICreateUpdateParms, auth: IUs
     const whereCond = [`${idField.name}=${vmap(idField.value)}`];
     const secCond = getSecAuthWhereCond(model.fields, auth);
     if (secCond) whereCond.push(secCond);
-    sqlStr = `update ${table} set ${values.map(v => setValMap(v)).join(',')},modified=NOW() where ${whereCond.join(' and ')}`;
-    sqlArgs = values.map(v => v.value);
+
+    const valueUpdatePairs = `${values.map(v => setValMap(v)).join(',')},modified=NOW()`;
+    if (doCreate) {
+      sqlStr += ' on duplicate key update ' + valueUpdatePairs;
+      sqlArgs = sqlArgs.concat(values.map(v => v.value));
+    } else {
+      sqlStr = `update ${table} set ${valueUpdatePairs} where ${whereCond.join(' and ')}`;      
+      sqlArgs = values.map(v => v.value);
+    }    
   }
 
   console.log(sqlStr);

@@ -1,3 +1,4 @@
+/*
 const paypal = require('../../statementpuller/paypal');
 const venmo = require('../../statementpuller/venmo');
 const caspapp = require('../../statementpuller/cashapp');
@@ -131,3 +132,4 @@ module.exports = {
     getStatementProcessingMsg,
     sendPaymentNotification,
 };
+*/
