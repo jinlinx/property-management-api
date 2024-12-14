@@ -24,6 +24,7 @@ module.exports = {
         const rts = keys(routes) as string[];
         rts.forEach(url=>{
             const op = routes[url];
+            console.log(`debugremove adding ${url}`);
             server[op.method](`${consts.apiRoot}${url}`, op.func);
         });
 
@@ -50,8 +51,8 @@ module.exports = {
         //    default: 'index.html'
         //  }));        
 
-        require('./socket').setupSocket(server, [
-            require('../../statementpuller/webhandler').socketEmiter,
-        ])
+        //require('./socket').setupSocket(server, [
+        //    require('../../statementpuller/webhandler').socketEmiter,
+        //])
     }
 };

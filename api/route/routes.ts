@@ -3,9 +3,9 @@ const about = require('../controllers/about');
 const model = require('../controllers/model');
 import * as sql from '../controllers/sql';
 const calc = require('../controllers/calc');
-const email = require('../controllers/email');
-const statement = require('../controllers/statements');
-const sheet = require('../controllers/sheet');
+import * as  email from '../controllers/email';
+//const statement = require('../controllers/statements');
+import * as sheet from '../controllers/sheet';
 
 import * as steps from '../controllers/step';
 import * as googleApi from '../controllers/google';
@@ -63,26 +63,26 @@ export const routes = {
         method: 'post',
         func: email.sendEmail,
     },
-    '/misc/statement': {
-        method: 'get',
-        func: statement.doStatement,
-    },
-    '/misc/getStatementProcessingMsg': {
-        method: 'get',
-        func: statement.getStatementProcessingMsg,
-    },
-    '/misc/gsimport': {
-        method: 'get',
-        func: statement.doGsImport,
-    },
-    '/misc/matchPayments': {
-        method: 'post',
-        func: statement.matchPayments,
-    },
-    '/misc/sendPaymentNotification': {
-        method: 'get',
-        func: statement.sendPaymentNotification,
-    },
+    // '/misc/statement': {
+    //     method: 'get',
+    //     func: statement.doStatement,
+    // },
+    // '/misc/getStatementProcessingMsg': {
+    //     method: 'get',
+    //     func: statement.getStatementProcessingMsg,
+    // },
+    // '/misc/gsimport': {
+    //     method: 'get',
+    //     func: statement.doGsImport,
+    // },
+    // '/misc/matchPayments': {
+    //     method: 'post',
+    //     func: statement.matchPayments,
+    // },
+    // '/misc/sendPaymentNotification': {
+    //     method: 'get',
+    //     func: statement.sendPaymentNotification,
+    // },
     '/misc/rsheet1/:op/:id/:range': {
         method: 'get',
         func: sheet.doGet,
@@ -102,6 +102,10 @@ export const routes = {
     '/misc/sheet/getSheetNames': {
         method: 'get',
         func: sheet.getSheetNames,
+    },
+    '/misc/sheet/saveSheetAuthData': {
+        method: 'post',
+        func: sheet.saveSheetAuthData,
     },
     '/auth/login': {
         method: 'post',

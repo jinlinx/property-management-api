@@ -1,13 +1,17 @@
 {
     "compilerOptions": {
-        "target": "es5",
-        "module": "commonjs",
+        "target": "ES2022",
+        "module": "nodenext",
         "rootDir": "./",
-        "outDir": "./build",
+        "outDir": "./build",        
         "esModuleInterop": true,
         "sourceMap": true,
+        "pretty": false,
         "allowJs": true,
-        "resolveJsonModule": true,
+        "moduleResolution": "nodenext",
         "strict": true
-    }
+    },
+    "exclude": [
+        "statementpuller", "build", "node_modules"
+    ]
 }
