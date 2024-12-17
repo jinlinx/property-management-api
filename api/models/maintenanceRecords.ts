@@ -1,15 +1,16 @@
-const moment = require('moment');
-module.exports = {
+import { IDBModel } from './types';
+import moment from 'moment';
+export const maintenanceRecords:IDBModel = {
     fields:
         [
             { field: 'maintenanceID', desc: 'Id' , type: 'uuid', required: true, isId: true},
             { field: 'date', desc: 'date', type: 'date' },
-            { field: 'month', desc: 'month', dontShowOnEdit: true, autoValueFunc: row => moment(row['date']).format('YYYY-MM') },
+            { field: 'month', desc: 'month', autoValueFunc: row => moment(row['date']).format('YYYY-MM') }, //dontShowOnEdit: true, 
             { field: 'description', desc: 'description:', size: 4096},
-            { field: 'amount', type: 'decimal', },
+            { field: 'amount', desc:'Amount', type: 'decimal', },
             { field: 'houseID', desc: 'House ID', foreignKey: { table: 'houseInfo', field: 'houseID' } },
             { field: 'expenseCategoryId', desc: 'category', foreignKey: { table: 'expenseCategories', field: 'expenseCategoryID' } },
-            { field: 'hours', type: 'decimal' },
+            { field: 'hours', desc:'Hours', type: 'decimal' },
             { field: 'workerID', desc: 'Worker Id', type: 'uuid', required: true, foreignKey: { table: 'workerInfo', field: 'workerID' } },
             { field: 'comment', desc: 'comment', size: 4096 },
             { field: 'vdPosControl', desc: 'PosControl' },
@@ -20,8 +21,8 @@ module.exports = {
             { name: 'workerFirstName', field: 'firstName', desc: 'FirstName', table: 'w' },
             { name: 'workerLastName', field: 'lastName', desc: 'LastName', table: 'w' },
             { name: 'workerEmail', field: 'email', desc: 'Worker Email', table: 'w' },
-            { name: 'address', desc: 'House', table: 'h' },
-            { name: 'expenseCategoryName', desc: 'Expense', table: 'expc' },
+            { name: 'address', field:'address', desc: 'House', table: 'h' },
+            { name: 'expenseCategoryName', field:'expenseCategoryName', desc: 'Expense', table: 'expc' },
             { name: 'expCatDisplayOrder', field: 'displayOrder', desc: 'Exp Order', table: 'expc' },
             { field: 'userID', desc: 'userID', table: 'o' },
             { field: 'userName', desc: 'userName', table: 'o' },

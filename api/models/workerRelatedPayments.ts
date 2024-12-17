@@ -1,7 +1,7 @@
-const {formatterYYYYMMDD}=require( '../util/util' );
-const formatter = formatterYYYYMMDD;
+import { IDBModel } from './types';
+import { formatterYYYYMMDD } from '../util/util';
 /// internal table
-module.exports={
+export const workerRelatedPayments: IDBModel ={
     fields:
         [
             {field: 'paymentID', desc: 'Id', type: 'uuid', required: true, isId: true, foreignKey: {table: 'rentPaymentInfo', field: 'paymentID'}},

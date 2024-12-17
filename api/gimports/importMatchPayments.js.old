@@ -5,8 +5,8 @@ const Promise = require('bluebird');
 const db = require('../lib/db');
 const uuid = require('uuid');
 const moment = require('moment');
-const { addHouse } = require('./importPropertyMaintence');
-const {getOrCreateLease } = require('./import');
+const { addHouse } = require('./importPropertyMaintence.js.old');
+const {getOrCreateLease } = require('./import.js.old');
 const sheetName = 'Copy of Sheet11';
 async function importAndMatchPayments() {
     async function readSheet() {

@@ -1,5 +1,6 @@
+import { IDBModel } from './types';
 
-module.exports = {
+export const leaseInfo: IDBModel = {
     fields:
         [
             { field: 'leaseID', desc: 'Id', type: 'uuid', required: true, isId: true },
@@ -10,7 +11,7 @@ module.exports = {
             { field: 'startDate', desc: 'Start Date',  type: 'date'},
             { field: 'houseID', desc: 'House ID', foreignKey: { table: 'houseInfo', field: 'houseID' } },
             { field: 'tenantID', desc: 'Tenant ID', foreignKey: { table: 'tenantInfo', field: 'tenantID' } },
-            { field: 'userID', desc: 'Owner', foreignKey: { table: 'userInfo', field: 'userID' }, required: true, isOwnerSecurityField: true,},
+            { field: 'userID', desc: 'Owner', foreignKey: { table: 'userInfo', field: 'userID' }, required: true},
             { field: 'comment', desc: 'Comment' },
             { field: 'monthlyRent', desc: 'Monthly Rent', required: true, type: 'decimal', },            
         ],

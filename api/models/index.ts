@@ -1,7 +1,6 @@
 //const tenantInfo = require('./tenantInfo');
 import {readdirSync}  from 'fs';
 import { keyBy } from 'lodash'
-import { IUserAuth } from './types'
 
 const files = readdirSync(__dirname).filter((n:string) => n !== 'index.js' && n !== 'types.js' && (n.endsWith('.js'))) as string[];
 

@@ -1,4 +1,5 @@
-module.exports = {
+import { IDBModel } from './types';
+export const tenantInfo: IDBModel = {
     fields:
         [
             { field: 'tenantID', desc: 'Id', type: 'uuid', required: true, isId: true },
@@ -14,6 +15,6 @@ module.exports = {
             { field: 'momPhone', desc: 'Mom\'s phone number', },
             { field: 'dadName', desc: 'Dad Name', },
             { field: 'dadPhone', desc: 'Dad Phone', },
-            { field: 'userID', type: 'uuid', desc: 'Owner', foreignKey: { table: 'userInfo', field: 'userID' }, required: true, def:'0', isOwnerSecurityField: true,},
+            { field: 'userID', type: 'uuid', desc: 'Owner', foreignKey: { table: 'userInfo', field: 'userID' }, required: true},
         ]
 };

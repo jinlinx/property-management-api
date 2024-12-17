@@ -1,4 +1,5 @@
-module.exports={
+import { IDBModel } from './types';
+export const workerInfo: IDBModel = {
     fields:
         [
             {field: 'workerID',desc: 'Id',type: 'uuid',required: true,isId: true},

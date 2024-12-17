@@ -2,7 +2,7 @@ export interface IUserAuth {
     userID: string;    
 }
 
-export type ModelTableNames = 'userInfo' | 'houseInfo' | 'tenantInfo' | 'workerInfo' | 'workerComp' | 'maintenanceRecords' | 'googleApiCreds';
+export type ModelTableNames = 'userInfo' | 'houseInfo' | 'tenantInfo' | 'workerInfo' | 'workerComp' | 'maintenanceRecords' | 'googleApiCreds' | 'rentPaymentInfo' | 'leaseInfo' | 'expenseCategories';
 
 export type PossibleDbTypes = (string | number | null | Date);
 export interface IDBFieldDef {
@@ -13,7 +13,7 @@ export interface IDBFieldDef {
     size?: string | number;
     required?: boolean;
     isId?: boolean;
-    def?: string;
+    def?: string|number;
     unique?: boolean;
     ident?: boolean;    
     //isOwnerSecurityParentField?: boolean;

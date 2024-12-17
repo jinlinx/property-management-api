@@ -18,12 +18,11 @@ export const rentPaymentInfo: IDBModel = {
             name: 'view_rentPaymentInfo',
             fields:[
                 { name: 'paymentTypeName', field: 'paymentTypeName', desc: 'Payment Type', table: 'pt' },
-                { field: 'includeInCommission', desc: 'includeInCommission', table: 'pt' },
                 { name: 'address', field: 'address', desc: 'House', table: 'houseInfo' },
                 { name: 'addressId', field: 'houseID', desc: 'HouseID', table: 'houseInfo' },
                 { field: 'source', desc: 'Source', table: 'ip' },
                 { name:'userName', field: 'username', desc: 'UserName', table: 'oi' },                
             ], 
-            extraViewJoins: ' inner join userInfo oi on oi.userID  = houseInfo.userID left join importPayments ip  on ip.paymentID  = rentPaymentInfo.paymentID left join paymentType pt on pt.paymentTypeName = paymentTypeID ',
+            extraViewJoins: ' inner join userInfo oi on oi.userID  = houseInfo.userID left join importPayments ip  on ip.paymentID  = rentPaymentInfo.paymentID',
         }
 };
