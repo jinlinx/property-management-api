@@ -41,7 +41,7 @@ const typeToType = (f: IDBFieldDef, hasPK: boolean) => {
         isPK = true;
     }
     
-    return `${v1}${(f.unique && !isPK) ? ' UNIQUE' : ''}${f.required?' NOT NULL':''}`;
+    return `${v1}${(f.unique || f.isId) ? ' UNIQUE' : ''}${f.required?' NOT NULL':''}`;
 }
 
 interface ITblColumnRet {
@@ -106,15 +106,34 @@ async function check() {
                     throw err;
                 }
             } else {
-                const dbType = corrDbType(dbField).toLowerCase();                
-                const myType = typeToType(col, dbField.Key === 'PRI').toLowerCase().trim();                
-                if (dbType !== myType) {                    
+                const dbType = corrDbType(dbField, false).toLowerCase();                
+                const simpleMyType = getTypeFromDef(col).toLowerCase();
+                const myType = typeToType(col, false).toLowerCase().trim();                
+                if (dbType !== simpleMyType || (dbField.Key ==='UNI' && col.unique)) {                    
                     const alterTblSql = `alter table ${tabName} modify column ${col.field} ${myType} ${col.def ? ' default ' + col.def : ''};`;
                     console.log(`type diff ${dbType} mytype=${myType}: ${alterTblSql}`);
                     await doQuery(alterTblSql);
                 }                
             }            
         }, { concurrency: 1 });
+        const requiredPrimaryKeyFields = curMod.fields.filter(f => f.isId);
+        const foundPrimaryKeyInDb = requiredPrimaryKeyFields.reduce((acc, pf) => {
+            if (dbIds[pf.field].Key === 'PRI') {
+                acc++;
+            }
+            return acc;
+        }, 0);
+        if (foundPrimaryKeyInDb < requiredPrimaryKeyFields.length) {
+            if (foundPrimaryKeyInDb === 0) {
+                const alterTblSql = `alter table ${tabName} add primary key(${requiredPrimaryKeyFields.map(f=>f.field).join(',')});`;
+                console.log(`Need add all primary key: ${alterTblSql}`);
+                await doQuery(alterTblSql);
+            } else {
+                const alterTblSql = `alter table ${tabName} drop primary key, add primary key(${requiredPrimaryKeyFields.map(f => f.field).join(',')});`;
+                console.log(`Need add all primary key: ${alterTblSql}`);
+                await doQuery(alterTblSql);
+            }
+        }
         
         await bluebird.Promise.map(res, async dbf => {
             const found = mustExistDateCols.filter(c => c.field == dbf.Field);
@@ -156,17 +175,20 @@ module.exports = {
     check,
 }
 
-function corrDbType(dbField: ITblColumnRet) {
+function corrDbType(dbField: ITblColumnRet, addUniqueNotNull: boolean = true) {
     let type = dbField.Type.toLowerCase();
     if (type.startsWith('int(')) type = 'int';
-    if (dbField.Extra && dbField.Extra.includes(IDENT_ID)) {
-        type = `${type} ${IDENT_ID}`
-    }
+    if (!addUniqueNotNull) return type;
+
     if (dbField.Key === 'UNI') {
         type = `${type} UNIQUE`;
     }
+    
     if (dbField.Null === 'NO') {
         type = `${type} NOT NULL`;
-    }
+    }    
+    //if (dbField.Key === 'PRI') {
+    //    type = `${type} primary key`;
+    //} 
     return type;
 }
