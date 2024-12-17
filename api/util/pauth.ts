@@ -1,7 +1,6 @@
 import { Server, Request } from 'restify'
 import { signJwt, verifyJwt } from './jwt';
 import { IUserAuth } from '../models/types';
-export { IUserAuth };
 
 export function getUserAuth(req: Request): (IUserAuth | null) {
     const auth = req.authorization as any;
@@ -21,14 +20,14 @@ export function initAuth(server: Server) {
         const auth = req.headers.authorization;
         if (auth && auth.match(/^Bearer /i)) {            
             const tk = auth.substring(7);
-            console.log(tk);
+            console.log('initAuthTK', tk);
             try {
                 const vres = verifyJwt(tk) as IUserAuth;
                 const rauth = {
                     credentials: tk,
                     scheme: 'Bearer',
                     basic: {
-                        username: vres.username,
+                        username: vres.userID,
                         password: '',
                     },
                     info: vres,

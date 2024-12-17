@@ -87,8 +87,8 @@ async function check() {
         console.log(`${tabName} good`);
         
 
-        if (tabName === 'ownerInfo') {
-            console.log('ownerInfo');
+        if (tabName === 'userInfo') {
+            console.log('userInfo');
         }
         const mustExistDateCols=([
             { field: 'created', type: 'datetime', def: 'NOW()', size: undefined, desc: 'created', }
@@ -136,7 +136,7 @@ async function check() {
                     return (` left outer join ${fk.table} on ${tabName}.${f.field}=${fk.table}.${fk.field} `);
                 }
             }).join(' ');
-            const createViewSql = `create or replace view ${curView.name} as ${select} from ${tabName} ${innerJoin} ${curMod.view.extraViewJoins||''}`;
+            const createViewSql = `create or replace view ${curView.name} as ${select} from ${tabName} ${innerJoin} ${curMod.view?.extraViewJoins||''}`;
             console.log(createViewSql);
             try {
                 await doQuery(createViewSql);

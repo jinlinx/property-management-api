@@ -53,8 +53,8 @@ async function importPayments() {
         
         console.log('start');
         const sqlFreeForm = db.doQuery;
-        const xieOwnerId = (await db.doQueryOneRow(`select ownerID from ownerInfo where shortName='Xie'`))['ownerID'];
-        console.log(`xieOwernId=${xieOwnerId}`);
+        const xieuserID = (await db.doQueryOneRow(`select userID from userInfo where shortName='Xie'`))['userID'];
+        console.log(`xieOwernId=${xieuserID}`);
         return await Promise.map(result, async data => {
             try {
                 let paymentTypeId = paymentTypes[toKey(data.type)];
@@ -67,7 +67,7 @@ async function importPayments() {
                 }
                 let houseID = '';
                 //if (data.address) {
-                houseID = await addHouse(houses, data.address, xieOwnerId);
+                houseID = await addHouse(houses, data.address, xieuserID);
                 //}
             
                 const mdate = data.date;

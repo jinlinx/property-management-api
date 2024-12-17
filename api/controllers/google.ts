@@ -3,8 +3,7 @@ import { google, gsAccount } from '@gzhangx/googleapi'
 import { Request, Response } from 'restify'
 
 import { createOrUpdateInternal } from './sql';
-import {getUserAuth, IUserAuth } from '../util/pauth'
-import { IGClientCreds } from '@gzhangx/googleapi/lib/googleApi';
+import {getUserAuth } from '../util/pauth'
 
 function getCreds() {
     const creds: gsAccount.IServiceAccountCreds = {} as gsAccount.IServiceAccountCreds;
@@ -33,10 +32,10 @@ export async function getToken(req: Request, res: Response): Promise<void> {
         await createOrUpdateInternal({
             doCreate: false,
             doUpdate: true,
-            table: 'ownerInfo',
+            table: 'userInfo',
             fields: {
                 googleToken: tk,
-                ownerID: auth.parentID.toString(),
+                userID: auth.userID,
             }
         }, auth);        
         console.log(`google.getToken ${tk}`);

@@ -10,7 +10,7 @@ module.exports = {
             { field: 'startDate', desc: 'Start Date',  type: 'date'},
             { field: 'houseID', desc: 'House ID', foreignKey: { table: 'houseInfo', field: 'houseID' } },
             { field: 'tenantID', desc: 'Tenant ID', foreignKey: { table: 'tenantInfo', field: 'tenantID' } },
-            { field: 'ownerID', type: 'int', desc: 'Owner', foreignKey: { table: 'ownerInfo', field: 'ownerID' }, required: true, def:'0', isOwnerSecurityField: true,},
+            { field: 'userID', desc: 'Owner', foreignKey: { table: 'userInfo', field: 'userID' }, required: true, isOwnerSecurityField: true,},
             { field: 'comment', desc: 'Comment' },
             { field: 'monthlyRent', desc: 'Monthly Rent', required: true, type: 'decimal', },            
         ],
@@ -20,6 +20,6 @@ module.exports = {
                 { field: 'address', name: 'houseAddress', desc: 'Address', table: 'houseInfo' },
                 { field: 'zip', name:'houseZip', desc:'Zip', table:'houseInfo'}
             ],
-            //content:'select houseID, address, city, state, zip, h.ownerID ownerID, ownerName, h.created, h.modified from houseInfo h left outer join ownerInfo o on h.ownerID=o.ownerID'
+            //content:'select houseID, address, city, state, zip, h.userID userID, ownerName, h.created, h.modified from houseInfo h left outer join userInfo o on h.userID=o.userID'
         }
 };

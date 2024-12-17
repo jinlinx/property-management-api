@@ -23,9 +23,9 @@ module.exports = {
             { name: 'address', desc: 'House', table: 'h' },
             { name: 'expenseCategoryName', desc: 'Expense', table: 'expc' },
             { name: 'expCatDisplayOrder', field: 'displayOrder', desc: 'Exp Order', table: 'expc' },
-            { field: 'ownerID', desc: 'OwnerId', table: 'o' },
-            { field: 'ownerName', desc: 'ownerName', table: 'o' },
+            { field: 'userID', desc: 'userID', table: 'o' },
+            { field: 'userName', desc: 'userName', table: 'o' },
         ],
-        extraViewJoins: ' left join workerInfo w on w.workerID=maintenanceRecords.workerID left join houseInfo h on h.houseID = maintenanceRecords.houseID left join expenseCategories expc on expc.expenseCategoryID = maintenanceRecords.expenseCategoryId left join  ownerInfo o on o.ownerID=h.ownerID ',
+        extraViewJoins: ' left join workerInfo w on w.workerID=maintenanceRecords.workerID left join houseInfo h on h.houseID = maintenanceRecords.houseID left join expenseCategories expc on expc.expenseCategoryID = maintenanceRecords.expenseCategoryId left join  userInfo o on o.userID=h.userID ',
     }
 };

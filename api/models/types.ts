@@ -1,34 +1,27 @@
 export interface IUserAuth {
-    username: string;
-    parentID: string;
-    pmInfo: {
-        ownerPCodes: string[];
-    }
+    userID: string;    
 }
 
-export const OWNER_SEC_FIELD = 'ownerID';
-export const OWNER_PARENT_SEC_FIELD = 'parentID';
+export type ModelTableNames = 'userInfo' | 'houseInfo' | 'tenantInfo' | 'workerInfo' | 'workerComp' | 'maintenanceRecords' | 'googleApiCreds';
+
 export type PossibleDbTypes = (string | number | null | Date);
 export interface IDBFieldDef {
     field: string; //actual field
     name?: string; //name
     desc: string;
     type?: '' | undefined | 'int' | 'string' | 'date' | 'datetime'| 'decimal' | 'uuid';
-    size?: string;
+    size?: string | number;
     required?: boolean;
     isId?: boolean;
     def?: string;
     unique?: boolean;
-    ident?: boolean;
-    dontUpdate?: boolean;
-    isOwnerSecurityField?: boolean;
+    ident?: boolean;    
     //isOwnerSecurityParentField?: boolean;
     //key?: 'UNI' | 'PRI' | null;
     formatter?: (v: PossibleDbTypes) => string;
     autoValueFunc?: (row: { [key: string]: (string | number) }, field: IDBFieldDef, val: PossibleDbTypes) => (string);
-    specialCreateVal?: (auth: IUserAuth) => PossibleDbTypes;
     foreignKey?: {
-        table: string;
+        table: ModelTableNames;
         field: string;
     };
 }
@@ -42,7 +35,7 @@ export interface IDBModel {
     fieldMap?: {
         [key: string]: IDBFieldDef;
     };
-    view: {
+    view?: {
         name: string;
         fields: IDBViewFieldDef[];
         extraViewJoins?: string;

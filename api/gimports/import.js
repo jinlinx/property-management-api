@@ -65,14 +65,14 @@ async function importTenantDataGS() {
         return await Promise.map(result.res, async data => {
             const sqlFreeForm = db.doQuery;
             //console.log(data);
-            const owner = await sqlFreeForm(`select ownerID from ownerInfo where ownerName=?`, [data.owner]);
-            let ownerID;
+            const owner = await sqlFreeForm(`select userID from userInfo where ownerName=?`, [data.owner]);
+            let userID;
             if (!owner[0]) {
-                ownerID = uuid.v1();
-                await sqlFreeForm(`insert into ownerInfo(ownerID,ownerName,shortName,created,modified)
-        values(?,?,?,now(),now())`, [ownerID, data.owner, data.owner]);
+                userID = uuid.v1();
+                await sqlFreeForm(`insert into userInfo(userID,ownerName,shortName,created,modified)
+        values(?,?,?,now(),now())`, [userID, data.owner, data.owner]);
             } else {
-                ownerID = owner[0].ownerID;
+                userID = owner[0].userID;
             }
             const r = await sqlFreeForm(`select houseID from houseInfo where Address = ?`, [data.addr]).catch(err => {
                 console.log(err)
@@ -80,8 +80,8 @@ async function importTenantDataGS() {
             let houseID = null;
             if (!r[0]) {
                 houseID = uuid.v1();
-                await sqlFreeForm(`insert into houseInfo (houseID,address,city,state, zip,ownerID, created,modified)
-        values(?,?,?,?,?,?,now(),now())`, [houseID, data.addr, data.city, data.state, data.zip, ownerID]).catch(err => {
+                await sqlFreeForm(`insert into houseInfo (houseID,address,city,state, zip,userID, created,modified)
+        values(?,?,?,?,?,?,now(),now())`, [houseID, data.addr, data.city, data.state, data.zip, userID]).catch(err => {
                     console.log(err.response.body)
                 })
             } else {
@@ -153,7 +153,7 @@ async function importTenantDataGS() {
                 leaseID,
                 houseID,
                 tenantID,
-                ownerID,
+                userID,
                 firstName,
                 lastName,
                 email: data.email,

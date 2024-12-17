@@ -87,7 +87,7 @@ async function getReadyToImportPayments() {
     inner join leaseTenantInfo lti on ptm.tenantID = lti.tenantID
     inner join leaseInfo l on l.leaseID = lti.leaseID
     inner join houseInfo h on h.houseID = l.houseID   
-    left outer join ownerInfo o on o.ownerID = h.ownerID
+    left outer join userInfo o on o.userID = h.userID
     where i.matchedTo is null`;
     const payments = await db.doQuery(sqlStr);
     return payments;
@@ -144,8 +144,8 @@ async function matchImports(ids, paymentTypeID) {
     inner join leaseTenantInfo lti on ptm.tenantID = lti.tenantID
     inner join leaseInfo l on l.leaseID = lti.leaseID
     inner join houseInfo h on h.houseID = l.houseID   
-    left outer join ownerInfo o on o.ownerID = h.ownerID
-    set i.leaseID=lti.leaseID, i.houseID=h.houseID, i.tenantID=t.tenantID, i.ownerID=o.ownerID,i.address=h.address, i.ownerName=o.ownerName, importID=?
+    left outer join userInfo o on o.userID = h.userID
+    set i.leaseID=lti.leaseID, i.houseID=h.houseID, i.tenantID=t.tenantID, i.userID=o.userID,i.address=h.address, i.ownerName=o.ownerName, importID=?
     where i.matchedTo is null and i.id in (${ids.map(x=>'?').join(',')})`, [importID, ...ids]);
     
     await db.doQuery(`insert into rentPaymentInfo(paymentID, receivedDate,receivedAmount,

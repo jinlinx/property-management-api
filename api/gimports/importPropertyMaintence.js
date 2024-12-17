@@ -66,9 +66,9 @@ async function importPropertyMaintenance() {
         }, {});
         console.log('start');
         const sqlFreeForm = db.doQuery;
-        const xieOwnerId = (await db.doQueryOneRow(`select ownerID from ownerInfo where shortName='Xie'`))['ownerID'];
-        console.log(`xieOwernId=${xieOwnerId}`);
-        console.log(xieOwnerId)
+        const xieuserID = (await db.doQueryOneRow(`select userID from userInfo where shortName='Xie'`))['userID'];
+        console.log(`xieOwernId=${xieuserID}`);
+        console.log(xieuserID)
         return await Promise.map(result.res, async data => {
             try {
                 let categoryID = cats[toKey(data.category)];
@@ -88,7 +88,7 @@ async function importPropertyMaintenance() {
 
                 let houseID = '';
                 //if (data.house) {
-                houseID = await addHouse(houses, data.house || '', xieOwnerId);
+                houseID = await addHouse(houses, data.house || '', xieuserID);
                 //}
 
                 let workerID = '';
@@ -161,7 +161,7 @@ async function importPropertyMaintenance() {
 }
 
 const toKey = x => x.trim().toLowerCase();
-async function addHouse(houses, address,xieOwnerId) {
+async function addHouse(houses, address,xieuserID) {
     let houseID = '';
 
     address = (address || '').trim();
@@ -173,9 +173,9 @@ async function addHouse(houses, address,xieOwnerId) {
         houses[key] = { houseID };
         await db.doQuery(`insert into houseInfo(houseID,address) values
                 ('${houseID}','${address}')`);
-    } else if (!curHouse.ownerID) {
-        await db.doQuery(`update houseInfo set ownerID = '${xieOwnerId}' where houseID='${curHouse.houseID}'`);
-        curHouse.ownerID = xieOwnerId;
+    } else if (!curHouse.userID) {
+        await db.doQuery(`update houseInfo set userID = '${xieuserID}' where houseID='${curHouse.houseID}'`);
+        curHouse.userID = xieuserID;
     }
     if (curHouse) {
         houseID = curHouse.houseID;

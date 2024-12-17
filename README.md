@@ -46,4 +46,4 @@ openssl ecparam -genkey -name prime256v1 -out keys\ec-jwt-private-key.pem
 openssl ec -in keys\ec-jwt-private-key.pem -pubout keys\ec-jwt-public-key.pem
 
 
-ownerInfo is the primary table, linked by parentId.  not sure what user is for.
+userInfo is the primary table, linked by parentId.  not sure what user is for.

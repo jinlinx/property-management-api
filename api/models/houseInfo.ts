@@ -7,13 +7,13 @@ export const houseInfo = {
             { field: 'city', desc: 'City', },
             { field: 'state', desc: 'State',  },
             { field: 'zip', desc: 'Zip', },
-            { field: 'ownerID', type: 'uuid', desc: 'Owner ID', required: true, isOwnerSecurityField: true, foreignKey: { table: 'ownerInfo', field: 'ownerID' } },
+            { field: 'userID', type: 'uuid', desc: 'User ID', required: true, isOwnerSecurityField: true, foreignKey: { table: 'userInfo', field: 'userID' } },
         ],
     view:{
         name:'view_house',
         fields:[
-            {name:'ownerName', field:'ownerName', desc:'Owner Name', table:'ownerInfo'}
+            {name:'userName', field:'userName', desc:'User Name', table:'userInfo'}
         ],
-        content:'select houseID, address, city, state, zip, h.ownerID ownerID, ownerName, h.created, h.modified from houseInfo h left outer join ownerInfo o on h.ownerID=o.ownerID'
+        content:'select houseID, address, city, state, zip, h.userID userID, userName, h.created, h.modified from houseInfo h left outer join userInfo o on h.userID=o.userID'
     }
 } as IDBModel;

@@ -11,7 +11,7 @@ module.exports = {
             { field: 'tenantID', desc: 'tenantID', },
             { field: 'leaseID', desc: 'leaseID', },
             { field: 'houseID', desc: 'houseID', },
-            { field: 'ownerID', type: 'int', desc: 'Owner ID', required: true, foreignKey: { table: 'ownerInfo', field: 'ownerID' } },
+            { field: 'userID', type: 'int', desc: 'Owner ID', required: true, foreignKey: { table: 'userInfo', field: 'userID' } },
             { field: 'ownerName', desc: 'Owner Name', },
             { field: 'address', desc: 'Address', },
             { field: 'importID', desc: 'Temp ImportId', },

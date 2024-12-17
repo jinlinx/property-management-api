@@ -5,9 +5,9 @@ import { keyBy, get } from 'lodash';
 import * as uuid from 'uuid';
 import { extensionFields } from '../util/util';
 import moment from 'moment';
-import {getUserAuth, IUserAuth } from '../util/pauth'
+import {getUserAuth } from '../util/pauth'
 
-import { OWNER_SEC_FIELD, OWNER_PARENT_SEC_FIELD } from '../models/types';
+import { IUserAuth, ModelTableNames } from '../models/types';
 
 function removeBadChars(str: string) {
   return str.replace(/[^A-Za-z0-9]/g, '');
@@ -66,7 +66,6 @@ interface ISqlRequestWhereItem {
   val: string | number | (string|number)[];
 }
 
-export type ModelTableNames = 'ownerInfo' | 'houseInfo' | 'tenantInfo' | 'workerInfo' | 'workerComp' | 'maintenanceRecords' | 'googleApiCreds';
 
 interface ISqlRequest {
   table: ModelTableNames;
@@ -92,27 +91,21 @@ interface IInternalWherePrm
   prms: IPrmType[];
 }
 
-function cleanId(num: any): number {
-  return parseInt(num);
+export function cleanId(id: string): string {
+  return id.replace(/[^a-zA-Z0-9-_+@\.]/g, '');
+}
+
+function isOwnerSecurityField(field: models.IDBFieldDef) {
+  return field.foreignKey && field.foreignKey.table === 'userInfo';
 }
 function getSecAuthWhereCond(fields: models.IDBFieldDef[], auth: IUserAuth) {  
   const res = fields.reduce((acc, f) => {
-    if (f.isOwnerSecurityField) {
-      const goodIds = auth.pmInfo.ownerPCodes.map(cleanId).join(',');
-      //OWNER_SEC_FIELD
-      const cond = ` ${f.field} in (${goodIds})`;
-      acc.cond = cond;
-      //cond = `(${cond} or ${OWNER_PARENT_SEC_FIELD} =${auth.code} )`;       
-    }
-    //else if (f.isOwnerSecurityParentField) {      
-    //  acc.parentCond = `${f.field}=${cleanId(auth.parentID)}`;
-    //}    
+    if (isOwnerSecurityField(f)) {      
+      return ` ${f.field} = '${auth.userID}'`;            
+    }    
     return acc;
-  }, {
-    cond: '',
-    parentCond: ''
-  });  
-  return !res.parentCond? res.cond : ` (${res.cond} OR ${res.parentCond})`;
+  }, '');  
+  return res;
 }
 export async function doSqlGetInternal(auth: IUserAuth, sqlReq: ISqlRequest) {
   //joins:{ table:{col:als}}
@@ -232,18 +225,7 @@ export async function doSqlGetInternal(auth: IUserAuth, sqlReq: ISqlRequest) {
       whr: [],
       prms: [],
     } as IInternalWherePrm);
-
-    if (fieldMap[OWNER_SEC_FIELD+'dontuseanymore'])
-    {
-      const goodIds = auth.pmInfo.ownerPCodes.map(x => '?').join(',');
-      let cond = ` ${OWNER_SEC_FIELD} in (${goodIds})`;
-      auth.pmInfo.ownerPCodes.forEach(c => whereRed.prms.push(c));
-      if (fieldMap[OWNER_PARENT_SEC_FIELD]) {
-        cond = `(${cond} or ${OWNER_PARENT_SEC_FIELD} =? )`;
-        whereRed.prms.push(auth.parentID);
-      }
-      whereRed.whr.push(cond);      
-    }
+    
     const secCond = getSecAuthWhereCond(model.fields, auth);
     if (secCond) whereRed.whr.push(secCond);
     if (whereRed.whr.length) {
@@ -263,8 +245,8 @@ export async function doSqlGetInternal(auth: IUserAuth, sqlReq: ISqlRequest) {
   const fromAndWhere = ` from ${[tableOrView].concat(joinTbls).join(' ')} ${whereStr} `;
   const sqlStr = `select ${selectNames.concat(joinSels).join(',')} ${fromAndWhere} ${orderby} ${groupByStr}
     limit ${offset}, ${rowCount}`;
-  console.log([sqlStr]);
-  console.log(wherePrm);
+  console.log('doGET(sqlStr):',[sqlStr]);
+  if (wherePrm && wherePrm.length) console.log('doGET(wherePrm):', wherePrm);
   const countRes = await db.doQueryOneRow(`select count(1) cnt ${fromAndWhere}  ${groupByStr}`, wherePrm);
   const rows = await db.doQuery(sqlStr, wherePrm);
 
@@ -353,14 +335,10 @@ export async function createOrUpdateInternal(body: ICreateUpdateParms, auth: IUs
       if (f.isId) {
         idVal = val ?? uuid.v1();
         val = idVal;
-      }
-      if (f.specialCreateVal) {
-        sqlArgs.push(f.specialCreateVal(auth));
-        return '?';
-         }
+      }      
          
-         if (f.isOwnerSecurityField) {           
-           if (val !== auth.parentID && !auth.pmInfo.ownerPCodes.includes(val as string)) {
+         if (isOwnerSecurityField(f)) {           
+           if (val && val !== auth.userID) {
              const error = `Code (${val} from fiel ${f.field} isId=${f.isId}) is not authorized`;
              console.log(error);
              throw {
@@ -368,6 +346,7 @@ export async function createOrUpdateInternal(body: ICreateUpdateParms, auth: IUs
                error,
              }
            }
+           val = auth.userID;
          }
       //if (f.field === OWNER_SEC_FIELD) {
       //  sqlArgs.push(auth.code);
@@ -399,13 +378,8 @@ export async function createOrUpdateInternal(body: ICreateUpdateParms, auth: IUs
     const { idField, values } = model.fields.reduce((acc, mf) => {
       if (mf.isId) {
         acc.idField = { name: mf.field, value: fields[mf.field] };
-      } else if (!mf.dontUpdate){
-        if (mf.specialCreateVal) {
-          acc.values.push({
-            name: mf.field,
-            value: mf.specialCreateVal(auth),
-          })
-        } else {
+      } else if (!isOwnerSecurityField(mf)){
+        {
           const v = fields[mf.field];
           if (v !== undefined) {
             let formatter = mf.formatter || vmap2;
@@ -448,8 +422,8 @@ export async function createOrUpdateInternal(body: ICreateUpdateParms, auth: IUs
     }    
   }
 
-  console.log(sqlStr);
-  console.log(sqlArgs);
+  console.log('createOrUpdateInternal sqlStr', sqlStr);
+  if (sqlArgs && sqlArgs.length ) console.log('createOrUpdateInternal sqlArg', sqlArgs);
   const rows = await db.doQuery(sqlStr, sqlArgs) as any;
 
   rows.id = idVal;

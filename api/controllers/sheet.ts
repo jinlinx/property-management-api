@@ -1,7 +1,7 @@
 import { gsAccount } from '@gzhangx/googleapi'
 import { Request, Response } from 'restify'
 const { get, omit,pick } = require('lodash');
-import { getUserAuth, IUserAuth } from '../util/pauth'
+import { getUserAuth } from '../util/pauth'
 import * as fs from 'fs';
 import * as sql from './sql';
 
@@ -144,7 +144,7 @@ type GoogleAuthAndSheetInfo = {
     private_key: string;
     client_email: string;
 
-    ownerID: string;
+    userID: string;
 }
 export async function saveSheetAuthData(req: Request, res: Response) {
     const auth = getUserAuth(req);
@@ -154,8 +154,8 @@ export async function saveSheetAuthData(req: Request, res: Response) {
             message,
         });
     }
+    const userID = auth.userID;
     const body = req.body as {
-        ownerID: string;
         authInfo: GoogleAuthAndSheetInfo;
     }
     const authInfo = body.authInfo;
@@ -165,16 +165,6 @@ export async function saveSheetAuthData(req: Request, res: Response) {
             message,
         });
     }
-
-    await sql.createOrUpdateInternal({
-        table: 'ownerInfo',
-        doCreate: false,
-        doUpdate: true,
-        fields: {
-            'googleSheetId': authInfo.googleSheetId,
-            ownerID: body.ownerID,
-        },
-    }, auth);
     
     await sql.createOrUpdateInternal({
         table: 'googleApiCreds',
@@ -185,9 +175,13 @@ export async function saveSheetAuthData(req: Request, res: Response) {
             private_key_id: authInfo.private_key_id,
             private_key: authInfo.private_key.replace(/\\n/g,'\n'),
             client_email: authInfo.client_email,
-            ownerID: body.ownerID,
+            userID,
         },
     }, auth);
+    res.send({
+        ok: true,
+        message: 'Saved ' + auth.userID
+    });
 }
 
 
