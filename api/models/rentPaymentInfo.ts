@@ -8,7 +8,7 @@ export const rentPaymentInfo: IDBModel = {
             { field: 'paidBy', desc: 'Paid By', },
             { field: 'notes', desc: 'Notes', size: 1024}, //alter table rentPaymentInfo modify column notes varchar(1024);
             { field: 'month', desc: 'Month', },
-            { field: 'paymentTypeID', desc: 'PaymentType'},
+            { field: 'paymentTypeName', desc: 'PaymentType'},
             //{ field: 'leaseID', desc: 'Lease ID', foreignKey: {table: 'leaseInfo', field:'leaseID'}},
             { field: 'houseID', desc: 'House', foreignKey: { table: 'houseInfo', field: 'houseID' } },
             { field: 'userID', desc: 'Owner', foreignKey: { table: 'userInfo', field: 'userID' }, required: true,},
@@ -17,12 +17,10 @@ export const rentPaymentInfo: IDBModel = {
         view:{
             name: 'view_rentPaymentInfo',
             fields:[
-                { name: 'paymentTypeName', field: 'paymentTypeName', desc: 'Payment Type', table: 'pt' },
                 { name: 'address', field: 'address', desc: 'House', table: 'houseInfo' },
                 { name: 'addressId', field: 'houseID', desc: 'HouseID', table: 'houseInfo' },
                 { field: 'source', desc: 'Source', table: 'ip' },
-                { name:'userName', field: 'username', desc: 'UserName', table: 'oi' },                
             ], 
-            extraViewJoins: ' inner join userInfo oi on oi.userID  = houseInfo.userID left join importPayments ip  on ip.paymentID  = rentPaymentInfo.paymentID',
+            extraViewJoins: ' left join importPayments ip  on ip.paymentID  = rentPaymentInfo.paymentID',
         }
 };
