@@ -8,7 +8,7 @@ import * as  email from '../controllers/email';
 import * as sheet from '../controllers/sheet';
 
 import * as steps from '../controllers/step';
-import * as googleApi from '../controllers/google';
+//import * as googleApi from '../controllers/google.ts.old';
 
 export const routes = {
     '/doQuery': {
@@ -104,14 +104,14 @@ export const routes = {
         method: 'post',
         func: steps.login,
     },
-    '/google/clientId': {
-        method: 'get',
-        func: googleApi.getGoogleClientId,
-    },
-    '/google/token': {
-        method: 'post',
-        func: googleApi.getToken,
-    },
+    // '/google/clientId': {
+    //     method: 'get',
+    //     func: googleApi.getGoogleClientId,
+    // },
+    // '/google/token': {
+    //     method: 'post',
+    //     func: googleApi.getToken,
+    // },
     '/version': {
         auth: false,
         method: 'get',
