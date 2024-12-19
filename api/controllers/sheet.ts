@@ -76,6 +76,8 @@ export async function doGet(req: Request, res: Response) {
             rsp = await sheet.append(range, data); //`'Sheet1'!A1:B2`, [['data']]
         } else if (op === 'batch') {
             rsp = await sheet.doBatchUpdate(data);
+        } else if (op === 'update') {
+            rsp = await sheet.updateValues(data.range, data.values);
         } else {
             res.send(400, { message: `Not supported operation ${op}` });
         }
