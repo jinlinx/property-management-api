@@ -5,7 +5,7 @@ import { getUserAuth } from '../util/pauth'
 import * as sql from './sql';
 
 import { doSqlGetInternal } from './sql';
-export async function getSheetClient(req: Request, sheetId: string) {
+async function getSheetClient(req: Request, sheetId: string) {
     const auth = getUserAuth(req);
     if (!auth) {
         const message = 'not authorized';        
