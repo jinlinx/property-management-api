@@ -2,7 +2,6 @@ import { gsAccount } from '@gzhangx/googleapi'
 import { Request, Response } from 'restify'
 const { get, omit,pick } = require('lodash');
 import { getUserAuth } from '../util/pauth'
-import * as fs from 'fs';
 import * as sql from './sql';
 
 import { doSqlGetInternal } from './sql';
@@ -92,44 +91,6 @@ export async function doGet(req: Request, res: Response) {
             rspErr,
         });
     }
-}
-
-export async function readMaintenanceRecord(req: Request, res: Response) {
-    try {                
-        const sheetId = req.query.sheetId || 'NOmaintenanceRecordGSheetId';
-        const { client, message } = await getSheetClient(req, sheetId);
-        if (!client || message) {
-            const message = `clinet  not found`;
-            console.log(message);
-            return res.send(500, {
-                message,
-            });
-        }
-
-        const sheetName = req.query.sheetName || 'MaintainessRecord';
-        console.log(`SheetId ${sheetId} name =${sheetName}`);
-        const sheet = client.getSheetOps(sheetId);
-        const rsp = await sheet.read(sheetName);
-        console.log('rsp',rsp)
-        return res.json(rsp);
-    } catch (err: any) {
-        const rspErr = get(err, 'response.text') || get(err, 'response.data.error');
-        console.log('sheet.doGet error, params, rspErr, errors', req.params, rspErr, err.errors);
-        console.log('sheet.doGet error', cleanError(err));
-        res.send(422, {
-            id: req.params.id,
-            message: err.message,
-            errors: err.errors,
-            rspErr,
-        });
-    }
-}
-
-export async function getSheetNames(req: Request, res: Response) {
-    const fname = process.env['googleSheetUserFile'] || 'nofile';
-    const users = JSON.parse(fs.readFileSync(fname).toString());
-
-    return res.json(users);   
 }
 
 /////////////////////////

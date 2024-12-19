@@ -7,6 +7,7 @@ export const houseInfo = {
             { field: 'city', desc: 'City', },
             { field: 'state', desc: 'State',  },
             { field: 'zip', desc: 'Zip', },
+            { field: 'ownerName', desc: 'Owner Name', },
             { field: 'userID', type: 'uuid', desc: 'User ID', required: true, isOwnerSecurityField: true, foreignKey: { table: 'userInfo', field: 'userID' } },
         ],
     view:{

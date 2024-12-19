@@ -95,14 +95,7 @@ export const routes = {
         method: 'post',
         func: sheet.doGet,
     },
-    '/misc/sheet/readMaintenanceRecord': {
-        method: 'get',
-        func: sheet.readMaintenanceRecord,
-    },
-    '/misc/sheet/getSheetNames': {
-        method: 'get',
-        func: sheet.getSheetNames,
-    },
+
     '/misc/sheet/saveSheetAuthData': {
         method: 'post',
         func: sheet.saveSheetAuthData,
