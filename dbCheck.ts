@@ -118,7 +118,7 @@ async function check() {
         }, { concurrency: 1 });
         const requiredPrimaryKeyFields = curMod.fields.filter(f => f.isId);
         const foundPrimaryKeyInDb = requiredPrimaryKeyFields.reduce((acc, pf) => {
-            if (dbIds[pf.field].Key === 'PRI') {
+            if (dbIds[pf.field]?.Key === 'PRI') {
                 acc++;
             }
             return acc;
