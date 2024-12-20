@@ -333,7 +333,7 @@ export async function createOrUpdateInternal(body: ICreateUpdateParms, auth: IUs
        values (${model.fields.filter(f => !f.ident).map((f) => {
       let val = fields[f.field] as models.PossibleDbTypes;
       if (f.isId) {
-        idVal = val ?? uuid.v1();
+        idVal = val || uuid.v1();
         val = idVal;
       }      
          
