@@ -4,7 +4,7 @@ const model = require('../controllers/model');
 import * as sql from '../controllers/sql';
 const calc = require('../controllers/calc');
 import * as  email from '../controllers/email';
-//const statement = require('../controllers/statements');
+import * as statement from '../controllers/statements';
 import * as sheet from '../controllers/sheet';
 
 import * as steps from '../controllers/step';
@@ -63,10 +63,10 @@ export const routes = {
         method: 'post',
         func: email.sendEmail,
     },
-    // '/misc/statement': {
-    //     method: 'get',
-    //     func: statement.doStatement,
-    // },
+    '/misc/statement/1099': {
+         method: 'get',
+         func: statement.fetch1099,
+    },
     // '/misc/getStatementProcessingMsg': {
     //     method: 'get',
     //     func: statement.getStatementProcessingMsg,

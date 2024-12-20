@@ -1,3 +1,14 @@
+
+import { util } from '@gzhangx/googleapi'
+import { Request, Response } from 'restify'
+export async function fetch1099(req: Request, res: Response): Promise<void>
+{
+    const f1099 = await util.doHttpRequest({
+        method: 'GET',
+        url: 'https://www.irs.gov/pub/irs-pdf/f1099msc.pdf',
+    });
+    res.sendRaw(200, f1099.data);
+}
 /*
 const paypal = require('../../statementpuller/paypal');
 const venmo = require('../../statementpuller/venmo');
