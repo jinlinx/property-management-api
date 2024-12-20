@@ -18,8 +18,7 @@ export const maintenanceRecords:IDBModel = {
     view: {
         name: 'view_maintenanceRecords',
         fields: [
-            { name: 'workerFirstName', field: 'firstName', desc: 'FirstName', table: 'w' },
-            { name: 'workerLastName', field: 'lastName', desc: 'LastName', table: 'w' },
+            { name: 'workerName', field: 'workerName', desc: 'WorkerName', table: 'w' },            
             { name: 'workerEmail', field: 'email', desc: 'Worker Email', table: 'w' },
             { name: 'address', field:'address', desc: 'House', table: 'h' },
             { name: 'expenseCategoryName', field:'expenseCategoryName', desc: 'Expense', table: 'expc' },
