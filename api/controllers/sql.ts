@@ -455,7 +455,7 @@ export async function createOrUpdate(req: Request, res: Response) {
 
 export async function del(req: Request, res: Response) {
   try {
-    const { table, id } = req.body;
+    const { table, ids } = req.body;
     const model = models.data[table];
     if (!model) {
       const message = `No model ${table}`;
@@ -466,11 +466,11 @@ export async function del(req: Request, res: Response) {
 
     //createFieldMap(model);
 
-    const idField = model.fields.filter(f => f.isId)[0];
-    const sqlStr = `delete from ${table} where ${idField.field}=${vmap(id)}`;
+    const idFields = model.fields.filter(f => f.isId);
+    const sqlStr = `delete from ${table} where ${idFields.map(f=>`${f.field}=?`).join(' and ')}`;
 
-    console.log(sqlStr);
-    const rows = await db.doQuery(sqlStr);
+    console.log(`SQK DEKEKTE sqkStr=${sqlStr}`, ids);
+    const rows = await db.doQuery(sqlStr, ids);
     return res.json(rows);
   } catch (err: any) {
     console.log(err);
