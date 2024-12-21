@@ -324,7 +324,7 @@ export async function createOrUpdateInternal(body: ICreateUpdateParms, auth: IUs
 
   let sqlStr = '';
 
-  let idVal = '' as models.PossibleDbTypes;
+  let idVal:any = '' as models.PossibleDbTypes;
   let sqlArgs = [] as models.PossibleDbTypes[];
     
   if (doCreate) {
@@ -376,9 +376,9 @@ export async function createOrUpdateInternal(body: ICreateUpdateParms, auth: IUs
       name: string;
       value: models.PossibleDbTypes;
     }
-    const { idField, values } = model.fields.reduce((acc, mf) => {
+    const { idFields, values } = model.fields.reduce((acc, mf) => {
       if (mf.isId) {
-        acc.idField = { name: mf.field, value: fields[mf.field] };
+        acc.idFields.push({ name: mf.field, value: fields[mf.field] });
       } else if (!isOwnerSecurityField(mf)){
         {
           const v = fields[mf.field];
@@ -400,16 +400,16 @@ export async function createOrUpdateInternal(body: ICreateUpdateParms, auth: IUs
       }      
       return acc;
     }, {
-      idField: null as (null | INameVal),
+      idFields: [] as INameVal[],
       values: [] as INameVal[],
     });
-    if (!idField) {
+    if (!idFields.length) {
       throw 'Id field not specified';
     }
-    idVal = idField.value;
+    idVal = idFields;
     //const setValMap = v => `${v.name}=${v.value}`;
     const setValMap = (v: INameVal) => `${v.name}=?`;
-    const whereCond = [`${idField.name}=${vmap(idField.value)}`];
+    const whereCond = idFields.map(idField=>`${idField.name}=${vmap(idField.value)}`);
     const secCond = getSecAuthWhereCond(model.fields, auth);
     if (secCond) whereCond.push(secCond);
 
