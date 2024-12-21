@@ -332,10 +332,11 @@ export async function createOrUpdateInternal(body: ICreateUpdateParms, auth: IUs
     sqlStr = `insert into ${table} (${model.fields.filter(f => !f.ident).map(f => f.field).join(',')},created,modified)
        values (${model.fields.filter(f => !f.ident).map((f) => {
       let val = fields[f.field] as models.PossibleDbTypes;
-      if (f.isId) {
-        idVal = val || uuid.v1();
-        val = idVal;
-      }      
+         if (f.isId && !isOwnerSecurityField(f)) {
+          //default for id, but not if it is userID 
+           idVal = val || uuid.v1();
+           val = idVal;
+         }      
          
          if (isOwnerSecurityField(f)) {           
            if (val && val !== auth.userID) {
